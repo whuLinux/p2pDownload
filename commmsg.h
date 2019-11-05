@@ -39,15 +39,22 @@ private:
 
 public:
     CommMsg();
+    CommMsg(TCPCtrlMsgType msgType);
     CommMsg(TCPCtrlMsgType msgType, QString downloadAddress, int lenMax);
     CommMsg(TCPCtrlMsgType msgType, qint32 token, qint64 pos, qint32 len);
     CommMsg(TCPCtrlMsgType msgType, qint32 token, qint32 index);
 
     QByteArray toMsg();
 
+    inline void setToken(qint32 token);
     inline void setIndex(qint32 index);
     inline TCPCtrlMsgType getMsgType();
 };
+
+void CommMsg::setToken(qint32 token)
+{
+    this->token = token;
+}
 
 void CommMsg::setIndex(qint32 index)
 {

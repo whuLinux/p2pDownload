@@ -58,6 +58,7 @@ const QString LEN = "len";
 const QString HOSTNAME = "hostName";
 const QString PARTNERNAME = "partnerName";
 const QString PARTNERVECTOR = "partnerVector";
+const QString PWD = "pwd";
 const QString IP = "ip";
 const QString PORT = "port";
 const QString FRIEND = "friend";

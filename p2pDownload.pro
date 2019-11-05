@@ -23,7 +23,6 @@ SOURCES += \
     mainwindow.cpp \
     msgutil.cpp \
     p2ptcpsocket.cpp \
-    p2putil.cpp \
     partner.cpp \
     tcpsocketutil.cpp \
     udpsocketutil.cpp
@@ -35,7 +34,6 @@ HEADERS += \
     mainwindow.h \
     msgutil.h \
     p2ptcpsocket.h \
-    p2putil.h \
     partner.h \
     tcpsocketutil.h \
     udpsocketutil.h \

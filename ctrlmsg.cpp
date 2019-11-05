@@ -2,7 +2,8 @@
 
 CtrlMsg::CtrlMsg()
 {
-
+    this->clientNum = 0;
+    this->clientIndex = 0;
 }
 
 CtrlMsg::CtrlMsg(UDPCtrlMsgType msgType)
@@ -18,14 +19,22 @@ QByteArray CtrlMsg::toMsg()
         {MSGTYPE, qint8(this->msgType)}
     };
 
-    if (this->msgType == UDPCtrlMsgType::LOGIN || this->msgType == UDPCtrlMsgType::LOGOUT) {
+    if (this->msgType == UDPCtrlMsgType::LOGIN) {
         jsonMsg.insert(HOSTNAME, this->hostName);
+        jsonMsg.insert(PWD, this->pwd);
+        jsonMsg.insert(IP, this->ip);
+        jsonMsg.insert(PORT, this->port);
+
+    } else if (this->msgType == UDPCtrlMsgType::LOGOUT) {
+        jsonMsg.insert(HOSTNAME, this->hostName);
+        jsonMsg.insert(PWD, this->pwd);
+
     } else if (this->msgType == UDPCtrlMsgType::P2PTRANS) {
         jsonMsg.insert(PARTNERNAME, this->partnerName);
-    }
 
-    // 仅供解析服务器端数据参考
-    else if (this->msgType == UDPCtrlMsgType::RETURNALLPARTNERS) {
+    } else if (this->msgType == UDPCtrlMsgType::RETURNALLPARTNERS) {
+        // 仅供解析服务器端数据参考
+
         QJsonArray jsonClients;
 
         for (int i = 0; i < this->clientNum; i++) {
@@ -41,6 +50,8 @@ QByteArray CtrlMsg::toMsg()
         jsonMsg.insert(PARTNERVECTOR, jsonClients);
 
     } else if (this->msgType == UDPCtrlMsgType::P2PNEEDHOLE) {
+        // 仅供解析服务器端数据参考
+
         QJsonObject jsonClient {
             {PARTNERNAME, this->clients[0].name},
             {IP, this->clients[0].ip},
