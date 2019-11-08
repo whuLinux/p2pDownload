@@ -17,7 +17,7 @@ private:
 
 public:
     Partner();
-    Partner(qint32 id, QString name, QString ip, quint16 port, quint16 port);
+    Partner(qint32 id, QString name, QString ip, quint16 port, quint16 filePort);
     ~Partner();
 
     inline void attributeTask();
