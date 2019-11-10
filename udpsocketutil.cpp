@@ -28,6 +28,7 @@ bool UDPSocketUtil::stablishClient()
     }
 
     connect(this->client, SIGNAL(readyRead()), this, SLOT(recfromServer()));
+
     return true;
 }
 
@@ -39,7 +40,7 @@ bool UDPSocketUtil::createSocket()
 
 bool UDPSocketUtil::bindClientPort()
 {
-    if (this->client->bind(QHostAddress::LocalHost, this->clientPort)) {
+    if (!this->client->bind(QHostAddress::LocalHost, this->clientPort)) {
         qDebug() << "UDPSocketUtil::bindClientPort " << "客户端无法监听端口" << endl;
         qDebug() << "UDPSocketUtil::bindClientPort " << this->client->errorString() << endl;
 
@@ -50,40 +51,40 @@ bool UDPSocketUtil::bindClientPort()
     return true;
 }
 
-bool UDPSocketUtil::login(CtrlMsg * msg)
+bool UDPSocketUtil::login(CtrlMsg & msg)
 {
-    if (msg->getMsgType() == UDPCtrlMsgType::LOGIN) {
-        this->client->writeDatagram(msg->toMsg(), QHostAddress(this->serverIP), this->serverPort);
+    if (msg.getMsgType() == UDPCtrlMsgType::LOGIN) {
+        this->client->writeDatagram(msg.toMsg(), QHostAddress(this->serverIP), this->serverPort);
         return true;
     }
 
     return false;
 }
 
-bool UDPSocketUtil::logout(CtrlMsg * msg)
+bool UDPSocketUtil::logout(CtrlMsg & msg)
 {
-    if (msg->getMsgType() == UDPCtrlMsgType::LOGOUT) {
-        this->client->writeDatagram(msg->toMsg(), QHostAddress(this->serverIP), this->serverPort);
+    if (msg.getMsgType() == UDPCtrlMsgType::LOGOUT) {
+        this->client->writeDatagram(msg.toMsg(), QHostAddress(this->serverIP), this->serverPort);
         return true;
     }
 
     return false;
 }
 
-bool UDPSocketUtil::obtainAllPartners(CtrlMsg * msg)
+bool UDPSocketUtil::obtainAllPartners(CtrlMsg & msg)
 {
-    if (msg->getMsgType() == UDPCtrlMsgType::OBTAINALLPARTNERS) {
-        this->client->writeDatagram(msg->toMsg(), QHostAddress(this->serverIP), this->serverPort);
+    if (msg.getMsgType() == UDPCtrlMsgType::OBTAINALLPARTNERS) {
+        this->client->writeDatagram(msg.toMsg(), QHostAddress(this->serverIP), this->serverPort);
         return true;
     }
 
     return false;
 }
 
-bool UDPSocketUtil::p2pTrans(CtrlMsg * msg)
+bool UDPSocketUtil::p2pTrans(CtrlMsg & msg)
 {
-    if (msg->getMsgType() == UDPCtrlMsgType::P2PTRANS) {
-        this->client->writeDatagram(msg->toMsg(), QHostAddress(this->serverIP), this->serverPort);
+    if (msg.getMsgType() == UDPCtrlMsgType::P2PTRANS) {
+        this->client->writeDatagram(msg.toMsg(), QHostAddress(this->serverIP), this->serverPort);
         return true;
     }
 
@@ -106,7 +107,17 @@ bool UDPSocketUtil::recfromServer()
             return false;
         }
 
-        if (jsonMsg.value(MSGTYPE).toInt() == qint8(UDPCtrlMsgType::RETURNALLPARTNERS)) {
+        if (jsonMsg.value(MSGTYPE).toInt() == qint8(UDPCtrlMsgType::RENAME)) {
+            return rename();
+        } else if (jsonMsg.value(MSGTYPE).toInt() == qint8(UDPCtrlMsgType::LOGINSUCCESS)) {
+            return loginSuccess();
+        } else if (jsonMsg.value(MSGTYPE).toInt() == qint8(UDPCtrlMsgType::LOGINFAILURE)) {
+            return loginFailure();
+        } else if (jsonMsg.value(MSGTYPE).toInt() == qint8(UDPCtrlMsgType::LOGOUTSUCCESS)) {
+            return logoutSuccess();
+        } else if (jsonMsg.value(MSGTYPE).toInt() == qint8(UDPCtrlMsgType::LOGOUTFAILURE)) {
+            return logoutFailure();
+        } else if (jsonMsg.value(MSGTYPE).toInt() == qint8(UDPCtrlMsgType::RETURNALLPARTNERS)) {
             return receiveAllPartners(jsonMsg);
         } else if (jsonMsg.value(MSGTYPE).toInt() == qint8(UDPCtrlMsgType::P2PNEEDHOLE)) {
             return p2pNeedHole(jsonMsg);
@@ -116,7 +127,37 @@ bool UDPSocketUtil::recfromServer()
     return false;
 }
 
-bool UDPSocketUtil::p2pNeedHole(QJsonObject jsonMsg)
+bool UDPSocketUtil::rename()
+{
+    emit renameNow();
+    return true;
+}
+
+bool UDPSocketUtil::loginSuccess()
+{
+    emit loginSuccess();
+    return true;
+}
+
+bool UDPSocketUtil::loginFailure()
+{
+    emit loginFailure();
+    return true;
+}
+
+bool UDPSocketUtil::logoutSuccess()
+{
+    emit logoutSuccess();
+    return true;
+}
+
+bool UDPSocketUtil::logoutFailure()
+{
+    emit logoutFailure();
+    return true;
+}
+
+bool UDPSocketUtil::p2pNeedHole(QJsonObject & jsonMsg)
 {
     if (jsonMsg.value(FRIEND).isUndefined()) {
         qDebug() << "UDPSocketUtil::p2pNeedHole " << "服务器端发来的消息不完整" << endl;
@@ -134,7 +175,7 @@ bool UDPSocketUtil::p2pNeedHole(QJsonObject jsonMsg)
     return true;
 }
 
-bool UDPSocketUtil::receiveAllPartners(QJsonObject jsonMsg)
+bool UDPSocketUtil::receiveAllPartners(QJsonObject & jsonMsg)
 {
     if (jsonMsg.value(PARTNERVECTOR).isUndefined()) {
         qDebug() << "UDPSocketUtil::receiveAllPartners " << "服务器端发来的消息不完整" << endl;

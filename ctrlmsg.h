@@ -21,18 +21,10 @@ private:
     QString partnerName;
 
     /**
-     * 本机密码、ip和端口
+     * 本机密码、端口
      */
     QString pwd;
-    QString ip;
     quint16 port;
-
-    /**
-     * 伙伴客户端信息
-     */
-    qint32 clientNum;
-    qint32 clientIndex;
-    ClientNode * clients;
 
 public:
     CtrlMsg();
@@ -41,10 +33,8 @@ public:
     inline void setHostName(QString hostName);
     inline void setPartnerName(QString partnerName);
     inline void setPwd(QString pwd);
-    inline void setIP(QString ip);
     inline void setPort(quint16 port);
-    inline void setClientNum(qint32 clientNum);
-    inline void addClient(ClientNode client);
+    inline void setUdpPort(quint16 udpPort);
 
     QByteArray toMsg();
 
@@ -66,28 +56,14 @@ void CtrlMsg::setPwd(QString pwd)
     this->pwd = pwd;
 }
 
-void CtrlMsg::setIP(QString ip)
-{
-    this->ip = ip;
-}
-
 void CtrlMsg::setPort(quint16 port)
 {
     this->port = port;
 }
 
-void CtrlMsg::setClientNum(qint32 clientNum)
+void CtrlMsg::setUdpPort(quint16 udpPort)
 {
-    this->clientNum = clientNum;
-    this->clients = new ClientNode[clientNum];
-}
-
-void CtrlMsg::addClient(ClientNode client)
-{
-    if (this->clientIndex < this->clientNum) {
-        this->clients[this->clientIndex] = client;
-        this->clientIndex++;
-    }
+    this->udpPort = udpPort;
 }
 
 UDPCtrlMsgType CtrlMsg::getMsgType()

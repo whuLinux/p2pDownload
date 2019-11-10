@@ -9,7 +9,6 @@
 
 #include "ctrlmsg.h"
 #include "partner.h"
-#include "uniformlabel.h"
 
 class UDPSocketUtil : public QObject
 {
@@ -45,17 +44,22 @@ public slots:
     /**
      * @brief 向服务器端发送消息
      */
-    bool login(CtrlMsg * msg);
-    bool logout(CtrlMsg * msg);
-    bool obtainAllPartners(CtrlMsg * msg);
-    bool p2pTrans(CtrlMsg * msg);
+    bool login(CtrlMsg & msg);
+    bool logout(CtrlMsg & msg);
+    bool obtainAllPartners(CtrlMsg & msg);
+    bool p2pTrans(CtrlMsg & msg);
 
     /**
      * @brief 接收服务器端消息
      */
     bool recfromServer();
-    bool p2pNeedHole(QJsonObject jsonMsg);
-    bool receiveAllPartners(QJsonObject jsonMsg);
+    bool rename();
+    bool loginSuccess();
+    bool loginFailure();
+    bool logoutSuccess();
+    bool logoutFailure();
+    bool p2pNeedHole(QJsonObject & jsonMsg);
+    bool receiveAllPartners(QJsonObject & jsonMsg);
 
     /**
      * @brief 和主控单元交互，提供伙伴客户端数据
@@ -67,6 +71,11 @@ signals:
     /**
      * 和主控单元交互，提供伙伴客户端数据
      */
+    void renameNow();
+    void loginOk();
+    void loginAgain();
+    void logoutOk();
+    void logoutAgain();
     void p2pHoleRequestFromServer(QString name, QString ip, quint16 port);
     void timeToGetAllPartners();
 };

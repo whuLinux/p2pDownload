@@ -5,11 +5,10 @@ MsgUtil::MsgUtil()
 
 }
 
-CtrlMsg MsgUtil::createLoginMsg(QString hostName, QString pwd, QString ip, quint16 port)
+CtrlMsg MsgUtil::createLoginMsg(QString hostName, QString pwd, quint16 port, quint16 udpPort)
 {
     CtrlMsg loginMsg(UDPCtrlMsgType::LOGIN);
     loginMsg.setPwd(pwd);
-    loginMsg.setIP(ip);
     loginMsg.setPort(port);
 
     return loginMsg;
@@ -31,38 +30,14 @@ CtrlMsg MsgUtil::createObtainAllPartners()
     return obtainMsg;
 }
 
-CtrlMsg MsgUtil::createReturnAllPartners(ClientNode * clients, int clientNum)
-{
-    CtrlMsg returnMsg(UDPCtrlMsgType::RETURNALLPARTNERS);
-
-    if (clients == nullptr || clientNum <= 0) {
-        qDebug() << "伙伴客户端信息列表有误" << endl;
-        return returnMsg;
-    }
-
-    for (int i = 0; i < clientNum; i++) {
-        returnMsg.addClient(clients[i]);
-    }
-
-    returnMsg.setClientNum(clientNum);
-
-    return returnMsg;
-}
-
-CtrlMsg MsgUtil::createP2PTrans(QString partnerName)
+CtrlMsg MsgUtil::createP2PTrans(QString hostName, QString pwd, QString partnerName)
 {
     CtrlMsg transMsg(UDPCtrlMsgType::P2PTRANS);
+    transMsg.setHostName(hostName);
+    transMsg.setPwd(pwd);
     transMsg.setPartnerName(partnerName);
 
     return transMsg;
-}
-
-CtrlMsg MsgUtil::createP2PHolePackage(ClientNode client)
-{
-    CtrlMsg holeMsg(UDPCtrlMsgType::P2PNEEDHOLE);
-    holeMsg.addClient(client);
-
-    return holeMsg;
 }
 
 CommMsg MsgUtil::createP2PPunchMsg()

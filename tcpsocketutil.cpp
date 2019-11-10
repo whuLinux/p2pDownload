@@ -439,20 +439,20 @@ bool TCPSocketUtil::recFromPartner(qint32 partnerId)
     return true;
 }
 
-bool TCPSocketUtil::sendToPartner(qint32 partnerId, CommMsg * msg)
+bool TCPSocketUtil::sendToPartner(qint32 partnerId, CommMsg & msg)
 {
     if (!this->partnerConnections.contains(partnerId)) {
         qDebug() << "TCPSocketUtil::sendToPartner " << "指定连接该朋友客户端的P2PTcpSocket对象尚未建立 " << partnerId << endl;
         return false;
     }
 
-    if (msg->getMsgType() != TCPCtrlMsgType::ASKFORHELP && msg->getMsgType() != TCPCtrlMsgType::DOWNLOADTASK && msg->getMsgType() == TCPCtrlMsgType::THANKYOURHELP) {
+    if (msg.getMsgType() != TCPCtrlMsgType::ASKFORHELP && msg.getMsgType() != TCPCtrlMsgType::DOWNLOADTASK && msg.getMsgType() == TCPCtrlMsgType::THANKYOURHELP) {
         qDebug() << "TCPSocketUtil::sendToPartner " << "向伙伴客户端发送的消息类型不合法 " << partnerId << endl;
         return false;
     }
 
     // 请求伙伴客户端协助下载, 分配下载任务, 通知伙伴客户端可以继续传送文件, 下载已完成，终止任务
-    this->partnerConnections[partnerId]->write(msg->toMsg());
+    this->partnerConnections[partnerId]->write(msg.toMsg());
     return true;
 }
 
@@ -516,19 +516,19 @@ bool TCPSocketUtil::recFromFriend(qint32 partnerId)
     }
 }
 
-bool TCPSocketUtil::sendToFriend(qint32 partnerId, CommMsg * msg)
+bool TCPSocketUtil::sendToFriend(qint32 partnerId, CommMsg & msg)
 {
     if (!this->guests.contains(partnerId)) {
         qDebug() << "TCPSocketUtil::sendToFriend " << "指定连接该朋友客户端的P2PTcpSocket对象尚未建立 " << partnerId << endl;
         createGuest(partnerId);
     }
 
-    if (msg->getMsgType() != TCPCtrlMsgType::P2PPUNCH && msg->getMsgType() != TCPCtrlMsgType::AGREETOHELP && msg->getMsgType() == TCPCtrlMsgType::REFUSETOHELP && msg->getMsgType() == TCPCtrlMsgType::TASKFAILURE) {
+    if (msg.getMsgType() != TCPCtrlMsgType::P2PPUNCH && msg.getMsgType() != TCPCtrlMsgType::AGREETOHELP && msg.getMsgType() == TCPCtrlMsgType::REFUSETOHELP && & msg.getMsgType() == TCPCtrlMsgType::TASKFAILURE) {
         qDebug() << "TCPSocketUtil::sendToFriend " << "向朋友客户端发送的消息类型不合法 " << partnerId << endl;
         return false;
     }
 
-    this->guests[partnerId]->write(msg->toMsg());
+    this->guests[partnerId]->write(msg.toMsg());
     return true;
 }
 
@@ -629,7 +629,7 @@ bool TCPSocketUtil::failToGetHelpFromFilePartner(QAbstractSocket::SocketError er
     return true;
 }
 
-bool TCPSocketUtil::sendToFileFriend(qint32 partnerId, CommMsg * msg)
+bool TCPSocketUtil::sendToFileFriend(qint32 partnerId, CommMsg & msg)
 {
     if (!this->fileGuests.contains(partnerId)) {
         qDebug() << "TCPSocketUtil::sendToFileFriend " << "指定连接该朋友客户端的P2PTcpSocket对象尚未建立 " << partnerId << endl;
@@ -641,12 +641,12 @@ bool TCPSocketUtil::sendToFileFriend(qint32 partnerId, CommMsg * msg)
         return false;
     }
 
-    if (msg->getMsgType() != TCPCtrlMsgType::TASKFINISH) {
+    if (msg.getMsgType() != TCPCtrlMsgType::TASKFINISH) {
         qDebug() << "TCPSocketUtil::sendToFileFriend " << "向朋友客户端发送的消息类型不合法 " << partnerId << endl;
         return false;
     }
 
-    this->fileGuests[partnerId]->write(msg->toMsg());
+    this->fileGuests[partnerId]->write(msg.toMsg());
     return true;
 }
 

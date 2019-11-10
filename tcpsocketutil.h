@@ -142,13 +142,13 @@ public slots:
      */
     bool newConnectionWithPartner();
     bool recFromPartner(qint32 partnerId);
-    bool sendToPartner(qint32 partnerId, CommMsg * msg);
+    bool sendToPartner(qint32 partnerId, CommMsg & msg);
     bool failToGetHelpFromPartner(QAbstractSocket::SocketError error, qint32 partnerId);
 
     /**
      * @brief 和朋友客户端互动
      */
-    bool sendToFriend(qint32 partnerId, CommMsg * msg);
+    bool sendToFriend(qint32 partnerId, CommMsg & msg);
     bool recFromFriend(qint32 partnerId);
     bool failToHelpFriend(QAbstractSocket::SocketError error, qint32 partnerId);
 
@@ -162,7 +162,7 @@ public slots:
     /**
      * @brief 真正的文件发送函数
      */
-    bool sendToFileFriend(qint32 partnerId, CommMsg * msg);
+    bool sendToFileFriend(qint32 partnerId, CommMsg & msg);
     bool failToHelpFileFriend(QAbstractSocket::SocketError error, qint32 partnerId);
 
 signals:

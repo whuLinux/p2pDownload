@@ -14,12 +14,10 @@ public:
     /**
      * @brief createCtrlMsg
      */
-    CtrlMsg createLoginMsg(QString hostName, QString pwd, QString ip, quint16 port);
+    CtrlMsg createLoginMsg(QString hostName, QString pwd, quint16 port, quint16 udpPort);
     CtrlMsg createLogoutMsg(QString hostName, QString pwd);
     CtrlMsg createObtainAllPartners();
-    CtrlMsg createReturnAllPartners(ClientNode * clients, int clientNum);
-    CtrlMsg createP2PTrans(QString partnerName);
-    CtrlMsg createP2PHolePackage(ClientNode client);
+    CtrlMsg createP2PTrans(QString hostName, QString pwd, QString partnerName);
 
     /**
      * @brief createCommonMsg
