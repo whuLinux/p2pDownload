@@ -10,7 +10,7 @@ FileMsg::FileMsg(TCPCtrlMsgType msgType, qint32 token, qint32 index) : msgType(m
 
 }
 
-void FileMsg::setMsg(QByteArray msg)
+void FileMsg::setMsg(QByteArray & msg)
 {
     //使用数据流写入数据
     QDataStream out(&(this->msg),QIODevice::WriteOnly);

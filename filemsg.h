@@ -25,7 +25,7 @@ public:
     FileMsg();
     FileMsg(TCPCtrlMsgType msgType, qint32 token, qint32 index);
 
-    void setMsg(QByteArray msg);
+    void setMsg(QByteArray & msg);
 
     inline QByteArray toMsg();
 

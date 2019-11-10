@@ -16,6 +16,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    http.cpp \
     commmsg.cpp \
     ctrlmsg.cpp \
     filemsg.cpp \
@@ -24,12 +25,12 @@ SOURCES += \
     mainwindow.cpp \
     msgutil.cpp \
     p2ptcpsocket.cpp \
-    p2putil.cpp \
     partner.cpp \
     tcpsocketutil.cpp \
     udpsocketutil.cpp
 
 HEADERS += \
+    http.h \
     commmsg.h \
     ctrlmsg.h \
     filemsg.h \
@@ -37,13 +38,13 @@ HEADERS += \
     mainwindow.h \
     msgutil.h \
     p2ptcpsocket.h \
-    p2putil.h \
     partner.h \
     tcpsocketutil.h \
     udpsocketutil.h \
     uniformlabel.h
 
 FORMS += \
+    http.ui \
     mainwindow.ui
 
 # Default rules for deployment.

@@ -5,6 +5,11 @@ CommMsg::CommMsg()
 
 }
 
+CommMsg::CommMsg(TCPCtrlMsgType msgType) : msgType(msgType)
+{
+
+}
+
 CommMsg::CommMsg(TCPCtrlMsgType msgType, QString downloadAddress, qint32 lenMax) : msgType(msgType), downloadAddress(downloadAddress), lenMax(lenMax)
 {
 
@@ -29,13 +34,17 @@ QByteArray CommMsg::toMsg()
     if (this->msgType == TCPCtrlMsgType::ASKFORHELP) {
         jsonMsg.insert(DOWNLOADADDRESS, this->downloadAddress);
         jsonMsg.insert(LENMAX, this->lenMax);
+
     } else if (this->msgType == TCPCtrlMsgType::DOWNLOADTASK) {
         jsonMsg.insert(TOKEN, this->token);
         jsonMsg.insert(POS, this->pos);
         jsonMsg.insert(LEN, this->len);
+
     } else if (this->msgType == TCPCtrlMsgType::TASKFINISH || this->msgType == TCPCtrlMsgType::TASKFAILURE) {
         jsonMsg.insert(TOKEN, this->token);
+
     } else if (this->msgType == TCPCtrlMsgType::THANKYOURHELP) {
+        jsonMsg.insert(TOKEN, this->token);
         jsonMsg.insert(INDEX, this->index);
     }
 
