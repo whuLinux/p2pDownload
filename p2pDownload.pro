@@ -20,6 +20,7 @@ SOURCES += \
     ctrlmsg.cpp \
     filemsg.cpp \
     main.cpp \
+    mainctrl.cpp \
     mainwindow.cpp \
     msgutil.cpp \
     p2ptcpsocket.cpp \
@@ -32,6 +33,7 @@ HEADERS += \
     commmsg.h \
     ctrlmsg.h \
     filemsg.h \
+    mainctrl.h \
     mainwindow.h \
     msgutil.h \
     p2ptcpsocket.h \
