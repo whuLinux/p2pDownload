@@ -60,7 +60,7 @@ private:
     QMap<qint32, quint16> fileGuestPort;
 
     /**
-     * 所有处于登录状态的伙伴客户端
+     * 所有处于登录状态的伙伴客户端，同时也是朋友客户端
      */
     QMap<qint32, Partner *> parntersMap;
 
@@ -97,8 +97,8 @@ public:
     /**
      * @brief 加载处于登录状态的伙伴客户端
      */
-    bool bindPartners(QVector<Partner *> partners);
-    bool addPartner(Partner * partner);
+    bool bindPartners(QVector<Partner *> partners, QVector<quint16> ports, QVector<quint16> filePorts);
+    bool addPartner(Partner * partner, quint16 port, quint16 filePort);
 
     /**
      * @brief 建立连接的一系列基础操作
@@ -122,12 +122,10 @@ public:
     bool closeFileGuest(qint32 partnerId);
 
     bool listenPort();
-    bool connectToPartner(qint32 partnerId);
-    bool disConnectToPartner(qint32 partnerId);
+    bool connectToFriend(qint32 partnerId);
 
     bool listenFilePort();    
-    bool connectToFilePartner(qint32 partnerId);
-    bool disConnectToFilePartner(qint32 partnerId);
+    bool connectToFileFriend(qint32 partnerId);
 
     inline void setOpenHost(bool openHost);
     inline void setOpenGuest(bool openGuest);
@@ -144,13 +142,17 @@ public slots:
     bool recFromPartner(qint32 partnerId);
     bool sendToPartner(qint32 partnerId, CommMsg & msg);
     bool failToGetHelpFromPartner(QAbstractSocket::SocketError error, qint32 partnerId);
+    bool disConnectToPartner(qint32 partnerId);
 
     /**
      * @brief 和朋友客户端互动
      */
-    bool sendToFriend(qint32 partnerId, CommMsg & msg);
-    bool recFromFriend(qint32 partnerId);
-    bool failToHelpFriend(QAbstractSocket::SocketError error, qint32 partnerId);
+    bool sendToFriend(qint32 friendId, CommMsg & msg);
+    bool recFromFriend(qint32 friendId);
+    bool failToHelpFriend(QAbstractSocket::SocketError error, qint32 friendId);
+    bool failToHelpFileFriend(QAbstractSocket::SocketError error, qint32 partnerId);
+    bool disConnectToFriend(qint32 friendId);
+    bool disConnectToFileFriend(qint32 friendId);
 
     /**
      * @brief 监听到伙伴客户端发送的文件后执行相关操作
@@ -158,32 +160,36 @@ public slots:
     bool newConnectionWithFilePartner();
     bool recFromFilePartner(qint32 partnerId);
     bool failToGetHelpFromFilePartner(QAbstractSocket::SocketError error, qint32 partnerId);
+    bool disConnectToFilePartner(qint32 partnerId);
 
     /**
      * @brief 真正的文件发送函数
      */
     bool sendToFileFriend(qint32 partnerId, CommMsg & msg);
-    bool failToHelpFileFriend(QAbstractSocket::SocketError error, qint32 partnerId);
 
 signals:
     // P2PPUNCH
     void timeToInitialTaskForPartner(qint32 partnerId);
+    // AREYOUALIVE
+    void tellTaskProcess(qint32 friendId);
+    // ISALIVE
+    void whetherToStopTask(qint32 partnerId);
     // ASKFORHELP
-    void whetherToHelpFriend(qint32 partnerId, QString downloadAddress, qint32 lenMax);
+    void whetherToHelpFriend(qint32 friendId, QString downloadAddress, qint32 lenMax);
     // AGREETOHELP
     void timeForFirstTaskForPartner(qint32 partnerId);
     // REFUSETOHELP
     void refuseToOfferHelpForPartner(qint32 partnerId);
     // DOWNLOADTASK
-    void startToDownload(qint32 partnerId, qint32 token, qint64 pos, qint32 len);
+    void startToDownload(qint32 friendId, qint32 token, qint64 pos, qint32 len);
     // TASKFINISH
     void readyToAcceptFileForPartner(qint32 partnerId, qint32 token);
     // TASKFAILURE
     void taskFailureForPartner(qint32 partnerId, qint32 token);
     // THANKYOURHELP
-    void timeForNextTaskForPartner(qint32 partnerId, qint32 token, qint32 index);
+    void timeForNextTaskForPartner(qint32 friendId, qint32 token, qint32 index);
     // ENDYOURHELP
-    void taskHasFinishedForFriend(qint32 partnerId, qint32 token);
+    void taskHasFinishedForFriend(qint32 friendId, qint32 token);
 
 };
 

@@ -24,6 +24,8 @@ enum class UDPCtrlMsgType : qint8 { LOGIN, LOGOUT, RENAME, LOGINSUCCESS, LOGINFA
  * 朋友：主动要求下载的客户端，伙伴：被动协助下载的客户端
  * 每台客户端既可以是朋友也可以是伙伴
  * P2PPUNCH             朋友客户端发送的打洞包，接收端应忽略此消息
+ * AREYOUALIVE          朋友客户端询问伙伴客户端是否存活
+ * ISALIVE              伙伴客户端确认存活
  * ASKFORHELP           朋友客户端请求伙伴客户端协助下载
  * AGREETOHELP          伙伴客户端同意协助下载
  * REFUSETOHELP         伙伴客户端拒绝协助下载
@@ -34,7 +36,7 @@ enum class UDPCtrlMsgType : qint8 { LOGIN, LOGOUT, RENAME, LOGINSUCCESS, LOGINFA
  * THANKYOURHELP        朋友客户端通知伙伴客户端已经收到传送的文件
  * ENDYOURHELP          朋友客户端通知伙伴客户端已终止
  */
-enum class TCPCtrlMsgType : qint8 { P2PPUNCH, ASKFORHELP, AGREETOHELP, REFUSETOHELP, DOWNLOADTASK, TASKFINISH, TASKEXECUING, TASKFAILURE, THANKYOURHELP, ENDYOURHELP };
+enum class TCPCtrlMsgType : qint8 { P2PPUNCH, AREYOUALIVE, ISALIVE, ASKFORHELP, AGREETOHELP, REFUSETOHELP, DOWNLOADTASK, TASKFINISH, TASKEXECUING, TASKFAILURE, THANKYOURHELP, ENDYOURHELP };
 
 /**
  * @brief The clientNode struct
@@ -45,6 +47,7 @@ struct clientNode {
     QString ip;
     quint16 port;
     quint16 udpPort;
+    quint16 filePort;
 };
 
 typedef struct clientNode ClientNode;
@@ -55,6 +58,7 @@ typedef struct clientNode ClientNode;
  */
 const QString MSGTYPE = "msgType";
 const QString ID = "id";
+const QString RATE = "rate";
 const QString DOWNLOADADDRESS = "downloadAddress";
 const QString LENMAX = "lenMax";
 const QString TOKEN = "token";
@@ -68,6 +72,7 @@ const QString PWD = "pwd";
 const QString IP = "ip";
 const QString PORT = "port";
 const QString UDPPORT = "udpPort";
+const QString FILEPORT = "filePort";
 const QString FRIEND = "friend";
 
 #endif // UNIFORMLABEL_H

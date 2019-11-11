@@ -10,6 +10,11 @@ CommMsg::CommMsg(TCPCtrlMsgType msgType) : msgType(msgType)
 
 }
 
+CommMsg::CommMsg(TCPCtrlMsgType msgType, qint8 rate) : msgType(msgType), rate(rate)
+{
+
+}
+
 CommMsg::CommMsg(TCPCtrlMsgType msgType, QString downloadAddress, qint32 lenMax) : msgType(msgType), downloadAddress(downloadAddress), lenMax(lenMax)
 {
 
@@ -31,7 +36,10 @@ QByteArray CommMsg::toMsg()
         {MSGTYPE, qint8(this->msgType)}
     };
 
-    if (this->msgType == TCPCtrlMsgType::ASKFORHELP) {
+    if (this->msgType == TCPCtrlMsgType::ISALIVE) {
+        jsonMsg.insert(RATE, this->rate);
+
+    } else if (this->msgType == TCPCtrlMsgType::ASKFORHELP) {
         jsonMsg.insert(DOWNLOADADDRESS, this->downloadAddress);
         jsonMsg.insert(LENMAX, this->lenMax);
 

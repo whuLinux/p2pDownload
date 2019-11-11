@@ -34,7 +34,6 @@ public:
     inline void setPartnerName(QString partnerName);
     inline void setPwd(QString pwd);
     inline void setPort(quint16 port);
-    inline void setUdpPort(quint16 udpPort);
 
     QByteArray toMsg();
 
@@ -59,11 +58,6 @@ void CtrlMsg::setPwd(QString pwd)
 void CtrlMsg::setPort(quint16 port)
 {
     this->port = port;
-}
-
-void CtrlMsg::setUdpPort(quint16 udpPort)
-{
-    this->udpPort = udpPort;
 }
 
 UDPCtrlMsgType CtrlMsg::getMsgType()

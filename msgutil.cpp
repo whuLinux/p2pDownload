@@ -47,7 +47,29 @@ CommMsg MsgUtil::createP2PPunchMsg()
     return punchMsg;
 }
 
-CommMsg MsgUtil::createAskForhelpMsg(QString downloadAddress, qint32 lenMax)
+CommMsg createAreYouAliveMsg()
+{
+    CommMsg youAliveMsg(TCPCtrlMsgType::AREYOUALIVE);
+
+    return youAliveMsg;
+}
+
+
+CommMsg MsgUtil::createAreYouAliveMsg()
+{
+    CommMsg aliveMsg(TCPCtrlMsgType::AREYOUALIVE);
+
+    return aliveMsg;
+}
+
+CommMsg MsgUtil::createIsAliveMsg(qint8 rate)
+{
+    CommMsg aliveMsg(TCPCtrlMsgType::ISALIVE, rate);
+
+    return aliveMsg;
+}
+
+CommMsg MsgUtil::createAskForHelpMsg(QString downloadAddress, qint32 lenMax)
 {
     CommMsg downloadMsg(TCPCtrlMsgType::ASKFORHELP, downloadAddress, lenMax);
 

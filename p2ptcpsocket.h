@@ -19,9 +19,9 @@ public slots:
     void ensureDisconnected();
 
 signals:
-    void readyReadFromPartner(qint32 partnerId);
-    void socketErrorOfPartner(QAbstractSocket::SocketError error, qint32 partnerId);
-    void disconnectedFromPartner(qint32 partnerId);
+    void readyReadFromOthers(qint32 partnerId);
+    void socketErrorOfOthers(QAbstractSocket::SocketError error, qint32 partnerId);
+    void disconnectedFromOthers(qint32 partnerId);
 };
 
 void P2PTcpSocket::setId(qint32 id)

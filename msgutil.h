@@ -23,7 +23,9 @@ public:
      * @brief createCommonMsg
      */
     CommMsg createP2PPunchMsg();
-    CommMsg createAskForhelpMsg(QString downloadAddress, qint32 lenMax);
+    CommMsg createAreYouAliveMsg();
+    CommMsg createIsAliveMsg(qint8 rate);
+    CommMsg createAskForHelpMsg(QString downloadAddress, qint32 lenMax);
     CommMsg creteAgreeToHelpMsg();
     CommMsg creteRefuseToHelpMsg();
     CommMsg createDownloadTaskMsg(qint32 token, qint64 pos, qint32 len);

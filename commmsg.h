@@ -19,6 +19,11 @@ class CommMsg
 private:
     TCPCtrlMsgType msgType;
 
+    /**
+     * 文件下载进度
+     */
+    qint8 rate;
+
     /** 文件下载信息
      * downloadAddress 文件下载地址
      * lenMax 文件最大长度
@@ -40,6 +45,7 @@ private:
 public:
     CommMsg();
     CommMsg(TCPCtrlMsgType msgType);
+    CommMsg(TCPCtrlMsgType msgType, qint8 rate);
     CommMsg(TCPCtrlMsgType msgType, QString downloadAddress, int lenMax);
     CommMsg(TCPCtrlMsgType msgType, qint32 token, qint64 pos, qint32 len);
     CommMsg(TCPCtrlMsgType msgType, qint32 token, qint32 index);
