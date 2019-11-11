@@ -30,3 +30,4 @@ Partner::~Partner()
 //    qDebug() << "Partner::attributeTask " << "name " << this->name << " ip " << this->ip << " port " << this->port << " 分配任务失败" << endl;
 //    return false;
 //}
+

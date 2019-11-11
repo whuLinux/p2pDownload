@@ -16,25 +16,34 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    host.cpp \
     http.cpp \
     commmsg.cpp \
     ctrlmsg.cpp \
     filemsg.cpp \
     main.cpp \
     mainctrl.cpp \
+    mainctrlutil.cpp \
+    mainrecord.cpp \
     mainwindow.cpp \
     msgutil.cpp \
     p2ptcpsocket.cpp \
     partner.cpp \
+    recqtimer.cpp \
     tcpsocketutil.cpp \
     udpsocketutil.cpp
 
 HEADERS += \
+    Recqtimer.h \
+    host.h \
     http.h \
     commmsg.h \
     ctrlmsg.h \
     filemsg.h \
     mainctrl.h \
+    mainctrlmacro.h \
+    mainctrlutil.h \
+    mainrecord.h \
     mainwindow.h \
     msgutil.h \
     p2ptcpsocket.h \

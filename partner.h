@@ -5,6 +5,11 @@
 #include <QString>
 #include <QDebug>
 
+/**
+ * @brief The Partner class
+ * 主机信息
+ * 请求发起机（即localhost），特殊标记
+ */
 class Partner
 {
 private:
@@ -14,6 +19,7 @@ private:
     quint16 port;
     quint16 filePort;
     bool hasTask;
+    quint8 taskNum;//本轮分配的下载任务数量
 
 public:
     Partner();
@@ -29,6 +35,9 @@ public:
     inline quint16 getPort();
     inline quint16 getFilePort();
     inline bool gethasTask();
+    inline quint8 getTaskNum();
+
+    void setTaskNum(quint8 taskNum);
 };
 
 void Partner::attributeTask()
@@ -71,5 +80,14 @@ bool Partner::gethasTask()
     return this->hasTask;
 }
 
+quint8 Partner::getTaskNum()
+{
+    return this->taskNum;
+}
+
+void Partner::setTaskNum(quint8 taskNum)
+{
+    this->taskNum=taskNum;
+}
 
 #endif // PARTNER_H

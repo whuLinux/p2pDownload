@@ -10,7 +10,7 @@
 变量:
 -  `fileSize`:待下载任务文件大小
 - `blockSize`：单个任务块大小
-- `hostWaitPQ`:空闲主机优先队列，按照下载速度排序
+- `hostWaitPQ`:空闲主机队列 //qt无优先队列，未来更新自己重写的优先队列 按照下载速度排序
 - `hostNum`:主机个数
 - `blockAssignedNum`:每个主机被分配下载的任务块数量
 
@@ -37,6 +37,7 @@ blockSize= temp if temp<MAXBLOCKSIZE else MAXBLOCKSIZE
 ## 4. 异常检测
 查任务分配表种正在进行的任务，检测是否有主机下载时间超过`DDL`
 若有，检测该主机是否存活。
+使用QTimer实现，设定TimeOut检测
 
 ## 5. 任务分配表登记
 
