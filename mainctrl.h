@@ -4,7 +4,7 @@
 #include<QDebug>
 #include"mainrecord.h"
 #include"mainctrlmacro.h"
-#include"partner.h"
+#include"client.h"
 
 /**
  * @brief The mainctrl class

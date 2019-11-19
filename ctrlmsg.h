@@ -25,6 +25,7 @@ private:
      */
     QString pwd;
     quint16 port;
+    quint16 filePort;
 
 public:
     CtrlMsg();
@@ -34,6 +35,7 @@ public:
     inline void setPartnerName(QString partnerName);
     inline void setPwd(QString pwd);
     inline void setPort(quint16 port);
+    inline void setFilePort(quint16 filePort);
 
     QByteArray toMsg();
 
@@ -58,6 +60,11 @@ void CtrlMsg::setPwd(QString pwd)
 void CtrlMsg::setPort(quint16 port)
 {
     this->port = port;
+}
+
+void CtrlMsg::setFilePort(quint16 filePort)
+{
+    this->filePort = filePort;
 }
 
 UDPCtrlMsgType CtrlMsg::getMsgType()

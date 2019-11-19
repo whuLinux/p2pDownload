@@ -1,16 +1,16 @@
-#ifndef PARTNER_H
-#define PARTNER_H
+#ifndef Client_H
+#define Client_H
 
 #include <QHostAddress>
 #include <QString>
 #include <QDebug>
 
 /**
- * @brief The Partner class
+ * @brief The Client class
  * 主机信息
  * 请求发起机（即localhost），特殊标记
  */
-class Partner
+class Client
 {
 private:
     qint32 id;
@@ -22,9 +22,9 @@ private:
     quint8 taskNum;//本轮分配的下载任务数量
 
 public:
-    Partner();
-    Partner(qint32 id, QString name, QString ip, quint16 port, quint16 filePort);
-    ~Partner();
+    Client();
+    Client(qint32 id, QString name, QString ip, quint16 port, quint16 filePort);
+    ~Client();
 
     inline void attributeTask();
     inline void endTask();
@@ -37,58 +37,57 @@ public:
     inline bool gethasTask();
     inline quint8 getTaskNum();
 
-    void setTaskNum(quint8 taskNum);
+    inline void setTaskNum(quint8 taskNum);
 };
 
-void Partner::attributeTask()
+void Client::attributeTask()
 {
     this->hasTask = true;
 }
 
-void Partner::endTask()
+void Client::endTask()
 {
     this->hasTask = false;
 }
 
-qint32 Partner::getId()
+qint32 Client::getId()
 {
     return this->id;
 }
 
-QString Partner::getName()
+QString Client::getName()
 {
     return this->name;
 }
 
-QString Partner::getIP()
+QString Client::getIP()
 {
     return this->ip;
 }
 
-quint16 Partner::getPort()
+quint16 Client::getPort()
 {
     return this->port;
 }
 
-quint16 Partner::getFilePort()
+quint16 Client::getFilePort()
 {
     return this->filePort;
 }
 
-bool Partner::gethasTask()
+bool Client::gethasTask()
 {
     return this->hasTask;
 }
 
-quint8 Partner::getTaskNum()
+quint8 Client::getTaskNum()
 {
     return this->taskNum;
 }
 
-// ！这里编译报错了，注意查一下！
-//void Partner::setTaskNum(quint8 taskNum)
-//{
-//    this->taskNum=taskNum;
-//}
+void Client::setTaskNum(quint8 taskNum)
+{
+    this->taskNum=taskNum;
+}
 
-#endif // PARTNER_H
+#endif // Client_H

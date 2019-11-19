@@ -5,11 +5,13 @@ MsgUtil::MsgUtil()
 
 }
 
-CtrlMsg MsgUtil::createLoginMsg(QString hostName, QString pwd, quint16 port, quint16 udpPort)
+CtrlMsg MsgUtil::createLoginMsg(QString hostName, QString pwd, quint16 port, quint16 filePort)
 {
     CtrlMsg loginMsg(UDPCtrlMsgType::LOGIN);
+    loginMsg.setHostName(hostName);
     loginMsg.setPwd(pwd);
     loginMsg.setPort(port);
+    loginMsg.setFilePort(filePort);
 
     return loginMsg;
 }

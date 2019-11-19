@@ -8,7 +8,7 @@
 #include <QHostAddress>
 
 #include "ctrlmsg.h"
-#include "partner.h"
+#include "client.h"
 
 class UDPSocketUtil : public QObject
 {

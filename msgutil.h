@@ -14,7 +14,7 @@ public:
     /**
      * @brief createCtrlMsg
      */
-    CtrlMsg createLoginMsg(QString hostName, QString pwd, quint16 port, quint16 udpPort);
+    CtrlMsg createLoginMsg(QString hostName, QString pwd, quint16 port, quint16 filePort);
     CtrlMsg createLogoutMsg(QString hostName, QString pwd);
     CtrlMsg createObtainAllPartners();
     CtrlMsg createP2PTrans(QString hostName, QString pwd, QString partnerName);

@@ -11,7 +11,7 @@
 #include <typeinfo>
 
 #include "p2ptcpsocket.h"
-#include "partner.h"
+#include "client.h"
 #include "commmsg.h"
 #include "filemsg.h"
 
@@ -62,7 +62,7 @@ private:
     /**
      * 所有处于登录状态的伙伴客户端，同时也是朋友客户端
      */
-    QMap<qint32, Partner *> parntersMap;
+    QMap<qint32, Client *> parntersMap;
 
     /**
      * 各类连接的数量
@@ -97,8 +97,8 @@ public:
     /**
      * @brief 加载处于登录状态的伙伴客户端
      */
-    bool bindPartners(QVector<Partner *> partners, QVector<quint16> ports, QVector<quint16> filePorts);
-    bool addPartner(Partner * partner, quint16 port, quint16 filePort);
+    bool bindClients(QVector<Client *> clients, QVector<quint16> ports, QVector<quint16> filePorts);
+    bool addClient(Client * clients, quint16 port, quint16 filePort);
 
     /**
      * @brief 建立连接的一系列基础操作

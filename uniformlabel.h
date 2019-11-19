@@ -19,9 +19,12 @@
  */
 enum class UDPCtrlMsgType : qint8 { LOGIN, LOGOUT, RENAME, LOGINSUCCESS, LOGINFAILURE, LOGOUTSUCCESS, LOGOUTFAILURE, OBTAINALLPARTNERS, RETURNALLPARTNERS, P2PTRANS, P2PNEEDHOLE };
 
+
+
 /**
  * @brief The TCPCtrlMsgType enum
- * 朋友：主动要求下载的客户端，伙伴：被动协助下载的客户端
+ * 朋友 主动要求下载的客户端
+ * 伙伴 被动协助下载的客户端
  * 每台客户端既可以是朋友也可以是伙伴
  * P2PPUNCH             朋友客户端发送的打洞包，接收端应忽略此消息
  * AREYOUALIVE          朋友客户端询问伙伴客户端是否存活
@@ -38,6 +41,8 @@ enum class UDPCtrlMsgType : qint8 { LOGIN, LOGOUT, RENAME, LOGINSUCCESS, LOGINFA
  */
 enum class TCPCtrlMsgType : qint8 { P2PPUNCH, AREYOUALIVE, ISALIVE, ASKFORHELP, AGREETOHELP, REFUSETOHELP, DOWNLOADTASK, TASKFINISH, TASKEXECUING, TASKFAILURE, THANKYOURHELP, ENDYOURHELP };
 
+
+
 /**
  * @brief The clientNode struct
  * 服务器返回客户端信息的结构体
@@ -51,6 +56,8 @@ struct clientNode {
 };
 
 typedef struct clientNode ClientNode;
+
+
 
 /**
  * @brief CommMsg CtrlMsg FileMsg
@@ -75,4 +82,15 @@ const QString UDPPORT = "udpPort";
 const QString FILEPORT = "filePort";
 const QString FRIEND = "friend";
 
+
+
+/**
+ * @brief 约定好的命名
+ * Client 客户机
+ * Server 服务器
+ * 朋友 主动要求下载的客户端
+ * 伙伴 被动协助下载的客户端
+ * Host 主动监听端口，接收多个伙伴客户端访问的的TcpServer对象
+ * Guest，向某一个朋友客户端发送信息的TcpSocket对象
+ */
 #endif // UNIFORMLABEL_H

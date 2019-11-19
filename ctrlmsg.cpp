@@ -20,6 +20,7 @@ QByteArray CtrlMsg::toMsg()
         jsonMsg.insert(HOSTNAME, this->hostName);
         jsonMsg.insert(PWD, this->pwd);
         jsonMsg.insert(PORT, this->port);
+        jsonMsg.insert(FILEPORT, this->filePort);
 
     } else if (this->msgType == UDPCtrlMsgType::LOGOUT) {
         jsonMsg.insert(HOSTNAME, this->hostName);

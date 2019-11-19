@@ -16,6 +16,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    client.cpp \
     host.cpp \
     downloadmanager.cpp \
     httpdownloader.cpp \
@@ -29,13 +30,13 @@ SOURCES += \
     mainwindow.cpp \
     msgutil.cpp \
     p2ptcpsocket.cpp \
-    partner.cpp \
     recqtimer.cpp \
     tcpsocketutil.cpp \
     udpsocketutil.cpp
 
 HEADERS += \
     Recqtimer.h \
+    client.h \
     host.h \
     downloadmanager.h \
     httpdownloader.h \
@@ -49,7 +50,6 @@ HEADERS += \
     mainwindow.h \
     msgutil.h \
     p2ptcpsocket.h \
-    partner.h \
     tcpsocketutil.h \
     udpsocketutil.h \
     uniformlabel.h
