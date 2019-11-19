@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <QDateTime>
 #include <QFileDialog>
+#include <QMessageBox>
 #include <QNetworkReply>
 #include <QNetworkAccessManager>
 
@@ -69,6 +70,41 @@ int DownloadManager::getThreadCount(qint64 size) {
     }
 }
 
+void DownloadManager::downloadFinished() {
+
+    totalSecond += QDateTime::currentDateTime().toTime_t() - lastStartSecond;
+
+    ui->label_Time->setText("Time Usage: " + QString::number(totalSecond) + " s");
+    ui->pushButton_Start->setEnabled(false);
+    ui->pushButton_Pause->setEnabled(false);
+
+    qDebug() << "开始合并文件";
+
+    if (threadCount != 1) {
+        QFile outFile(path+name);
+        outFile.open(QIODevice::WriteOnly | QIODevice::Append);
+
+        QFile *partFile;
+        for (int i = 0; i < threadCount; i++) {
+            partFile = new QFile(path+name+".download/"+name+".part"+QString::number(i+1));
+            partFile->open(QIODevice::ReadWrite);
+            qDebug() << "打开文件：" << partFile->fileName();
+            outFile.write(partFile->readAll());
+            partFile->close();
+            delete partFile;
+            partFile = Q_NULLPTR;
+            QFile::remove(path+name+".download/"+name+".part"+QString::number(i+1));
+        }
+
+        QDir dir;
+        dir.rmdir(path+name+".download/");
+    }
+
+    qDebug() << "合并完毕";
+
+    QMessageBox::information(this, "文件下载完毕", "文件名： "+name+"\n已下载至 "+path);
+}
+
 void DownloadManager::onSubThreadFinished() {
 
     finishedThreadCount++;
@@ -76,35 +112,7 @@ void DownloadManager::onSubThreadFinished() {
     qDebug() << "已完成进程数：" << finishedThreadCount << "\t总进程数：" << threadCount;
 
     if (finishedThreadCount >= threadCount) {
-        totalSecond += QDateTime::currentDateTime().toTime_t() - lastStartSecond;
-
-        ui->label_Time->setText("Time Usage: " + QString::number(totalSecond) + " s");
-        ui->pushButton_Start->setEnabled(false);
-        ui->pushButton_Pause->setEnabled(false);
-
-        qDebug() << "开始合并";
-
-        if (threadCount != 1) {
-            QFile outFile(path+name);
-            outFile.open(QIODevice::WriteOnly | QIODevice::Append);
-
-            QFile *partFile;
-            for (int i = 0; i < threadCount; i++) {
-                partFile = new QFile(path+name+".download/"+name+".part"+QString::number(i+1));
-                partFile->open(QIODevice::ReadWrite);
-                qDebug() << "打开文件：" << partFile->fileName();
-                outFile.write(partFile->readAll());
-                partFile->close();
-                delete partFile;
-                partFile = Q_NULLPTR;
-                QFile::remove(path+name+".download/"+name+".part"+QString::number(i+1));
-            }
-
-            QDir dir;
-            dir.rmdir(path+name+".download/");
-        }
-
-        qDebug() << "合并完毕";
+        downloadFinished();
     }
 }
 
@@ -119,6 +127,10 @@ void DownloadManager::onSubDownloadProgress(int index, qint64 bytesRead) {
 
     ui->progressBar->setValue(sum);
     ui->progressBar->setMaximum(size);
+
+    qint64 currentTotalSecond = totalSecond + QDateTime::currentDateTime().toTime_t() - lastStartSecond;
+    ui->label_Time->setText("Time Usage: " + QString::number(currentTotalSecond) + " s");
+    ui->label_Speed->setText("Average Speed: " + QString::number(sum/1024.0/1024.0/currentTotalSecond) + " Mbit/s");
 }
 
 void DownloadManager::on_pushButton_Start_clicked() {

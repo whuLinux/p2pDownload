@@ -9,7 +9,7 @@ HttpDownloader::HttpDownloader(QObject *parent)
 }
 
 HttpDownloader::HttpDownloader(int index, QUrl url, QString name, QString path, qint64 begin, qint64 end, QObject *parent)
-            : QObject(parent), index(index), url(url), name(name), path(path), begin(begin), end(end), lastTimeBytesRead(0) {
+            : QObject(parent), index(index), url(url), name(name), path(path), begin(begin), end(end) {
 
     manager = new QNetworkAccessManager(this);
 
@@ -23,7 +23,12 @@ HttpDownloader::HttpDownloader(int index, QUrl url, QString name, QString path, 
     }
 
     qDebug() << "打开文件：" << path + name;
+    QFileInfo info(path+name);
     file = new QFile(path+name);
+    if (info.exists()) {
+        lastTimeBytesRead = file->size();
+        qDebug() << "发现未完成文件，尝试从" << lastTimeBytesRead+begin << "继续下载";
+    }
     if (!file->open(QIODevice::WriteOnly | QIODevice::Append)) {
         qDebug() << "打开文件时失败";
         delete file;

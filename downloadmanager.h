@@ -10,7 +10,7 @@ namespace Ui {
 }
 QT_END_NAMESPACE
 
-const int MAX_THREAD_COUNT = 10;             // 最大线程数量
+const int MAX_THREAD_COUNT = 16;             // 最大线程数量
 const int BLOCK_SIZE = 1024 * 1024 * 50;     // 文件分块的大小，默认为 50Mb
 
 /*
@@ -30,6 +30,7 @@ private:
     QString getFileName(QUrl url);
     QString getFilePath();
     int     getThreadCount(qint64 size);            // 计算将文件分块数量，以确定子线程数量
+    void    downloadFinished();
 
 signals:
     void supPauseDownload();        // 要求子线程暂停下载

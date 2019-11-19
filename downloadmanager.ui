@@ -141,7 +141,7 @@
     <property name="font">
      <font>
       <family>Consolas</family>
-      <pointsize>10</pointsize>
+      <pointsize>9</pointsize>
       <weight>50</weight>
       <italic>false</italic>
       <bold>false</bold>
@@ -163,7 +163,7 @@
     <property name="font">
      <font>
       <family>Consolas</family>
-      <pointsize>10</pointsize>
+      <pointsize>9</pointsize>
       <weight>50</weight>
       <italic>false</italic>
       <bold>false</bold>
@@ -185,7 +185,7 @@
     <property name="font">
      <font>
       <family>Consolas</family>
-      <pointsize>10</pointsize>
+      <pointsize>9</pointsize>
       <weight>50</weight>
       <italic>false</italic>
       <bold>false</bold>
@@ -207,7 +207,7 @@
     <property name="font">
      <font>
       <family>Consolas</family>
-      <pointsize>10</pointsize>
+      <pointsize>9</pointsize>
       <weight>50</weight>
       <italic>false</italic>
       <bold>false</bold>
