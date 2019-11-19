@@ -4,7 +4,7 @@
 #include<qvector.h>
 #include<qstring.h>
 #include<QTimer>
-#include"Recqtimer.h"
+#include"recqtimer.h"
 /**
  * @brief The mainRecord class
  * 任务分配记录，作为任务分配表的表项
