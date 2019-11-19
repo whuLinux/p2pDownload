@@ -5,7 +5,7 @@ FileMsg::FileMsg()
 
 }
 
-FileMsg::FileMsg(TCPCtrlMsgType msgType, qint32 token, qint32 index) : msgType(msgType), token(token), index(index)
+FileMsg::FileMsg(TCPCtrlMsgType msgType, qint32 token, qint32 index, qint8 lastOne) : msgType(msgType), token(token), index(index), lastOne(lastOne)
 {
 
 }
@@ -18,5 +18,5 @@ void FileMsg::setMsg(QByteArray & msg)
     //设置数据流的版本，客户端和服务器端使用的版本要相同
     out.setVersion(QDataStream::Qt_5_13);
 
-    out << qint8(0) << qint32(0) << qint32(0) << msg;
+    out << qint8(this->msgType) << qint32(this->token) << qint32(this->index) << qint8(lastOne) << msg;
 }

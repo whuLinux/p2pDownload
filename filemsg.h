@@ -15,15 +15,17 @@ private:
     /** 本次传送的文件信息
      * token 任务令牌，任务的唯一标识
      * index 任务等待P2P传送的文件分块后，块的唯一标识
+     * lastOne 最后一块的标识
      * msg P2P传送的文件
      */
     qint32 token;
     qint32 index;
+    qint8 lastOne;
     QByteArray msg;
 
 public:
     FileMsg();
-    FileMsg(TCPCtrlMsgType msgType, qint32 token, qint32 index);
+    FileMsg(TCPCtrlMsgType msgType, qint32 token, qint32 index, qint8 lastOne);
 
     void setMsg(QByteArray & msg);
 

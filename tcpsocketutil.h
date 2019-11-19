@@ -168,24 +168,32 @@ public slots:
     bool sendToFileFriend(qint32 partnerId, CommMsg & msg);
 
 signals:
+    /**
+     * @brief 朋友客户端收到消息后给主控模块发出相应的信号
+     */
     // P2PPUNCH
     void timeToInitialTaskForPartner(qint32 partnerId);
-    // AREYOUALIVE
-    void tellTaskProcess(qint32 friendId);
     // ISALIVE
     void whetherToStopTask(qint32 partnerId);
-    // ASKFORHELP
-    void whetherToHelpFriend(qint32 friendId, QString downloadAddress, qint32 lenMax);
     // AGREETOHELP
     void timeForFirstTaskForPartner(qint32 partnerId);
     // REFUSETOHELP
     void refuseToOfferHelpForPartner(qint32 partnerId);
-    // DOWNLOADTASK
-    void startToDownload(qint32 friendId, qint32 token, qint64 pos, qint32 len);
     // TASKFINISH
     void readyToAcceptFileForPartner(qint32 partnerId, qint32 token);
     // TASKFAILURE
     void taskFailureForPartner(qint32 partnerId, qint32 token);
+
+
+    /**
+     * @brief 伙伴客户端收到消息后给主控模块发出相应的信号
+     */
+    // AREYOUALIVE
+    void tellTaskProcess(qint32 friendId);
+    // ASKFORHELP
+    void whetherToHelpFriend(qint32 friendId, QString downloadAddress, qint32 lenMax);
+    // DOWNLOADTASK
+    void startToDownload(qint32 friendId, qint32 token, qint64 pos, qint32 len);
     // THANKYOURHELP
     void timeForNextTaskForPartner(qint32 friendId, qint32 token, qint32 index);
     // ENDYOURHELP

@@ -626,6 +626,7 @@ bool TCPSocketUtil::recFromFilePartner(qint32 partnerId)
     if (msgType == TCPCtrlMsgType::TASKEXECUING) {
         qint32 token = qint32(msg.mid(1,4).toInt());
         qint32 index = qint32(msg.mid(5,4).toInt());
+        qint8 lastOne = qint8(msg.mid(9,1).toInt());
 
         if (index != this->partnerFileIndex[partnerId]) {
             qDebug() << "TCPSocketUtil::recFromFilePartner " << "伙伴客户端数据发送顺序错误 " << partnerId << " 失败的任务令牌 " << token << " 索引 " << index << endl;
@@ -639,14 +640,14 @@ bool TCPSocketUtil::recFromFilePartner(qint32 partnerId)
             return false;
         }
 
-        if (index != 0 && (msg.length() - 9)< this->groupSize) {
+        if (lastOne != 1 && (msg.length() - 10)< this->groupSize) {
             qDebug() << "TCPSocketUtil::recFromFilePartner " << "伙伴客户端数据发送不完整 " << partnerId << " 失败的任务令牌 " << token << " 索引 " << index << endl;
             return false;
         }
 
-        file->write(msg.mid(9));
+        file->write(msg.mid(10));
 
-        if (index == 0) {
+        if (lastOne == 1) {
             emit taskHasFinishedForFriend(partnerId, token);
         }
 
