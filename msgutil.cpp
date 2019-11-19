@@ -130,7 +130,8 @@ CommMsg MsgUtil::createEndYourHelpMsg()
 
 FileMsg createTaskExecuingMsg(qint32 token, qint32 index, QByteArray & msg)
 {
-    FileMsg execMsg(TCPCtrlMsgType::TASKEXECUING, token, index);
+    // !少了个参数
+    FileMsg execMsg(TCPCtrlMsgType::TASKEXECUING, token, index, 0);
     execMsg.setMsg(msg);
 
     return execMsg;

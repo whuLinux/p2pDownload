@@ -59,7 +59,7 @@ bool TCPSocketUtil::bindClients(QVector<Client *> clients, QVector<quint16> port
 bool TCPSocketUtil::addClient(Client * client, quint16 port, quint16 filePort)
 {
     if (this->parntersMap.contains(client->getId())) {
-        qDebug() << "TCPSocketUtil::addClient " << "伙伴客户端不允许重复加入队列" << partner->getId() << endl;
+        qDebug() << "TCPSocketUtil::addClient " << "伙伴客户端不允许重复加入队列" << client->getId() << endl;
         return false;
     }
 

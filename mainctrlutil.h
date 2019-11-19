@@ -6,6 +6,8 @@ class mainCtrlUtil
 {
 public:
     mainCtrlUtil();
+
+    void createEmptyFile(QString fileName,QString savePath);
 };
 
 #endif // MAINCTRLUTIL_H

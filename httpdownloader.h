@@ -21,7 +21,8 @@ public:
     void startDownload();
 
 signals:
-    void threadFinished();  // 子线程下载结束时通知 manager
+    void subThreadFinished();       // 子线程下载结束时通知 manager
+    void subDownloadProgress(int index, qint64 bytesRead);     // 更新下载进度
 
 public slots:
     void onSupPauseDownload();      // manager 要求暂停瞎咋

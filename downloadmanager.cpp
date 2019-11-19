@@ -11,9 +11,11 @@
 
 DownloadManager::DownloadManager(QWidget *parent)
             : QMainWindow(parent) , ui(new Ui::DownloadManager),
-              startSecond(0), isFromStart(true), threadCount(0), finishedThreadCount(0) {
+              lastStartSecond(0), totalSecond(0), isFromStart(true), threadCount(0), finishedThreadCount(0) {
     ui->setupUi(this);
     ui->lineEdit_Path->setText("C:/Users/yujia/Desktop/");
+    ui->progressBar->setValue(0);
+    ui->progressBar->setMaximum(0);
 }
 
 DownloadManager::~DownloadManager() {
@@ -67,16 +69,19 @@ int DownloadManager::getThreadCount(qint64 size) {
     }
 }
 
-void DownloadManager::onThreadFinished() {
+void DownloadManager::onSubThreadFinished() {
 
     finishedThreadCount++;
 
     qDebug() << "已完成进程数：" << finishedThreadCount << "\t总进程数：" << threadCount;
 
     if (finishedThreadCount >= threadCount) {
-        qint64 endSecond = QDateTime::currentDateTime().toTime_t();
+        totalSecond += QDateTime::currentDateTime().toTime_t() - lastStartSecond;
 
-        qDebug() << "所有线程下载完毕，用时：" << endSecond - startSecond << "秒";
+        ui->label_Time->setText("Time Usage: " + QString::number(totalSecond) + " s");
+        ui->pushButton_Start->setEnabled(false);
+        ui->pushButton_Pause->setEnabled(false);
+
         qDebug() << "开始合并";
 
         if (threadCount != 1) {
@@ -103,10 +108,29 @@ void DownloadManager::onThreadFinished() {
     }
 }
 
+void DownloadManager::onSubDownloadProgress(int index, qint64 bytesRead) {
+
+    this->bytesRead[index] = bytesRead;
+
+    qint64 sum = 0;
+    for (int i = 1; i < threadCount+1; i++) {
+        sum += this->bytesRead[i];
+    }
+
+    ui->progressBar->setValue(sum);
+    ui->progressBar->setMaximum(size);
+}
+
 void DownloadManager::on_pushButton_Start_clicked() {
+
+    ui->pushButton_Start->setEnabled(false);
+    ui->pushButton_Pause->setEnabled(true);
+
+    lastStartSecond = QDateTime::currentDateTime().toTime_t();
 
     if (!isFromStart) {
         emit supStartDownload();
+        ui->pushButton_Start->setText("Continue");
         return;
     }
 
@@ -136,16 +160,22 @@ void DownloadManager::on_pushButton_Start_clicked() {
     }
 
     HttpDownloader *downloader;
+    bytesRead = new qint64[threadCount+1];
+    for (int i = 0; i < threadCount+1; i++) {
+        bytesRead[i] = 0;
+    }
 
-    startSecond = QDateTime::currentDateTime().toTime_t();
     if (threadCount == 1) {
 
         downloader = new HttpDownloader(1, url, name, path, 0, size, this);
         qDebug() << 1 << name << path << 0 << size << size / 1024.0 << "Kb";
         downloader->startDownload();
 
-        QObject::connect(downloader, &HttpDownloader::threadFinished, downloader, &HttpDownloader::deleteLater);
-        QObject::connect(downloader, &HttpDownloader::threadFinished, this, &DownloadManager::onThreadFinished);
+        QObject::connect(downloader, &HttpDownloader::subThreadFinished, downloader, &HttpDownloader::deleteLater);
+        QObject::connect(downloader, &HttpDownloader::subThreadFinished, this, &DownloadManager::onSubThreadFinished);
+        QObject::connect(this, &DownloadManager::supPauseDownload, downloader, &HttpDownloader::onSupPauseDownload);
+        QObject::connect(this, &DownloadManager::supStartDownload, downloader, &HttpDownloader::onSupStartDownload);
+        QObject::connect(downloader, &HttpDownloader::subDownloadProgress, this, &DownloadManager::onSubDownloadProgress);
 
     } else {
 
@@ -158,10 +188,11 @@ void DownloadManager::on_pushButton_Start_clicked() {
             qDebug() << i+1 << name+".part"+QString::number(i+1) << path+name+".download/" << begin << end << (end - begin) / 1024.0 << "Kb";
             downloader->startDownload();
 
-            QObject::connect(downloader, &HttpDownloader::threadFinished, downloader, &HttpDownloader::deleteLater);
-            QObject::connect(downloader, &HttpDownloader::threadFinished, this, &DownloadManager::onThreadFinished);
+            QObject::connect(downloader, &HttpDownloader::subThreadFinished, downloader, &HttpDownloader::deleteLater);
+            QObject::connect(downloader, &HttpDownloader::subThreadFinished, this, &DownloadManager::onSubThreadFinished);
             QObject::connect(this, &DownloadManager::supPauseDownload, downloader, &HttpDownloader::onSupPauseDownload);
             QObject::connect(this, &DownloadManager::supStartDownload, downloader, &HttpDownloader::onSupStartDownload);
+            QObject::connect(downloader, &HttpDownloader::subDownloadProgress, this, &DownloadManager::onSubDownloadProgress);
         }
     }
 }
@@ -181,6 +212,13 @@ void DownloadManager::on_pushButton_Path_clicked() {
 }
 
 void DownloadManager::on_pushButton_Pause_clicked() {
+
+    ui->pushButton_Pause->setEnabled(false);
+    ui->pushButton_Start->setEnabled(true);
+
+    /* 更新用时 */
+    totalSecond += QDateTime::currentDateTime().toTime_t() - lastStartSecond;
+
     /* 通知各线程暂停下载 */
     emit supPauseDownload();
 }

@@ -47,7 +47,7 @@ void HttpDownloader::startDownload() {
 
 void HttpDownloader::onSupPauseDownload() {
 
-    qDebug() << "线程" << index << "暂停下载，已下载大小：" << lastTimeBytesRead;
+    qDebug() << "线程" << index << "暂停下载";
 
     if (reply) {
         QObject::disconnect(reply, &QNetworkReply::readyRead, this, &HttpDownloader::onReadyRead);
@@ -78,10 +78,13 @@ void HttpDownloader::onReadyRead() {
 void HttpDownloader::onFinished() {
 
     qDebug() << "线程" << index << "下载完毕\t下载大小：" << file->size();
-    emit threadFinished();
+
+    file->close();
+
+    emit subThreadFinished();
 }
 
 void HttpDownloader::onDownloadProgress() {
 
-
+    emit subDownloadProgress(index, file->size());
 }

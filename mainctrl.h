@@ -18,7 +18,7 @@ class mainctrl
 private:
     QVector<mainRecord> taskTable;
     QVector<blockInfo> blockQueue;
-    QQueue<Partner> waitingHost;
+    QQueue<Client> waitingHost;
     quint32 hostNum;
     quint32 blockSize;
 
