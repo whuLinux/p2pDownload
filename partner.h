@@ -85,9 +85,10 @@ quint8 Partner::getTaskNum()
     return this->taskNum;
 }
 
-void Partner::setTaskNum(quint8 taskNum)
-{
-    this->taskNum=taskNum;
-}
+// ！这里编译报错了，注意查一下！
+//void Partner::setTaskNum(quint8 taskNum)
+//{
+//    this->taskNum=taskNum;
+//}
 
 #endif // PARTNER_H

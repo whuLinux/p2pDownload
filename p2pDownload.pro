@@ -17,7 +17,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     host.cpp \
-    http.cpp \
+    downloadmanager.cpp \
+    httpdownloader.cpp \
     commmsg.cpp \
     ctrlmsg.cpp \
     filemsg.cpp \
@@ -36,7 +37,8 @@ SOURCES += \
 HEADERS += \
     Recqtimer.h \
     host.h \
-    http.h \
+    downloadmanager.h \
+    httpdownloader.h \
     commmsg.h \
     ctrlmsg.h \
     filemsg.h \
@@ -53,7 +55,7 @@ HEADERS += \
     uniformlabel.h
 
 FORMS += \
-    http.ui \
+    downloadmanager.ui \
     mainwindow.ui
 
 # Default rules for deployment.
