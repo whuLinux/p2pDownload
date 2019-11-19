@@ -476,6 +476,10 @@ bool TCPSocketUtil::sendToPartner(qint32 partnerId, CommMsg & msg)
         return false;
     }
 
+    if (msg.getMsgType() == TCPCtrlMsgType::DOWNLOADTASK) {
+        this->partnerFileIndex[msg.getToken()] = 0;
+    }
+
     // 请求伙伴客户端协助下载, 分配下载任务, 通知伙伴客户端可以继续传送文件, 下载已完成，终止任务
     this->partnerConnections[partnerId]->write(msg.toMsg());
     return true;
@@ -589,7 +593,6 @@ bool TCPSocketUtil::newConnectionWithFilePartner()
 
     this->partnerFileConnections[vistorId] = vistor;
     this->partnerFileConnections[vistorId]->setId(vistorId);
-    this->partnerFileIndex[vistorId] = 0;
 
     connect(this->partnerFileConnections[vistorId], SIGNAL(readyRead()), this->partnerFileConnections[vistorId], SLOT(ensureReadyRead()));
     connect(this->partnerFileConnections[vistorId], SIGNAL(error(QAbstractSocket::SocketError)), this->partnerFileConnections[vistorId], SLOT(ensureError(QAbstractSocket::SocketError)));
@@ -628,9 +631,9 @@ bool TCPSocketUtil::recFromFilePartner(qint32 partnerId)
         qint32 index = qint32(msg.mid(5,4).toInt());
         qint8 lastOne = qint8(msg.mid(9,1).toInt());
 
-        if (index != this->partnerFileIndex[partnerId]) {
+        if (index != this->partnerFileIndex[token]) {
             qDebug() << "TCPSocketUtil::recFromFilePartner " << "伙伴客户端数据发送顺序错误 " << partnerId << " 失败的任务令牌 " << token << " 索引 " << index << endl;
-            emit timeForNextTaskForPartner(partnerId, token, this->partnerFileIndex[partnerId]);
+            emit timeForNextTaskForPartner(partnerId, token, this->partnerFileIndex[token]);
             return false;
         }
 
@@ -648,6 +651,7 @@ bool TCPSocketUtil::recFromFilePartner(qint32 partnerId)
         file->write(msg.mid(10));
 
         if (lastOne == 1) {
+            this->partnerFileIndex.remove(token);
             emit taskHasFinishedForFriend(partnerId, token);
         }
 

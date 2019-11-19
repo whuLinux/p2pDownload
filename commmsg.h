@@ -55,6 +55,8 @@ public:
     inline void setToken(qint32 token);
     inline void setIndex(qint32 index);
     inline TCPCtrlMsgType getMsgType();
+    inline qint32 getToken();
+    inline qint32 getIndex();
 };
 
 void CommMsg::setToken(qint32 token)
@@ -70,6 +72,16 @@ void CommMsg::setIndex(qint32 index)
 TCPCtrlMsgType CommMsg::getMsgType()
 {
     return this->msgType;
+}
+
+qint32 CommMsg::getToken()
+{
+    return this->token;
+}
+
+qint32 CommMsg::getIndex()
+{
+    return this->index;
 }
 
 #endif // COMMMSG_H

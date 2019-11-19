@@ -17,7 +17,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     client.cpp \
-    host.cpp \
     downloadmanager.cpp \
     httpdownloader.cpp \
     commmsg.cpp \
@@ -37,7 +36,6 @@ SOURCES += \
 HEADERS += \
     Recqtimer.h \
     client.h \
-    host.h \
     downloadmanager.h \
     httpdownloader.h \
     commmsg.h \
