@@ -17,6 +17,7 @@ class HttpDownloader : public QObject {
 public:
     explicit HttpDownloader(QObject *parent = nullptr);
     HttpDownloader(int index, QUrl url, QString name, QString path, qint64 begin, qint64 end, QObject *parent);
+    ~HttpDownloader();
 
     void startDownload();
 
@@ -25,7 +26,7 @@ signals:
     void subDownloadProgress(int index, qint64 bytesRead);     // 更新下载进度
 
 public slots:
-    void onSupPauseDownload();      // manager 要求暂停瞎咋
+    void onSupPauseDownload();      // manager 要求暂停下载
     void onSupStartDownload();      // manager 要求继续下载
 
 private slots:
