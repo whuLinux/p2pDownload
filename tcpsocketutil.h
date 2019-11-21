@@ -179,8 +179,10 @@ signals:
     void timeForFirstTaskForPartner(qint32 partnerId);
     // REFUSETOHELP
     void refuseToOfferHelpForPartner(qint32 partnerId);
+    // TASKEXECUING
+    void timeForNextSliceForPartner(qint32 partnerId, qint32 token, qint32 index);
     // TASKFINISH
-    void readyToAcceptFileForPartner(qint32 partnerId, qint32 token);
+    void timeForNextTaskForPartner(qint32 partnerId, qint32 token);
     // TASKFAILURE
     void taskFailureForPartner(qint32 partnerId, qint32 token);
 
@@ -195,7 +197,7 @@ signals:
     // DOWNLOADTASK
     void startToDownload(qint32 friendId, qint32 token, qint64 pos, qint32 len);
     // THANKYOURHELP
-    void timeForNextTaskForPartner(qint32 friendId, qint32 token, qint32 index);
+    void timeForNextSliceForFriend(qint32 friendId, qint32 token, qint32 index);
     // ENDYOURHELP
     void taskHasFinishedForFriend(qint32 friendId, qint32 token);
 

@@ -536,7 +536,7 @@ bool TCPSocketUtil::recFromFriend(qint32 friendId)
         }
 
        // 本次小块传送结束，伙伴客户端准备传送下一块
-       emit timeForNextTaskForPartner(friendId, qint32(jsonMsg.value(TOKEN).toInt()), qint32(jsonMsg.value(INDEX).toInt()));
+       emit timeForNextSliceForFriend(friendId, qint32(jsonMsg.value(TOKEN).toInt()), qint32(jsonMsg.value(INDEX).toInt()));
 
     } else if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toInt()) == TCPCtrlMsgType::ENDYOURHELP) {
         if (jsonMsg.value(TOKEN).isUndefined()) {
@@ -633,7 +633,7 @@ bool TCPSocketUtil::recFromFilePartner(qint32 partnerId)
 
         if (index != this->partnerFileIndex[token]) {
             qDebug() << "TCPSocketUtil::recFromFilePartner " << "伙伴客户端数据发送顺序错误 " << partnerId << " 失败的任务令牌 " << token << " 索引 " << index << endl;
-            emit timeForNextTaskForPartner(partnerId, token, this->partnerFileIndex[token]);
+            emit timeForNextSliceForPartner(partnerId, token, this->partnerFileIndex[token]);
             return false;
         }
 

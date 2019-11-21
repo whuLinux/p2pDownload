@@ -11,21 +11,32 @@
 #include <QNetworkAccessManager>
 
 DownloadManager::DownloadManager(QWidget *parent)
-            : QMainWindow(parent) , ui(new Ui::DownloadManager),
-              lastStartSecond(0), totalSecond(0), isFromStart(true), threadCount(0), finishedThreadCount(0) {
+            : QMainWindow(parent), ui(new Ui::DownloadManager),
+              isPartner(false), taskIndex(-1), begin(-1), end(-1), lastStartSecond(0), totalSecond(0),
+              isFromStart(true), threadCount(0), finishedThreadCount(0) {
     ui->setupUi(this);
     ui->lineEdit_Path->setText("C:/Users/yujia/Desktop/");
     ui->progressBar->setValue(0);
     ui->progressBar->setMaximum(0);
 }
 
+DownloadManager::DownloadManager(bool isPartner, int taskIndex, QUrl url, qint64 begin, qint64 end, QWidget *parent)
+        : QMainWindow(parent), ui(new Ui::DownloadManager),
+          isPartner(isPartner), taskIndex(taskIndex),
+          url(url), begin(begin), end(end), lastStartSecond(0), totalSecond(0),
+          isFromStart(true), threadCount(0), finishedThreadCount(0) {
+
+    ui->setupUi(this);
+}
+
 DownloadManager::~DownloadManager() {
 
     delete ui;
+    delete [] bytesRead;
 }
 
 qint64 DownloadManager::getFileSize(QUrl url) {
-    /* 根据 URL 得到文件的大小 */
+    /* 根据 URL 获取文件大小，返回字节数 */
 
     /* 发送请求 */
     QNetworkAccessManager manager;
@@ -36,10 +47,10 @@ qint64 DownloadManager::getFileSize(QUrl url) {
     QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
 
-    /* 输出出错信息 */
+    /* 请求错误则输出出错信息并退出 */
     if (reply->error() != QNetworkReply::NoError) {
-        qDebug() << "获取文件大小时发生请求出错：" << reply->errorString();
-        return 0;
+        qDebug() << "【HTTP请求错误】【获取文件大小时请求出错】" << reply->errorString();
+        return -1;
     }
 
     /* 获取文件大小 */
@@ -47,26 +58,158 @@ qint64 DownloadManager::getFileSize(QUrl url) {
     reply->deleteLater();
 
     /* 转换为 qint64 */
-    qint64 size = var.toLongLong();
-    return size;
+    return var.toLongLong();
 }
 
 QString DownloadManager::getFileName(QUrl url) {
+    /* 处理 URL 格式，获取文件名 */
 
     return QFileInfo(url.path()).fileName();
 }
 
-QString DownloadManager::getFilePath() {
+int DownloadManager::getPartCount(qint64 fileSize, qint64 divideSize, int amount) {
+    /* 可用于分配伙伴机数量，也可用于分配线程数量 */
 
-    return ui->lineEdit_Path->text();
+    return (fileSize > divideSize * amount) ? (amount) : (fileSize/divideSize + 1);
 }
 
-int DownloadManager::getThreadCount(qint64 size) {
+/**
+ * 错误代码：
+ *      0 - 正确执行
+ *      1 - URL不合法
+ *      2 - 起止点不合法
+ *      3 - 无法创建下载文件夹
+ */
+int DownloadManager::startDownload() {
 
-    if (size >= MAX_THREAD_COUNT * BLOCK_SIZE) {
-        return MAX_THREAD_COUNT;
+    if (!isFromStart) {
+        emit signalContinueDownload();
+
+        ui->pushButton_Start->setText("Continue");
+        ui->pushButton_Start->setEnabled(false);
+        ui->pushButton_Pause->setEnabled(true);
+
+        return 0;
+    }
+
+    /* 初次运行时将 isFromStart 置为 false，以后再调用此函数则为断点续传 */
+    isFromStart = false;
+
+    /* 开始计时 */
+    lastStartSecond = QDateTime::currentDateTime().toTime_t();
+
+    /* 确认 URL */
+    if (url.isEmpty()) {
+        qDebug() << "URL为空，尝试从输入框中读取...";
+        if ((url = ui->lineEdit_URL->text()).isEmpty()) {
+            qDebug() << "输入框为空，无法读取URL，无法开始下载";
+            return 1;
+        }
+    }
+
+    /* 确认文件名 */
+    name = getFileName(url);
+    if (taskIndex >= 0) {
+        name += ".index" + QString::number(taskIndex);
+    }
+
+    /* 确认存放路径 */
+    path = getFilePath();
+
+    /* 确认起止点及文件大小 */
+    if (begin == -1 || end == -1) {
+        qDebug() << "未指定起止点，默认下载整个文件";
+        begin = 0;
+        end = getFileSize(url);
+        size = end - begin;
+    } else if (end > begin) {
+        qDebug() << "设置的终点大于起点，无法分配该任务";
+        return 2;
     } else {
-        return size / BLOCK_SIZE + 1;
+        size = end - begin;
+    }
+
+    /* 确认分配线程数 */
+    threadCount = getPartCount(size);
+
+    /* 创建临时文件夹，用于存放分块文件 */
+    QDir dir;
+    QString dirName = path + "." + name + "/";
+    if (!dir.exists(dirName)) {
+        dir.mkpath(dirName);
+        if (!dir.exists(dirName)) {
+            qDebug() << "临时文件夹创建失败";
+            return 3;
+        } else {
+            qDebug() << "临时文件夹创建成功: " << dirName;
+        }
+    }
+
+    /* 创建线程 */
+    HttpDownloader *downloader;
+
+    if (threadCount == 1) {
+
+        downloader = new HttpDownloader(1, url, name, dirName, begin, end, this);
+        downloader->startDownload();
+
+        QObject::connect(downloader, &HttpDownloader::subThreadFinished, downloader, &HttpDownloader::deleteLater);
+        QObject::connect(downloader, &HttpDownloader::subThreadFinished, this, &DownloadManager::onSubThreadFinished);
+        QObject::connect(this, &DownloadManager::signalPauseDownload, downloader, &HttpDownloader::onSupPauseDownload);
+        QObject::connect(this, &DownloadManager::signalContinueDownload, downloader, &HttpDownloader::onSupStartDownload);
+        QObject::connect(downloader, &HttpDownloader::subDownloadProgress, this, &DownloadManager::onSubDownloadProgress);
+
+    } else {
+
+        for (int i = 0; i < threadCount; i++) {
+            qint64 partBegin = size*i/threadCount + begin;
+            qint64 partEnd   = size*(i+1)/threadCount - 1;
+            if (i == threadCount-1) { partEnd++; }
+
+            downloader = new HttpDownloader(i+1, url, name+".part"+QString::number(i+1),
+                                            dirName, partBegin, partEnd, this);
+            downloader->startDownload();
+
+            QObject::connect(downloader, &HttpDownloader::subThreadFinished, downloader, &HttpDownloader::deleteLater);
+            QObject::connect(downloader, &HttpDownloader::subThreadFinished, this, &DownloadManager::onSubThreadFinished);
+            QObject::connect(this, &DownloadManager::signalPauseDownload, downloader, &HttpDownloader::onSupPauseDownload);
+            QObject::connect(this, &DownloadManager::signalContinueDownload, downloader, &HttpDownloader::onSupStartDownload);
+            QObject::connect(downloader, &HttpDownloader::subDownloadProgress, this, &DownloadManager::onSubDownloadProgress);
+        }
+    }
+
+    /* 初始时已下载大小置0 */
+    bytesRead = new qint64[threadCount];
+    for (int i = 0; i < threadCount; i++) {
+        bytesRead[i] = 0;
+    }
+
+    qDebug() << "[startDownload]" << "URL: " << url;
+    qDebug() << "[startDownload]" << "文件名: " << name;
+    qDebug() << "[startDownload]" << "存放路径: " << path;
+    qDebug() << "[startDownload]" << "开始处: " << begin;
+    qDebug() << "[startDownload]" << "结束处: " << end;
+    qDebug() << "[startDownload]" << "总大小: " << size;
+    qDebug() << "[startDownload]" << "分配线程数: " << threadCount;
+
+    return 0;
+}
+
+void DownloadManager::pauseDownload() {
+
+    ui->pushButton_Start->setEnabled(true);
+    ui->pushButton_Pause->setEnabled(false);
+
+    emit signalPauseDownload();
+}
+
+QString DownloadManager::getFilePath() {
+    /* 获取下载路径，若无用户指定，则默认存放于 exe 同级路径下 */
+
+    if (isPartner) {
+        return "";
+    } else {
+        return ui->lineEdit_Path->text();
     }
 }
 
@@ -78,29 +221,29 @@ void DownloadManager::downloadFinished() {
     ui->pushButton_Start->setEnabled(false);
     ui->pushButton_Pause->setEnabled(false);
 
-    qDebug() << "开始合并文件";
-
     if (threadCount != 1) {
         QFile outFile(path+name);
         outFile.open(QIODevice::WriteOnly | QIODevice::Append);
 
         QFile *partFile;
         for (int i = 0; i < threadCount; i++) {
-            partFile = new QFile(path+name+".download/"+name+".part"+QString::number(i+1));
+            partFile = new QFile(path+"."+name+"/"+name+".part"+QString::number(i+1));
             partFile->open(QIODevice::ReadWrite);
-            qDebug() << "打开文件：" << partFile->fileName();
+
             outFile.write(partFile->readAll());
+
             partFile->close();
             delete partFile;
             partFile = Q_NULLPTR;
-            QFile::remove(path+name+".download/"+name+".part"+QString::number(i+1));
-        }
 
-        QDir dir;
-        dir.rmdir(path+name+".download/");
+            QFile::remove(path+"."+name+"/"+name+".part"+QString::number(i+1));
+        }
     }
 
-    qDebug() << "合并完毕";
+    QDir dir;
+    if (!dir.rmdir(path+"."+name+"/")) {
+        qDebug() << "未能删除空文件夹";
+    }
 
     QMessageBox::information(this, "文件下载完毕", "文件名： "+name+"\n已下载至 "+path);
 }
@@ -135,78 +278,7 @@ void DownloadManager::onSubDownloadProgress(int index, qint64 bytesRead) {
 
 void DownloadManager::on_pushButton_Start_clicked() {
 
-    ui->pushButton_Start->setEnabled(false);
-    ui->pushButton_Pause->setEnabled(true);
-
-    lastStartSecond = QDateTime::currentDateTime().toTime_t();
-
-    if (!isFromStart) {
-        emit supStartDownload();
-        ui->pushButton_Start->setText("Continue");
-        return;
-    }
-
-    isFromStart = false;
-
-    url  = ui->lineEdit_URL->text();
-    path = getFilePath();
-    name = getFileName(url);
-    size = getFileSize(url);
-    threadCount = getThreadCount(size);
-
-    qDebug() << url << path << name << size << threadCount;
-
-    ui->label_Name->setText("File Name: " + name);
-    QString lableSize = (size < 1024) ? (QString::number(size) + " bit") :
-                        (size < 1024*1024) ? (QString::number(size/1024.0) + " Kbit") :
-                        (size < 1024*1024*1024) ? (QString::number(size/1024.0/1024.0) + " Mbit") :
-                                                  (QString::number(size/1024.0/1024.0/1024.0) + " Gbit");
-    ui->label_Size->setText("File Size: " + lableSize);
-
-    /* 分配线程资源 */
-    /* 创建临时文件夹 */
-//    path += name + ".download/";
-    QDir dir;
-    if (!dir.exists(path)) {
-        dir.mkpath(path);
-    }
-
-    HttpDownloader *downloader;
-    bytesRead = new qint64[threadCount+1];
-    for (int i = 0; i < threadCount+1; i++) {
-        bytesRead[i] = 0;
-    }
-
-    if (threadCount == 1) {
-
-        downloader = new HttpDownloader(1, url, name, path, 0, size, this);
-        qDebug() << 1 << name << path << 0 << size << size / 1024.0 << "Kb";
-        downloader->startDownload();
-
-        QObject::connect(downloader, &HttpDownloader::subThreadFinished, downloader, &HttpDownloader::deleteLater);
-        QObject::connect(downloader, &HttpDownloader::subThreadFinished, this, &DownloadManager::onSubThreadFinished);
-        QObject::connect(this, &DownloadManager::supPauseDownload, downloader, &HttpDownloader::onSupPauseDownload);
-        QObject::connect(this, &DownloadManager::supStartDownload, downloader, &HttpDownloader::onSupStartDownload);
-        QObject::connect(downloader, &HttpDownloader::subDownloadProgress, this, &DownloadManager::onSubDownloadProgress);
-
-    } else {
-
-        for (int i = 0; i < threadCount; i++) {
-            qint64 begin = size * i / threadCount;
-            qint64 end   = size * (i+1) / threadCount - 1;
-            if (i == threadCount - 1) { end++; }
-
-            downloader = new HttpDownloader(i+1, url, name+".part"+QString::number(i+1), path+name+".download/", begin, end, this);
-            qDebug() << i+1 << name+".part"+QString::number(i+1) << path+name+".download/" << begin << end << (end - begin) / 1024.0 << "Kb";
-            downloader->startDownload();
-
-            QObject::connect(downloader, &HttpDownloader::subThreadFinished, downloader, &HttpDownloader::deleteLater);
-            QObject::connect(downloader, &HttpDownloader::subThreadFinished, this, &DownloadManager::onSubThreadFinished);
-            QObject::connect(this, &DownloadManager::supPauseDownload, downloader, &HttpDownloader::onSupPauseDownload);
-            QObject::connect(this, &DownloadManager::supStartDownload, downloader, &HttpDownloader::onSupStartDownload);
-            QObject::connect(downloader, &HttpDownloader::subDownloadProgress, this, &DownloadManager::onSubDownloadProgress);
-        }
-    }
+    startDownload();
 }
 
 void DownloadManager::on_pushButton_Path_clicked() {
@@ -225,12 +297,5 @@ void DownloadManager::on_pushButton_Path_clicked() {
 
 void DownloadManager::on_pushButton_Pause_clicked() {
 
-    ui->pushButton_Pause->setEnabled(false);
-    ui->pushButton_Start->setEnabled(true);
-
-    /* 更新用时 */
-    totalSecond += QDateTime::currentDateTime().toTime_t() - lastStartSecond;
-
-    /* 通知各线程暂停下载 */
-    emit supPauseDownload();
+    pauseDownload();
 }

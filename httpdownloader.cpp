@@ -37,6 +37,17 @@ HttpDownloader::HttpDownloader(int index, QUrl url, QString name, QString path, 
     }
 }
 
+HttpDownloader::~HttpDownloader() {
+
+    delete manager;
+    delete reply;
+
+    if(file) {
+        file->close();
+        delete file;
+    }
+}
+
 void HttpDownloader::startDownload() {
 
     QNetworkRequest request;
