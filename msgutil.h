@@ -37,7 +37,7 @@ public:
     /**
      * @brief createFileMsg
      */
-    FileMsg createTaskExecuingMsg(qint32 token, qint32 index, QByteArray & msg);
+    FileMsg createTaskExecuingMsg(qint32 token, qint32 index, qint8 lastOne, QByteArray & msg);
 };
 
 #endif // MSGUTIL_H

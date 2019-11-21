@@ -36,11 +36,6 @@ void mainRecord::addBlockId(blockInfo blockId){
     this->blockIds.append(blockId);
 }
 
-QVector<blockInfo> mainRecord::getBlockIds() const
-{
-    return blockIds;
-}
-
 mainRecord::mainRecord()
 {
     //伪记录
@@ -49,12 +44,12 @@ mainRecord::mainRecord()
 //    this->recTimer=new RecQTimer();
 }
 
-mainRecord::mainRecord(qint8 recordid,qint32 clientId,qint32 token, QVector<qint8> blocks)
+mainRecord::mainRecord(qint8 recordid,qint32 clientId,qint32 token)
 {
     this->recordID=recordid;
     this->clientId=clientId;
     this->token=token;
-    this->blockIds=blocks;
-    this->recTimer=new RecQTimer();
-    this->recTimer->start(DDL); //下载时间上限
+//    this->blockIds=blocks;
+//    this->recTimer=new RecQTimer();
+//    this->recTimer->start(DDL); //下载时间上限
 }

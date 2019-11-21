@@ -20,9 +20,9 @@ struct blockInfo
  */
 struct historyRecord{
     qint8 recordID; //单个记录标识
-    qint32 hostID; //下载主机的标识
+    qint32 clientID; //下载主机的标识
     qint32 token; //任务token
-    QVector<qint8> blockId; //下载文件块的下标
+    QVector<blockInfo> blockId; //下载文件块的下标
 };
 
 struct mission{

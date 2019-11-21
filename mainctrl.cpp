@@ -49,8 +49,8 @@ void mainctrl::initExistClients(){
         QVector<ClientNode>::iterator iter;
 
         for(iter=partners.begin();iter!=partners.end();iter++){
-            Client temp=Client(this->mainctrlutil.createId(),iter->name,iter->ip,iter->port,iter->filePort);
-            this->existClients.append(temp);
+            Client *temp=new Client(this->mainctrlutil.createId(),iter->name,iter->ip,iter->port,iter->filePort);
+            this->existClients.append(*temp);
         }
     }
 }
@@ -159,12 +159,12 @@ bool mainctrl::creatDownloadReq(){
 
     blockNum=this->myMission.filesize/this->blockSize;
     for(qint8 i=1;i<=blockNum;i++){
-        blockInfo temp;
-        temp.index=i;
+        blockInfo *temp=new blockInfo();
+        temp->index=i;
         if(i==blockNum)
-            temp.isEndBlock=true;
-        else temp.isEndBlock=false;
-        this->blockQueue.append(temp);
+            temp->isEndBlock=true;
+        else temp->isEndBlock=false;
+        this->blockQueue.append(*temp);
     }
 
 }
@@ -204,9 +204,10 @@ void mainctrl::downLoadSchedule(){
                 }
                 else{
                     //给伙伴机分配任务
-                    this->assignTaskToPartner();
+                    this->assignTaskToPartner(client.getId(),thisToken,recordLists);
                 }
-                this->addToTaskTable();
+                this->addToTaskTable(recordLists);
+                this->workingClients.append(client);//加入工作状态
             }
         }
     }
@@ -238,6 +239,7 @@ QVector<mainRecord> mainctrl::createTaskRecord(QVector<blockInfo> blockLists, qi
                 recordLists.append(*recordP);//先前blocks记录创建
             }
             recordP=new mainRecord();
+            //TODO:启动计时器
             recordP->setRecordID(this->mainctrlutil.createRecordId());
             recordP->setClientId(clientId);recordP->setToken(token);
         }
@@ -249,6 +251,84 @@ QVector<mainRecord> mainctrl::createTaskRecord(QVector<blockInfo> blockLists, qi
     return  recordLists;
 }
 
+void mainctrl::addToTaskTable(QVector<mainRecord> recordLists){
+    while(!recordLists.isEmpty()){
+        this->taskTable.append(recordLists.takeFirst());
+    }
+}
+
+void mainctrl::deleteFromTaskTablePartner(qint32 clientID){
+    QVector<mainRecord>::iterator iter;
+    QVector<blockInfo> tempBlocks;
+    blockInfo *tempBlock;
+    for(iter=this->taskTable.begin();iter!=taskTable.end();){
+        if(iter->getClientId()==clientID){
+            //插入历史记录表
+            historyRecord *hRecord=new historyRecord();
+            hRecord->token=iter->getToken();
+            hRecord->recordID=iter->getRecordID();
+            hRecord->clientID=iter->getClientId();
+            tempBlocks=iter->getBlockIds();
+            for(int i=0;i<tempBlocks.size();i++){
+                tempBlock=new blockInfo(tempBlocks[i]);
+                hRecord->blockId.append(*tempBlock); //复制块信息到历史记录中保存
+            }
+            iter=this->taskTable.erase(iter);//销毁
+
+            //入历史记录
+            this->addToHistoryTable(*hRecord);
+        }
+        else{
+            iter++;
+        }
+    }
+}
+
+void mainctrl::addToHistoryTable(historyRecord &hRecord){
+    this->historyTable.append(hRecord);
+}
+
+void mainctrl::assignTaskToPartner(qint32 partnerID,qint32 token,QVector<mainRecord> recordLists){
+    QVector<mainRecord>::iterator iter;
+    QVector<blockInfo> tempBlocks;
+    qint64 pos;
+    qint32 len;
+    for(iter=recordLists.begin();iter!=recordLists.end();iter++){
+        //对每个record创建msg发送
+        tempBlocks=iter->getBlockIds();
+        pos=tempBlocks.constFirst().index * this->blockSize;//下载起始地址
+        if(tempBlocks.constLast().isEndBlock){
+            //如果是最后的块
+            len=this->myMission.filesize-pos;
+        }
+        else{
+            len=tempBlocks.size()*this->blockSize;
+        }
+        CommMsg msg=CommMsg(TCPCtrlMsgType::DOWNLOADTASK,token,pos,len);
+        this->tcpSocketUtil.sendToPartner(partnerID,msg);
+    }
+}
+
+void mainctrl::recParnterSeg(qint32 partnerId){
+    //TODO：接收
+
+    //TODO：完整性检查
+
+    //任务状态更新
+    this->deleteFromTaskTablePartner(partnerId);
+    //伙伴状态更新
+    this->work2wait(partnerId);
+}
+
+void mainctrl::work2wait(qint32 clientId){
+    for(int i=0;i<this->workingClients.size();i++){
+        if(clientId==workingClients[i].getId()){
+            this->waitingClients.enqueue(workingClients.takeAt(i));
+            break;
+        }
+    }
+}
+
 /*———————————伙伴端（协助下载端）方法—————————————*/
 
 void mainctrl::recFriendHelp(qint32 friendId,QString downloadAddress, qint32 lenMax){
@@ -256,15 +336,49 @@ void mainctrl::recFriendHelp(qint32 friendId,QString downloadAddress, qint32 len
     CommMsg msg;
     bool decision=true;
     if(decision){
-        msg=CommMsg(TCPCtrlMsgType::AGREETOHELP);
+        msg=this->msgUtil.creteAgreeToHelpMsg();
+//        msg=CommMsg(TCPCtrlMsgType::AGREETOHELP);
         this->tcpSocketUtil.sendToFriend(friendId,msg);
         //切换状态，告诉主控准备下载
         this->status=ClientStatus::HELPING;
+        this->friendId=friendId;
         this->myMission.url=downloadAddress;//登记下载地址
         this->blockSize=lenMax;//单次下载长度上限
     }
     else{
-        msg=CommMsg(TCPCtrlMsgType::REFUSETOHELP);
+        msg=this->msgUtil.creteRefuseToHelpMsg();
+//        msg=CommMsg(TCPCtrlMsgType::REFUSETOHELP);
         this->tcpSocketUtil.sendToFriend(friendId,msg);
     }
+}
+
+void mainctrl::taskStartAsPartner(){
+    //TODO:开始下载
+}
+
+void mainctrl::taskEndAsPartner(){
+    //TODO:下载完成，通知friend，开始传输
+
+    FileMsg fileMsg=FileMsg();//TODO:完成filemsg属性的setting
+    this->tcpSocketUtil.sendToFileFriend(this->friendId,fileMsg);
+    CommMsg commMsg=CommMsg(TCPCtrlMsgType::TASKFINISH);
+    qDebug()<<"下载完成，传输中";
+    this->tcpSocketUtil.sendToFriend(this->friendId,commMsg);
+}
+
+void mainctrl::missionEndAsPartner(){
+    //TODO:删除本机下载文件
+    this->status=ClientStatus::IDLING;
+}
+
+/*————————————————————信号槽———————————————————*/
+void mainctrl::signalsConnect(){
+    //TASKFINISH 接收伙伴机文件
+    QObject::connect(&this->tcpSocketUtil,SIGNAL(readyToAcceptFileForPartner),this,SLOT(recParnterSeg));
+    //文件接收相关
+
+    //伙伴机开始下载
+    QObject::connect(&this->tcpSocketUtil,SIGNAL(starToDownload),this,SLOT(taskStartAsPartner));
+    //帮助下载的任务结束
+    QObject::connect(&this->tcpSocketUtil,SIGNAL(taskHasFinishedForFriend),this,SLOT(missionEndAsPartner));
 }
