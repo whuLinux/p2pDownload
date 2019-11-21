@@ -165,7 +165,7 @@ public slots:
     /**
      * @brief 真正的文件发送函数
      */
-    bool sendToFileFriend(qint32 partnerId, FileMsg & msg);
+    bool sendToFileFriend(qint32 friendId, FileMsg & msg);
 
 signals:
     /**
