@@ -92,5 +92,10 @@ const QString FRIEND = "friend";
  * 伙伴 被动协助下载的客户端
  * Host 主动监听端口，接收多个伙伴客户端访问的的TcpServer对象
  * Guest，向某一个朋友客户端发送信息的TcpSocket对象
+ *
+ * Mission 本次要下载的文件
+ * Task client被分配到的任务，每个Task为n倍Block Size
+ * Block 主控模块划分任务的最小单位
+ * Slice 伙伴机向朋友机发送Task时，受TCP限制而进行的文件分片
  */
 #endif // UNIFORMLABEL_H
