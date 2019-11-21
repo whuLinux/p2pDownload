@@ -21,6 +21,13 @@ private:
     bool hasTask;
     quint8 taskNum;//本轮分配的下载任务数量
 
+    /**
+    ** 请求发起机（即localhost）时，Parnter
+    * 特殊标记为id=-1 name="localhost"
+    * ip="127.0.0.1"
+    * port=filePort=0
+    * */
+
 public:
     Client();
     Client(qint32 id, QString name, QString ip, quint16 port, quint16 filePort);
@@ -89,5 +96,6 @@ void Client::setTaskNum(quint8 taskNum)
 {
     this->taskNum=taskNum;
 }
+
 
 #endif // Client_H
