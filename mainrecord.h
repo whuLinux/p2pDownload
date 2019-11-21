@@ -10,9 +10,9 @@
  * @brief The mainRecord class
  * 任务分配记录，作为任务分配表的表项
  */
-class mainRecord:public QObject
+class mainRecord//:public QObject
 {
-    Q_OBJECT
+//    Q_OBJECT
 
 private:
     qint8 recordID; //单个记录标识
@@ -20,11 +20,11 @@ private:
     qint32 token; //任务token
     QVector<blockInfo> blockIds; //下载文件块的下标
     //参照p2ptcpsocket, tcpsocketutil::newConnectionWithPartner 强化设计
-    RecQTimer *recTimer; //计时
+    //RecQTimer *recTimer; //计时
 
 public:
     mainRecord();
-    mainRecord(qint8 recordid,qint32 clientId,qint32 token, QVector<qint8> blocks);
+    mainRecord(qint8 recordid,qint32 clientId,qint32 token);
 
     qint8 getRecordID() const;
     void setRecordID(const qint8 &value);

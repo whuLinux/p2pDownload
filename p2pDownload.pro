@@ -26,6 +26,8 @@ SOURCES += \
     main.cpp \
     mainctrl.cpp \
     mainctrlutil.cpp \
+    mainfriend.cpp \
+    mainpartner.cpp \
     mainrecord.cpp \
     mainwindow.cpp \
     msgutil.cpp \
@@ -45,6 +47,8 @@ HEADERS += \
     mainctrl.h \
     mainctrlmacro.h \
     mainctrlutil.h \
+    mainfriend.h \
+    mainpartner.h \
     mainrecord.h \
     mainwindow.h \
     msgutil.h \

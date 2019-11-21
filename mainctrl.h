@@ -5,6 +5,7 @@
 #include<QDebug>
 #include"udpsocketutil.h"
 #include"tcpsocketutil.h"
+#include"msgutil.h"
 #include"downloadmanager.h"
 #include"commmsg.h"
 #include"filemsg.h"
@@ -37,7 +38,7 @@ private:
     Client local;//本地主机
     QVector<Client> existClients;//服务器中注册的主机
     QQueue<Client> waitingClients;//下载任务中待分配的主机
-    QQueue<Client> workingClients;//任务进行中的主机
+    QVector<Client> workingClients;//任务进行中的主机
     QVector<mainRecord> taskTable;//进行中的任务分配表
     QVector<historyRecord> historyTable;//历史记录表
     ClientStatus status;
@@ -47,6 +48,9 @@ private:
     QString hostName;
     QString pwd;
 
+    //登记friendID
+    qint32 friendId;
+
     //辅助下载变量
     qint32 clientNum;//参与下载的书籍数量
     qint32 blockSize;
@@ -55,6 +59,8 @@ private:
     UDPSocketUtil udpSocketUtil;
     TCPSocketUtil tcpSocketUtil;
     mainCtrlUtil mainctrlutil;
+    DownloadManager downloadManager;
+    MsgUtil msgUtil;
 
 
 public:
@@ -72,6 +78,8 @@ public:
     void getExistClients();
     void initExistClients();
 
+    //统一进行信号槽连接
+    void signalsConnect();
 
     /*———————————朋友端（请求发起端）方法—————————————*/
     /**
@@ -107,20 +115,35 @@ public:
     void downLoadSchedule();
 
     //注册任务
-    void addToTaskTable();
+    void addToTaskTable(QVector<mainRecord> recordLists);
     //删除任务
-    void deleteFromTaskTable();
+    //响应伙伴机信号或自身下载完成信号
+    void deleteFromTaskTableLocal(qint32 clientID);
+    void deleteFromTaskTablePartner(qint32 clientID);
     //增加历史记录
-    void addToHistoryTable();
+    void addToHistoryTable(historyRecord &hRecord);
+    //查询历史记录
+    void searchHistoryTable();
     //根据client的能力（taskNum），从blockQueue中取出对应数量的block
     QVector<blockInfo> getTaskBlocks(quint8 taskNum);
     //检查blcok是否连续，创建任务记录
     QVector<mainRecord> createTaskRecord(QVector<blockInfo> blockLists,qint32 clientId,qint32 token);
     //分配任务，发消息给伙伴机
-    void assignTaskToPartner();
-    /*———————————伙伴端（协助下载端）方法—————————————*/
-    void recFriendHelp(qint32 friendId,QString downloadAddress, qint32 lenMax);//收到求助请求
+    void assignTaskToPartner(qint32 partnerID,qint32 token,QVector<mainRecord> recordLists);
+    //TASKFINISH 接收伙伴机文件
+    void recParnterSeg(qint32 partnerId);
+    //从工作队列挪到空闲队列
+    void work2wait(qint32 clientId);
 
+    /*———————————伙伴端（协助下载端）方法—————————————*/
+    void recFriendHelp(qint32 friendId,QString downloadAddress, qint32 lenMax);//收到求助请求,选择是否下载
+    //接受DOWNLOADTASK，开始task下载
+    void taskStartAsPartner();
+    //task下载完成，向主机发送TASKFINISH
+    void taskEndAsPartner();
+    //mission完成，状态置为空闲
+    //TODO：删除协助下载的文件块
+    void missionEndAsPartner();
 
     /*————————————————槽———————————————————————————*/
 public slots:
@@ -130,6 +153,7 @@ public slots:
     void statusTOOFFLINE(){
         this->status=ClientStatus::OFFLINE;
     }
+
 };
 
 
