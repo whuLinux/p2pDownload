@@ -676,7 +676,7 @@ bool TCPSocketUtil::failToGetHelpFromFilePartner(QAbstractSocket::SocketError er
     return true;
 }
 
-bool TCPSocketUtil::sendToFileFriend(qint32 friendId, CommMsg & msg)
+bool TCPSocketUtil::sendToFileFriend(qint32 friendId, FileMsg & msg)
 {
     if (!this->fileGuests.contains(friendId)) {
         qDebug() << "TCPSocketUtil::sendToFileFriend " << "指定连接该朋友客户端的P2PTcpSocket对象尚未建立 " << friendId << endl;
