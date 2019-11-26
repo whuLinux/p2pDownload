@@ -448,7 +448,7 @@ bool TCPSocketUtil::recFromPartner(qint32 partnerId)
 
         qint32 token = qint32(jsonMsg.value(TOKEN).toInt());
         // 文件传送完成，准备在主机组装
-        emit readyToAcceptFileForPartner(partnerId, token);
+        emit timeForNextTaskForPartner(partnerId, token);
 
     } else if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toInt()) == TCPCtrlMsgType::TASKFAILURE) {
         if (jsonMsg.value(TOKEN).isUndefined()) {

@@ -134,6 +134,8 @@ public:
     inline void setFileType(QString fileType);
     inline void setSliceSize(qint32 sliceSize);
 
+    inline qint32 getSliceSize();
+
 public slots:
     /**
      * @brief 监听到伙伴客户端的消息后执行相关操作
@@ -226,6 +228,10 @@ void TCPSocketUtil::setFileType(QString fileType)
 void TCPSocketUtil::setSliceSize(qint32 sliceSize)
 {
     this->sliceSize = sliceSize;
+}
+
+qint32 TCPSocketUtil::getSliceSize(){
+    return this->sliceSize;
 }
 
 #endif // TCPSOCKETUTIL_H
