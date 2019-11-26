@@ -86,11 +86,11 @@ private:
     /**
      * 文件分块传送时每一小块大小
      */
-    qint32 groupSize;    
+    qint32 sliceSize;
 
 public:
     TCPSocketUtil();
-    TCPSocketUtil(quint16 hostPort, quint16 fileHostPort, bool openHost, bool openGuest, QString fileDir, QString fileType, qint32 groupSize);
+    TCPSocketUtil(quint16 hostPort, quint16 fileHostPort, bool openHost, bool openGuest, QString fileDir, QString fileType, qint32 sliceSize);
 
     ~TCPSocketUtil();
 
@@ -132,7 +132,7 @@ public:
 
     inline void setFileDir(QString fileDir);
     inline void setFileType(QString fileType);
-    inline void setGroupSize(qint32 groupSize);
+    inline void setSliceSize(qint32 sliceSize);
 
 public slots:
     /**
@@ -223,9 +223,9 @@ void TCPSocketUtil::setFileType(QString fileType)
     this->fileType = fileType;
 }
 
-void TCPSocketUtil::setGroupSize(qint32 groupSize)
+void TCPSocketUtil::setSliceSize(qint32 sliceSize)
 {
-    this->groupSize = groupSize;
+    this->sliceSize = sliceSize;
 }
 
 #endif // TCPSOCKETUTIL_H

@@ -5,7 +5,7 @@ TCPSocketUtil::TCPSocketUtil()
 
 }
 
-TCPSocketUtil::TCPSocketUtil(quint16 hostPort, quint16 fileHostPort, bool openHost, bool openGuest, QString fileDir, QString fileType, qint32 groupSize) : hostPort(hostPort), fileHostPort(fileHostPort), openHost(openHost), openGuest(openGuest), fileDir(fileDir), fileType(fileType), groupSize(groupSize)
+TCPSocketUtil::TCPSocketUtil(quint16 hostPort, quint16 fileHostPort, bool openHost, bool openGuest, QString fileDir, QString fileType, qint32 groupSize) : hostPort(hostPort), fileHostPort(fileHostPort), openHost(openHost), openGuest(openGuest), fileDir(fileDir), fileType(fileType), sliceSize(groupSize)
 {
     this->connectedNum = 0;
     this->fileConnectedNum = 0;
@@ -643,7 +643,7 @@ bool TCPSocketUtil::recFromFilePartner(qint32 partnerId)
             return false;
         }
 
-        if (lastOne != 1 && (msg.length() - 10)< this->groupSize) {
+        if (lastOne != 1 && (msg.length() - 10)< this->sliceSize) {
             qDebug() << "TCPSocketUtil::recFromFilePartner " << "伙伴客户端数据发送不完整 " << partnerId << " 失败的任务令牌 " << token << " 索引 " << index << endl;
             return false;
         }
