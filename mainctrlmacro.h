@@ -32,6 +32,14 @@ struct mission{
     QString name;
 };
 
+struct partnerTask{
+    qint32 token;
+    qint32 index;
+    qint32 sentLength;//已发送字节长度
+    qint32 maxLength;
+    QByteArray *downloadFile;//下载的文件流
+};
+
 //TODO: 待改为配置文件
 
 //单个文件块大小上限

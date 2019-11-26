@@ -48,8 +48,10 @@ private:
     QString hostName;
     QString pwd;
 
+    //作为伙伴机
     //登记friendID
     qint32 friendId;
+    QVector<partnerTask> sliceScheduler;
 
     //辅助下载变量
     qint32 clientNum;//参与下载的书籍数量
@@ -116,7 +118,7 @@ public:
 
     //注册任务
     void addToTaskTable(QVector<mainRecord> recordLists);
-    //删除任务
+    //删除任务,调用addToHistoryTable，将任务登记为历史记录
     //响应伙伴机信号或自身下载完成信号
     void deleteFromTaskTableLocal(qint32 clientID);
     void deleteFromTaskTablePartner(qint32 clientID);
@@ -130,22 +132,27 @@ public:
     QVector<mainRecord> createTaskRecord(QVector<blockInfo> blockLists,qint32 clientId,qint32 token);
     //分配任务，发消息给伙伴机
     void assignTaskToPartner(qint32 partnerID,qint32 token,QVector<mainRecord> recordLists);
-    //TASKFINISH 接收伙伴机文件
-    void recParnterSeg(qint32 partnerId);
+    //TASKEXECUING 接收到伙伴机文件分片,发送THANKYOURHELP
+    void recParnterSlice(qint32 partnerId, qint32 token, qint32 index);
     //从工作队列挪到空闲队列
     void work2wait(qint32 clientId);
+    //从任务表中删除记录，确认任务完成，将Partner转移至空闲队列
+    void taskEndConfig(qint32 clientId);
 
     /*———————————伙伴端（协助下载端）方法—————————————*/
-    void recFriendHelp(qint32 friendId,QString downloadAddress, qint32 lenMax);//收到求助请求,选择是否下载
+    //收到求助请求,选择是否下载
+    void recFriendHelp(qint32 friendId,QString downloadAddress, qint32 lenMax);
     //接受DOWNLOADTASK，开始task下载
-    void taskStartAsPartner();
+    void taskStartAsPartner(qint32 friendId, qint32 token, qint64 pos, qint32 len);
     //task下载完成，向主机发送TASKFINISH
-    void taskEndAsPartner();
+    void taskEndAsPartner(qint32 friendId, qint32 token,qint32 len);
     //mission完成，状态置为空闲
     //TODO：删除协助下载的文件块
     void missionEndAsPartner();
+    //slice分片调度器，切分并发送slice.
+    void sliceDivideAndSent(qint32 token,qint32 expectIndex);
 
-    /*————————————————槽———————————————————————————*/
+    /*——————————————————————槽————————————————————*/
 public slots:
     void statusToIDLE(){
         this->status=ClientStatus::IDLING;
@@ -154,6 +161,11 @@ public slots:
         this->status=ClientStatus::OFFLINE;
     }
 
+signals:
+    //唤醒sliceDivideScheduler进行调度
+    void callSliceScheduler(qint32 token,qint32 expectIndex);
+    //分片下载完成，调用taskEndAsPartner
+    void callTaskEndAsPartner(qint32 friendId, qint32 token, qint32 len);
 };
 
 

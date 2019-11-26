@@ -73,3 +73,14 @@ void mainCtrlUtil::createEmptyFile(QString fileName,QString savePath)
 void mainCtrlUtil::clearMissionStruct(mission &m){
     m.url="";m.name="";m.filesize=0;m.savePath="";
 }
+
+partnerTask* mainCtrlUtil::findParnterTask(qint32 token, QVector<partnerTask> sliceSchedule){
+    partnerTask *task=NULL;
+    for(int i=0;i<sliceSchedule.size();i++){
+        if(sliceSchedule[i].token==token){
+            task=&sliceSchedule[i];
+            break;
+        }
+    }
+    return task;
+}

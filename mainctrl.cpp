@@ -166,7 +166,6 @@ bool mainctrl::creatDownloadReq(){
         else temp->isEndBlock=false;
         this->blockQueue.append(*temp);
     }
-
 }
 
 void mainctrl::downLoadSchedule(){
@@ -181,11 +180,11 @@ void mainctrl::downLoadSchedule(){
         //检查任务队列
         if(this->blockQueue.isEmpty()){
             if(this->taskTable.isEmpty()){
-                //任务完成，等待请求发起机拼接数据
+                //TODO:任务完成，等待请求发起机拼接数据
                 flag=true;
             }
             else {
-                //任务分配表异常检测
+                //TODO:任务分配表异常检测
             }
         }
         else{
@@ -309,15 +308,10 @@ void mainctrl::assignTaskToPartner(qint32 partnerID,qint32 token,QVector<mainRec
     }
 }
 
-void mainctrl::recParnterSeg(qint32 partnerId){
-    //TODO：接收
-
-    //TODO：完整性检查
-
-    //任务状态更新
-    this->deleteFromTaskTablePartner(partnerId);
-    //伙伴状态更新
-    this->work2wait(partnerId);
+void mainctrl::recParnterSlice(qint32 partnerId, qint32 token, qint32 index){
+    //收到slice，发送THANKYOURHELP
+    CommMsg msg=this->msgUtil.createThankYourHelpMsg(token,index+1);//期待收的下一个slice index
+    this->tcpSocketUtil.sendToPartner(partnerId,msg);
 }
 
 void mainctrl::work2wait(qint32 clientId){
@@ -327,6 +321,15 @@ void mainctrl::work2wait(qint32 clientId){
             break;
         }
     }
+}
+
+void mainctrl::taskEndConfig(qint32 clientId){
+    //TODO：完整性检查，出错重发
+
+    //任务状态更新
+    this->deleteFromTaskTablePartner(clientId);
+    //伙伴状态更新
+    this->work2wait(clientId);
 }
 
 /*———————————伙伴端（协助下载端）方法—————————————*/
@@ -352,18 +355,42 @@ void mainctrl::recFriendHelp(qint32 friendId,QString downloadAddress, qint32 len
     }
 }
 
-void mainctrl::taskStartAsPartner(){
+void mainctrl::taskStartAsPartner(qint32 friendId, qint32 token, qint64 pos, qint32 len){
     //TODO:开始下载
+    //下载结束后发信号，并补上newTask.downloadFile的流指针
+    emit(this->callTaskEndAsPartner(friendId,token,len));
 }
 
-void mainctrl::taskEndAsPartner(){
-    //TODO:下载完成，通知friend，开始传输
+void mainctrl::taskEndAsPartner(qint32 friendId, qint32 token, qint32 len){
+    this->friendId=friendId;
+    partnerTask *newTask=new partnerTask();
+    newTask->token=token;newTask->index=newTask->sentLength=0;newTask->maxLength=len;
+    this->sliceScheduler.append(*newTask);
 
-    FileMsg fileMsg=FileMsg();//TODO:完成filemsg属性的setting
-    this->tcpSocketUtil.sendToFileFriend(this->friendId,fileMsg);
-    CommMsg commMsg=CommMsg(TCPCtrlMsgType::TASKFINISH);
-    qDebug()<<"下载完成，传输中";
-    this->tcpSocketUtil.sendToFriend(this->friendId,commMsg);
+    //下载结束后发信号，并补上newTask.downloadFile的流指针
+    emit(this->callSliceScheduler(token,0));
+}
+
+void mainctrl::sliceDivideAndSent(qint32 token,qint32 expectIndex){
+    int pos,sliceSize;
+    qint8 lastOne;
+    FileMsg msg;
+    partnerTask *task=mainCtrlUtil::findParnterTask(token,this->sliceScheduler);
+    QByteArray slice;
+    sliceSize=this->tcpSocketUtil.getSliceSize();
+    pos=sliceSize*(task->index)+1;
+    if(pos+sliceSize>task->maxLength){
+        //最后一块
+        slice=task->downloadFile->mid(pos,-1);
+        lastOne=1;
+    }
+    else{
+        slice=task->downloadFile->mid(pos,blockSize);
+        lastOne=0;
+    }
+    msg=this->msgUtil.createTaskExecuingMsg(task->token,task->index,lastOne,slice);
+
+    this->tcpSocketUtil.sendToFileFriend(this->friendId,msg);
 }
 
 void mainctrl::missionEndAsPartner(){
@@ -373,12 +400,21 @@ void mainctrl::missionEndAsPartner(){
 
 /*————————————————————信号槽———————————————————*/
 void mainctrl::signalsConnect(){
-    //TASKFINISH 接收伙伴机文件
-    QObject::connect(&this->tcpSocketUtil,SIGNAL(readyToAcceptFileForPartner),this,SLOT(recParnterSeg));
-    //文件接收相关
+    //TASKEXECUING 接收伙伴机文件
+    QObject::connect(&this->tcpSocketUtil,SIGNAL(timeForNextSliceForPartner),this,SLOT(recParnterSlice));
+    //TASKFINISH 本轮Task接收完成
+    QObject::connect(&this->tcpSocketUtil,SIGNAL(timeForNextTaskForPartner),this,SLOT(taskEndConfig));
 
-    //伙伴机开始下载
+
+
+    //DOWNLOADTASK 伙伴机开始下载
     QObject::connect(&this->tcpSocketUtil,SIGNAL(starToDownload),this,SLOT(taskStartAsPartner));
-    //帮助下载的任务结束
+    //分片下载完成，伙伴机准备发送
+    QObject::connect(this,SIGNAL(callTaskEndAsPartner),this,SLOT(taskEndAsPartner));
+    //THANKYOURHELP Task分片分发调度
+    QObject::connect(&this->tcpSocketUtil,SIGNAL(timeForNextSliceForFriend),this,SLOT(sliceDivideScheduler));
+    //ENDYOURHELP 帮助下载的任务结束
     QObject::connect(&this->tcpSocketUtil,SIGNAL(taskHasFinishedForFriend),this,SLOT(missionEndAsPartner));
+    //唤起slice调度器,发送slice
+    QObject::connect(this,SIGNAL(callSliceScheduler),this,SLOT(sliceDivideAndSent));
 }

@@ -29,6 +29,8 @@ public:
     //检查任务合法性，包括url可访问性，存储路径
     //TODO:实现
     static bool isValidMission(mission m);
+    //从scheduler中找对应token的task
+    static partnerTask* findParnterTask(qint32 token,QVector<partnerTask> sliceSchedule);
 };
 
 #endif // MAINCTRLUTIL_H
