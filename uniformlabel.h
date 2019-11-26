@@ -97,5 +97,7 @@ const QString FRIEND = "friend";
  * Task client被分配到的任务，每个Task为n倍Block Size
  * Block 主控模块划分任务的最小单位
  * Slice 伙伴机向朋友机发送Task时，受TCP限制而进行的文件分片
+ * token 任务令牌，任务的唯一标识
+ * index 任务等待P2P传送的文件分块后，块的唯一标识
  */
 #endif // UNIFORMLABEL_H
