@@ -22,8 +22,7 @@ bool mainctrl::regLocalClients(){
     cout<<"input password";cin>>temp_pwd;
     this->hostName=QString::fromStdString(temp_hostName);this->pwd=QString::fromStdString(temp_pwd);
 
-    qDebug()<<this->hostName<<this->hostName;
-    qDebug()<<this->local.getFilePort()<<this->local.getFilePort();
+    qDebug()<<this->hostName<<this->local.getFilePort();
     //NOTE: 不知道partneport怎么初始化
     CtrlMsg login_msg=this->msgUtil->createLoginMsg(this->hostName,this->pwd,DEFAULTPORT,DEFAULTFILEPORT);
     this->udpSocketUtil->login(login_msg);
@@ -36,8 +35,10 @@ bool mainctrl::regLocalClients(){
         qDebug()<<"登录失败，请检查信息"<<endl;
         return false;
     }
-    else
+    else{
+        qDebug()<<"登录成功"<<endl;
         return true;
+    }
 }
 
 void mainctrl::getExistClients(){
@@ -447,6 +448,8 @@ void mainctrl::missionEndAsPartner(){
 
 /*————————————————————信号槽———————————————————*/
 void mainctrl::signalsConnect(){
+    //服务器连接成功
+    QObject::connect(this->udpSocketUtil,SIGNAL(loginOk),this,SLOT(statusToIDLE));
     //TASKEXECUING 接收伙伴机文件
     QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextSliceForPartner),this,SLOT(recParnterSlice));
     //TASKFINISH 本轮Task接收完成

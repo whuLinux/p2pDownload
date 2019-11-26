@@ -162,6 +162,7 @@ public:
     /*——————————————————————槽————————————————————*/
 public slots:
     void statusToIDLE(){
+        qDebug()<<this->local.getName()<<"status turn to iding";
         this->status=ClientStatus::IDLING;
     }
     void statusTOOFFLINE(){
