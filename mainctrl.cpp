@@ -448,6 +448,8 @@ void mainctrl::missionEndAsPartner(){
 
 /*————————————————————信号槽———————————————————*/
 void mainctrl::signalsConnect(){
+    qDebug()<<"mainCtrl::连接槽函数";
+
     //服务器连接成功
     QObject::connect(this->udpSocketUtil,SIGNAL(loginOk),this,SLOT(statusToIDLE));
     //TASKEXECUING 接收伙伴机文件
@@ -474,4 +476,5 @@ void mainctrl::signalsConnect(){
     QObject::connect(this->tcpSocketUtil,SIGNAL(taskHasFinishedForFriend),this,SLOT(missionEndAsPartner));
     //唤起slice调度器,发送slice
     QObject::connect(this,SIGNAL(callSliceScheduler),this,SLOT(sliceDivideAndSent));
+    qDebug()<<"mainCtrl::连接槽函数完成";
 }
