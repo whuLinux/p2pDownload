@@ -3,6 +3,7 @@
 
 #include <QDir>
 #include <QDebug>
+#include <QDateTime>
 #include <QFileInfo>
 #include <QEventLoop>
 #include <QNetworkReply>
@@ -11,7 +12,9 @@
 DownloadManager::DownloadManager
         (QUrl url, qint64 begin, qint64 end, QObject *parent)
         : QObject(parent), url(url), begin(begin), end(end),
-          isFromStart(true), lastTimePartBytesRead(0), speed(0), totalTime(0) {
+          size(0), threadCount(0), finishedThreadCount(0),
+          isFromStart(true), lastTimePartBytesRead(0), speed(0),
+          startTime(0), totalTime(0), progress(0) {
 
     timer = new QTimer(this);
     QObject::connect(timer, &QTimer::timeout,
@@ -64,6 +67,8 @@ void DownloadManager::start() {
             qDebug() << "[Manager] 已创建临时文件夹：" << dirName;
         }
     }
+
+    qDebug() << "[Manager] 开始下载，文件总大小: " << size;
 
     /* 创建线程 */
     HttpDownloader *downloader;
@@ -137,7 +142,7 @@ qint64 DownloadManager::getFileSize(QUrl url) {
 
     /* 请求错误则输出出错信息并退出 */
     if (reply->error() != QNetworkReply::NoError) {
-        qDebug() << "[getFileSize] " << reply->errorString();
+        qDebug() << "[getFileSize][error] " << reply->errorString();
         return -1;
     }
 
@@ -192,6 +197,8 @@ void DownloadManager::updateSpeed() {
 void DownloadManager::finished() {
 
     totalTime += QDateTime::currentDateTime().toTime_t() - startTime;
+    speed = 0;
+    progress = 1;
 
     if (threadCount != 1) {
         QFile outFile(path+name);
@@ -213,10 +220,21 @@ void DownloadManager::finished() {
             QFile::remove(path+name+"/"+name+
                           ".part"+QString::number(i+1));
         }
+    } else {
+        QFile outFile(path+name);
+        outFile.open(QIODevice::WriteOnly | QIODevice::Append);
+        QFile *partFile = new QFile(path+name+"/"+name);
+        partFile->open(QIODevice::ReadWrite);
+        outFile.write(partFile->readAll());
+        partFile->close();
+        delete partFile;
+        QFile::remove(path+name+"/"+name);
     }
 
     QDir dir;
     if (!dir.rmdir(path+"."+name+"/")) {
         qDebug() << "[Manager] 未能删除空文件夹";
     }
+
+    emit taskFinished();
 }

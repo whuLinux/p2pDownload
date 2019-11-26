@@ -6,7 +6,7 @@
 HttpDownloader::HttpDownloader(int index, QUrl url, qint64 begin, qint64 end,
                                QString path, QString name, QObject *parent)
         : QObject(parent), index(index), url(url),
-          begin(begin), end(end), path(path), name(name)
+          begin(begin), end(end), path(path), name(name), bytesRead(0)
 {
     manager = new QNetworkAccessManager(this);
 
@@ -17,7 +17,7 @@ HttpDownloader::HttpDownloader(int index, QUrl url, qint64 begin, qint64 end,
         if (!dir.mkdir(path)) {
             qDebug() << "[线程" << index << "] 文件夹创建失败：" << path;
         } else {
-            qDebug() << "文件夹创建成功：" << path;
+            qDebug() << "[线程" << index << "] 文件夹创建成功：" << path;
         }
     }
 

@@ -22,7 +22,7 @@ class DownloadManager : public QObject {
 public:
     explicit DownloadManager(QObject *parent = nullptr) : QObject(parent) {}
     DownloadManager(QUrl url, qint64 begin = -1, qint64 end = -1,
-                QObject *parent = nullptr);
+                    QObject *parent = nullptr);
     ~DownloadManager() { delete [] totalBytesRead; }
 
 public:
@@ -55,6 +55,7 @@ signals:
     void pauseDownload();
 
     void updateData(qint64 time, double speed, double progress);
+    void taskFinished();    // 此下载任务已完成，通知调用者
 
 public slots:
     void onFinished();
