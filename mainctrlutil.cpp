@@ -5,7 +5,21 @@
 
 mainCtrlUtil::mainCtrlUtil()
 {
+    startId=nowId=3;
+    startTokenId=nowTokenId=24;
+    startRecordId=nowRecordId=47;
+}
 
+qint32 mainCtrlUtil::createId(){
+    return this->nowId++;
+}
+
+qint32 mainCtrlUtil::createTokenId(){
+    return this->nowTokenId++;
+}
+
+qint32 mainCtrlUtil::createRecordId(){
+    return this->nowRecordId++;
 }
 
 bool mainCtrlUtil::createDirectory(QString dirName,QString savePath){
@@ -75,7 +89,7 @@ void mainCtrlUtil::clearMissionStruct(mission &m){
 }
 
 partnerTask* mainCtrlUtil::findParnterTask(qint32 token, QVector<partnerTask> sliceSchedule){
-    partnerTask *task=NULL;
+    partnerTask *task=nullptr;
     for(int i=0;i<sliceSchedule.size();i++){
         if(sliceSchedule[i].token==token){
             task=&sliceSchedule[i];
@@ -84,3 +98,10 @@ partnerTask* mainCtrlUtil::findParnterTask(qint32 token, QVector<partnerTask> sl
     }
     return task;
 }
+
+
+bool mainCtrlUtil::isValidMission(mission m){
+    //TODO:任务校验
+    return true;
+}
+

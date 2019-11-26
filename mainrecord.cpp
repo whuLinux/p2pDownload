@@ -36,6 +36,11 @@ void mainRecord::addBlockId(blockInfo blockId){
     this->blockIds.append(blockId);
 }
 
+QVector<blockInfo> mainRecord::getBlockIds() const
+{
+    return blockIds;
+}
+
 mainRecord::mainRecord()
 {
     //伪记录

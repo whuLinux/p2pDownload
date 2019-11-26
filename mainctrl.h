@@ -53,16 +53,19 @@ private:
     qint32 friendId;
     QVector<partnerTask> sliceScheduler;
 
+    //作为朋友机
+    //本地下载任务
+    QVector<mainRecord> localRecordLists;
     //辅助下载变量
     qint32 clientNum;//参与下载的书籍数量
     qint32 blockSize;
 
     //工具类
-    UDPSocketUtil udpSocketUtil;
-    TCPSocketUtil tcpSocketUtil;
-    mainCtrlUtil mainctrlutil;
-    DownloadManager downloadManager;
-    MsgUtil msgUtil;
+    UDPSocketUtil * udpSocketUtil;
+    TCPSocketUtil * tcpSocketUtil;
+    mainCtrlUtil * mainctrlutil;
+    DownloadManager * downloadManager;
+    MsgUtil * msgUtil;
 
 
 public:
@@ -129,13 +132,17 @@ public:
     //根据client的能力（taskNum），从blockQueue中取出对应数量的block
     QVector<blockInfo> getTaskBlocks(quint8 taskNum);
     //检查blcok是否连续，创建任务记录
-    QVector<mainRecord> createTaskRecord(QVector<blockInfo> blockLists,qint32 clientId,qint32 token);
-    //分配任务，发消息给伙伴机
-    void assignTaskToPartner(qint32 partnerID,qint32 token,QVector<mainRecord> recordLists);
+    QVector<mainRecord> createTaskRecord(QVector<blockInfo> blockLists,qint32 clientId);
+    //分配任务，发消息给伙伴机，token从reacordLists中取
+    void assignTaskToPartner(qint32 partnerID,QVector<mainRecord> recordLists);
+    //分配任务给本机，执行下载
+    void assignTaskToLocal();
     //TASKEXECUING 接收到伙伴机文件分片,发送THANKYOURHELP
     void recParnterSlice(qint32 partnerId, qint32 token, qint32 index);
     //从工作队列挪到空闲队列
     void work2wait(qint32 clientId);
+    //（上层封装，调用taskEndConfig）本地主机完成当前任务
+    void taskEndAsLocal();
     //从任务表中删除记录，确认任务完成，将Partner转移至空闲队列
     void taskEndConfig(qint32 clientId);
 
@@ -162,6 +169,12 @@ public slots:
     }
 
 signals:
+    //调用assignTaskToLocal，执行本地下载
+    void callAssignTaskToLocal();
+    //本地下载完成，调用taskEndAsLocal处理相关任务表、状态的变更
+    void callTaskEndAsLocal();
+
+
     //唤醒sliceDivideScheduler进行调度
     void callSliceScheduler(qint32 token,qint32 expectIndex);
     //分片下载完成，调用taskEndAsPartner

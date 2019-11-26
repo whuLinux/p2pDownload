@@ -87,6 +87,7 @@ bool TCPSocketUtil::stablishHost()
 
     createHost();
 
+    qDebug() << this->hostPort << this->fileHostPort << endl;
     if (!listenPort()) {
         qDebug() << "TCPSocketUtil::stablishHost " << "端口侦听失败" << endl;
         qDebug() << "TCPSocketUtil::stablishHost " << this->host->errorString() << endl;
@@ -249,7 +250,7 @@ bool TCPSocketUtil::closeFileGuest(qint32 partnerId)
 
 bool TCPSocketUtil::listenPort()
 {
-    if (!this->host->listen(QHostAddress::LocalHost, hostPort)) {
+    if (!this->host->listen(QHostAddress::Any, hostPort)) {
         qDebug() << "TCPSocketUtil::listenPort " << "端口侦听失败" << endl;
         qDebug() << "TCPSocketUtil::listenPort " << this->host->errorString() << endl;
 
@@ -312,7 +313,7 @@ bool TCPSocketUtil::disConnectToFriend(qint32 friendId)
 
 bool TCPSocketUtil::listenFilePort()
 {
-    if (!this->host->listen(QHostAddress::LocalHost, fileHostPort)) {
+    if (!this->fileHost->listen(QHostAddress::LocalHost, fileHostPort)) {
         qDebug() << "TCPSocketUtil::listenFilePort " << "端口侦听失败" << endl;
         qDebug() << "TCPSocketUtil::listenFilePort " << this->fileHost->errorString() << endl;
         this->fileHost->close();

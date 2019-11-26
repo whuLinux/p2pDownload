@@ -34,6 +34,7 @@ SOURCES += \
     p2ptcpsocket.cpp \
     recqtimer.cpp \
     tcpsocketutil.cpp \
+    test1.cpp \
     udpsocketutil.cpp
 
 HEADERS += \
@@ -54,6 +55,7 @@ HEADERS += \
     msgutil.h \
     p2ptcpsocket.h \
     tcpsocketutil.h \
+    test1.h \
     udpsocketutil.h \
     uniformlabel.h
 

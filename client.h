@@ -23,7 +23,7 @@ private:
 
     /**
     ** 请求发起机（即localhost）时，Parnter
-    * 特殊标记为id=-1 name="localhost"
+    * 特殊标记为id=0 name="localhost"
     * ip="127.0.0.1"
     * port=filePort=0
     * */

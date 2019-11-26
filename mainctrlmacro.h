@@ -51,8 +51,8 @@ const quint32 DDL=102400;
 //初始下载任务数量
 const quint32 INITTASKNUM=1;
 
-const quint16 DEFAULTPORT=10086;
-const quint16 DEFAULTFILEPORT=10087;
+const quint16 DEFAULTPORT=20086;
+const quint16 DEFAULTFILEPORT=20087;
 
 //伪记录标识
 const qint8 FAKERECORD=-3;
