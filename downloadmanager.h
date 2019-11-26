@@ -2,75 +2,91 @@
 #define DOWNLOADMANAGER_H
 
 #include <QUrl>
-#include <QMainWindow>
+#include <QTimer>
+#include <QObject>
 
-QT_BEGIN_NAMESPACE
-namespace Ui {
-    class DownloadManager;
-}
-QT_END_NAMESPACE
+const int MAX_THREAD_COUNT = 16;                // 最大线程数
+const int PARTITION_SIZE   = 1024 * 1024 * 5;   // 按 5M 对文件分块
+const int UPDATE_TIME      = 1000 * 3;          // 每过 3s 更新下载速度
 
-const int MAX_THREAD_COUNT = 16;                // 最大线程数量
-const int PART_SIZE = 1024 * 1024 * 20;         // 文件分块的大小，默认为 20Mb
-
-/*
-    进行下载任务的分配调度、提供 GUI 界面
-*/
-class DownloadManager : public QMainWindow {
+/**
+ * 接收一个下载任务并分配资源进行下载
+ *
+ * 参数：
+ *  url, begin, end         指定下载任务的区间为 [begin, end]
+ */
+class DownloadManager : public QObject {
 
     Q_OBJECT
 
 public:
-    DownloadManager(QWidget *parent = Q_NULLPTR);
-    DownloadManager(bool isPartner, int taskIndex, QUrl url, qint64 begin, qint64 end, QWidget *parent = Q_NULLPTR);
-    ~DownloadManager();
+    explicit DownloadManager(QObject *parent = nullptr) : QObject(parent) {}
+    DownloadManager(QUrl url, qint64 begin = -1, qint64 end = -1,
+                QObject *parent = nullptr);
+    ~DownloadManager() { delete [] totalBytesRead; }
 
-    static qint64  getFileSize(QUrl url);                       // 根据 URL 获取文件大小
-    static QString getFileName(QUrl url);                       // 根据 URL 获取文件名
-    static int     getPartCount(qint64 fileSize, qint64 divideSize = PART_SIZE, int amount = MAX_THREAD_COUNT);
-                                                                // 根据文件大小计算分块数目
-    int  startDownload();                                       // 开始下载
-    void pauseDownload();                                       // 暂停下载
+public:
+    void start();
+    void pause();
 
-private:
-    QString getFilePath();                                      // 指定下载路径
+public:
+    static qint64  getFileSize(QUrl url);
+    static QString getFileName(QUrl url);
 
-    void downloadFinished();
+public:
+    void setUrl  (const QUrl    &value) { url   = value; }
+    void setBegin(const qint64  &value) { begin = value; }
+    void setEnd  (const qint64  &value) { end   = value; }
+    void setPath (const QString &value) { path  = value; }
+    void setName (const QString &value) { name  = value; }
+
+    QUrl    getUrl  () const { return url;   }
+    qint64  getBegin() const { return begin; }
+    qint64  getEnd  () const { return end;   }
+    QString getPath () const { return path;  }
+    QString getName () const { return name;  }
+
+    double  getSpeed() const { return speed; }
+    qint64  getTime () const { return totalTime; }
+    double  getProgress() const { return progress; }
 
 signals:
-    void signalContinueDownload();
-    void signalPauseDownload();
+    void continueDownload();
+    void pauseDownload();
+
+    void updateData(qint64 time, double speed, double progress);
 
 public slots:
-    void onSubThreadFinished();                                 // 子线程下载完毕后检测下载任务是否结束
-    void onSubDownloadProgress(int index, qint64 bytesRead);    // 子线程要求更新下载进度
+    void onFinished();
+    void onDownloadProgress(int index, qint64 bytesRead);
 
 private slots:
-    void on_pushButton_Start_clicked();
-    void on_pushButton_Path_clicked();
-    void on_pushButton_Pause_clicked();
+    void updateSpeed();
 
 private:
-    Ui::DownloadManager *ui;
+    void finished();
 
-    bool    isPartner;
-    int     taskIndex;
-
+private:
     QUrl    url;
     qint64  begin;
     qint64  end;
 
+    qint64  size;
     QString path;
     QString name;
-    qint64  size;
 
-    qint64  lastStartSecond;        // 记录上一次开始下载的时间
-    qint64  totalSecond;            // 下载总用时（暂停时不算在内）
-    bool    isFromStart;            // 用于区分按下开始按钮时是初次开始下载还是暂停后继续下载
+    int     threadCount;
+    int     finishedThreadCount;
 
-    int     threadCount;            // 划分的线程数
-    int     finishedThreadCount;    // 已完成的线程数
-    qint64  *bytesRead;             // 记录各线程已下载的进度
+    bool    isFromStart;    // 是否是第一次从头开始下载
+
+    QTimer  *timer;                     // 用于计算下载速度
+    qint64  *totalBytesRead;            // 总下载字节数
+    qint64  lastTimePartBytesRead;      // 上一个时间片内的总下载字节数
+    double  speed;                      // 上一个时间片内的平均下载速度
+    qint64  startTime;                  // 自上一次开始时已下载时间
+    qint64  totalTime;                  // 已下载时间
+    double  progress;                   // 已下载百分比
 };
 
 #endif // DOWNLOADMANAGER_H

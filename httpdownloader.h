@@ -6,28 +6,34 @@
 #include <QObject>
 #include <QNetworkAccessManager>
 
-/*
-    一个下载器，按照给定的URL，从给定的开始及截至处下载文件，并存放在指定的路径下
-    这些参数由调用它的 DownloadManager 指定
-*/
+/**
+ * 一个 HTTP 下载器，它由 DownloadManager 调用生成
+ *
+ * 参数：
+ *  index               指定此下载器的编号，便于分辨各个线程
+ *  url, begin, end     指定下载任务的区间为 [begin, end]
+ *  path, name          指定此下载器将区间 [begin, end] 写入临时路径 path 下的临时文件 name
+ */
 class HttpDownloader : public QObject {
 
     Q_OBJECT
 
 public:
-    explicit HttpDownloader(QObject *parent = nullptr);
-    HttpDownloader(int index, QUrl url, QString name, QString path, qint64 begin, qint64 end, QObject *parent);
+    explicit HttpDownloader(QObject *parent = nullptr) : QObject(parent) {}
+    HttpDownloader(int, QUrl, qint64, qint64,
+                   QString, QString, QObject *parent = nullptr);
     ~HttpDownloader();
 
-    void startDownload();
+public:
+    void start();
 
 signals:
-    void subThreadFinished();       // 子线程下载结束时通知 manager
-    void subDownloadProgress(int index, qint64 bytesRead);     // 更新下载进度
+    void finished(int index);                               // 下载完毕，发出通知
+    void downloadProgress(int index, qint64 bytesRead);     // 更新下载进度
 
 public slots:
-    void onSupPauseDownload();      // manager 要求暂停下载
-    void onSupStartDownload();      // manager 要求继续下载
+    void onPause();             // 响应 暂停下载 的请求
+    void onContinue();          // 响应 继续下载 的请求
 
 private slots:
     void onReadyRead();
@@ -35,19 +41,19 @@ private slots:
     void onDownloadProgress();
 
 private:
+    int         index;
+    QUrl        url;
+    qint64      begin;
+    qint64      end;
+    QString     path;
+    QString     name;
+
     QNetworkAccessManager *manager;
     QNetworkReply         *reply;
     QFile                 *file;
 
-    int         index;      // 线程号，用于确定该线程划分的是哪一部份
-    QUrl        url;
-    QString     name;
-    QString     path;
-    qint64      begin;
-    qint64      end;
-
-    qint64      lastTimeBytesRead;      // 用于断点续传，记录上一次暂停下载时已下载了多少
-                                        // 将它与 begin 相加可确定下一次继续下载时从何处开始下载
+    qint64      bytesRead;      // 用于断点续传，记录自上一次开始下载时已下载了多少
+                                // 将它与 begin 相加可确定下一次下载时从何处开始
 };
 
 #endif // HTTPDOWNLOADER_H

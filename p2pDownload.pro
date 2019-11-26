@@ -58,7 +58,6 @@ HEADERS += \
     uniformlabel.h
 
 FORMS += \
-    downloadmanager.ui \
     mainwindow.ui
 
 # Default rules for deployment.
