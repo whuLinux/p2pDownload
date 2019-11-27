@@ -7,5 +7,5 @@ test1::test1()
 
 void test1::runTest(){
     t.signalsConnect();
-    t.regLocalClients();
+    t.getLocal()->regLocalClients();
 }

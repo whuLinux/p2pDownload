@@ -26,7 +26,10 @@ SOURCES += \
     main.cpp \
     mainctrl.cpp \
     mainctrlutil.cpp \
+    mainfriend.cpp \
+    mainpartner.cpp \
     mainrecord.cpp \
+    mainrole.cpp \
     mainwindow.cpp \
     msgutil.cpp \
     p2ptcpsocket.cpp \
@@ -46,7 +49,10 @@ HEADERS += \
     mainctrl.h \
     mainctrlmacro.h \
     mainctrlutil.h \
+    mainfriend.h \
+    mainpartner.h \
     mainrecord.h \
+    mainrole.h \
     mainwindow.h \
     msgutil.h \
     p2ptcpsocket.h \
