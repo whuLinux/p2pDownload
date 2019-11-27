@@ -19,8 +19,8 @@ bool MainFriend::regLocalClients(){
     this->tcpSocketUtil->stablishFileHost();
 
     string temp_pwd,temp_hostName;
-    cout<<"input your hostname";cin>>temp_hostName;
-    cout<<"input password";cin>>temp_pwd;
+    cout<<"input your hostname: ";cin>>temp_hostName;
+    cout<<"input password: ";cin>>temp_pwd;
     this->hostName=QString::fromStdString(temp_hostName);this->pwd=QString::fromStdString(temp_pwd);
 
     qDebug()<<this->hostName<<this->local.getFilePort();
@@ -46,6 +46,7 @@ bool MainFriend::regLocalClients(){
 }
 
 void MainFriend::getExistClients(){
+    qDebug()<<"MainFriend::getExistClients  "<<"向服务器请求全部clients"<<endl;
     CtrlMsg msg=this->msgUtil->createObtainAllPartners();
     this->udpSocketUtil->obtainAllPartners(msg);
     this->existClients.clear();
@@ -367,12 +368,12 @@ void MainFriend::work2wait(qint32 clientId){
 }
 
 void MainFriend::taskEndAsLocal(){
-    this->taskEndConfig(this->local.getId());
+    this->taskEndConfig(this->local.getId(),-1);//local下载不复查token
 }
 
-void MainFriend::taskEndConfig(qint32 clientId){
+void MainFriend::taskEndConfig(qint32 clientId,qint32 token){
     //TODO：完整性检查，出错重发
-
+    //if(token==1){本地下载完成;}
     //任务状态更新
     this->deleteFromTaskTablePartner(clientId);
     //伙伴状态更新

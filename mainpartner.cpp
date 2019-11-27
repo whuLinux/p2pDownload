@@ -53,10 +53,10 @@ void MainPartner::taskEndAsPartner(qint32 friendId, qint32 token, qint32 len){
     this->sliceScheduler.append(*newTask);
 
     //下载结束后发信号，并补上newTask.downloadFile的流指针
-    emit(this->callSliceScheduler(token,0));
+    emit(this->callSliceScheduler(friendId,token,0));
 }
 
-void MainPartner::sliceDivideAndSent(qint32 token,qint32 expectIndex){
+void MainPartner::sliceDivideAndSent(qint32 friendId,qint32 token,qint32 expectIndex){
     int pos,sliceSize;
     qint8 lastOne;
     FileMsg msg;

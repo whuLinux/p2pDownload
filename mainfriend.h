@@ -96,16 +96,20 @@ public:
     QVector<mainRecord> createTaskRecord(QVector<blockInfo> blockLists,qint32 clientId);
     //分配任务，发消息给伙伴机，token从reacordLists中取
     void assignTaskToPartner(qint32 partnerID,QVector<mainRecord> recordLists);
-    //分配任务给本机，执行下载
-    void assignTaskToLocal();
-    //TASKEXECUING 接收到伙伴机文件分片,发送THANKYOURHELP
-    void recParnterSlice(qint32 partnerId, qint32 token, qint32 index);
     //从工作队列挪到空闲队列
     void work2wait(qint32 clientId);
+
+
+
+public slots:
+    //TASKEXECUING 接收到伙伴机文件分片,发送THANKYOURHELP
+    void recParnterSlice(qint32 partnerId, qint32 token, qint32 index);
+    //从任务表中删除记录，确认任务完成，将Partner转移至空闲队列
+    void taskEndConfig(qint32 clientId,qint32 token);
+    //分配任务给本机，执行下载
+    void assignTaskToLocal();
     //（上层封装，调用taskEndConfig）本地主机完成当前任务
     void taskEndAsLocal();
-    //从任务表中删除记录，确认任务完成，将Partner转移至空闲队列
-    void taskEndConfig(qint32 clientId);
 
 signals:
     //调用assignTaskToLocal，执行本地下载

@@ -49,15 +49,15 @@ void mainctrl::signalsConnect(){
     QObject::connect(this->tcpSocketUtil,SIGNAL(startToDownload(qint32, qint32, qint64, qint32)),this->partner,SLOT(taskStartAsPartner(qint32, qint32, qint64, qint32)));
     //分片下载完成，伙伴机准备发送
     qDebug()<<"connect::callTaskEndAsPartner"<<endl;
-    QObject::connect(this,SIGNAL(callTaskEndAsPartner(qint32, qint32, qint32)),this->partner,SLOT(taskEndAsPartner(qint32, qint32, qint32)));
+    QObject::connect(this->partner,SIGNAL(callTaskEndAsPartner(qint32, qint32, qint32)),this->partner,SLOT(taskEndAsPartner(qint32, qint32, qint32)));
     //THANKYOURHELP Task分片分发调度
     qDebug()<<"connect::timeForNextSliceForFriend"<<endl;
-    QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextSliceForFriend(qint32, qint32, qint32)),this->partner,SLOT(sliceDivideScheduler(qint32, qint32, qint32)));
+    QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextSliceForFriend(qint32, qint32, qint32)),this->partner,SLOT(sliceDivideAndSent(qint32, qint32, qint32)));
     //ENDYOURHELP 帮助下载的任务结束
     qDebug()<<"connect::taskHasFinishedForFriend"<<endl;
     QObject::connect(this->tcpSocketUtil,SIGNAL(taskHasFinishedForFriend(qint32, qint32, qint32)),this->partner,SLOT(missionEndAsPartner(qint32, qint32, qint32)));
     //唤起slice调度器,发送slice
     qDebug()<<"connect::callSliceScheduler"<<endl;
-    QObject::connect(this->partner,SIGNAL(callSliceScheduler(qint32,qint32)),this->partner,SLOT(sliceDivideAndSent(qint32,qint32)));
+    QObject::connect(this->partner,SIGNAL(callSliceScheduler(qint32,qint32,qint32)),this->partner,SLOT(sliceDivideAndSent(qint32,qint32,qint32)));
     qDebug()<<"mainCtrl::连接槽函数完成";
 }
