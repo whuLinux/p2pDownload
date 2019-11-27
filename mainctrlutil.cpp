@@ -119,3 +119,55 @@ bool mainCtrlUtil::isValidMission(mission m){
     return true;
 }
 
+void mainCtrlUtil::mergeMissionFiles(QVector<historyRecord> historyTable,const QString missionName,const QString filePath){
+    qDebug()<<"mainCtrlUtil::mergeMissionFiles  拼接文件"<<filePath<<missionName<<endl;
+    QDir tempDir;
+    QFile *readFile,*writeFile;
+    QString taskFileName;
+    QVector<historyRecord>::iterator iter;
+
+    qStableSort(historyTable.begin(),historyTable.end());//按照下载块的下标排序
+
+
+    if(!tempDir.setCurrent(filePath)){
+        qDebug()<<"mainCtrlUtil::mergeMissionFiles  路径无效："<<filePath<<endl;
+    }
+    else{
+        //已设定当前路径
+        writeFile=new QFile(missionName);
+        writeFile->open(QIODevice::WriteOnly);//创建目标文件
+        for(iter=historyTable.begin();iter!=historyTable.end();iter++){
+            taskFileName=QString::number(iter->token)+".tmp";
+            if(this->isFileExist(taskFileName)){
+                //task文件存在，开始写入
+                qDebug()<<"mainCtrlUtil::mergeMissionFiles  task文件开始拼接："<<taskFileName<<endl;
+                readFile=new QFile(taskFileName);
+                readFile->open(QIODevice::ReadOnly);
+                writeFile->write(readFile->readAll());
+                readFile->close();
+                delete readFile;
+            }
+            else{
+                qDebug()<<"mainCtrlUtil::mergeMissionFiles  task文件未找到，拼接失败："<<taskFileName<<endl;
+            }
+        }
+        qDebug()<<"mainCtrlUtil::mergeMissionFiles  mission拼接完成："<<missionName<<endl;
+        writeFile->close();
+    }
+
+}
+
+bool mainCtrlUtil::missionIntegrityCheck(const QVector<historyRecord> &historyTable,
+                                         const QString missionName,const QString filePath,const qint32 fileSize){
+    bool validation=false;
+    this->mergeMissionFiles(historyTable,missionName,filePath);//合并文件
+    //获取文件信息
+    QFileInfo *temp=new QFileInfo(filePath+missionName);
+    if(temp->size()==fileSize){
+        validation=true;
+    }
+    qDebug()<<"mainCtrlUtil::missionIntegrityCheck  检查Mission长度是否匹配："<<validation<<endl;
+    delete temp;
+    return validation;
+}
+

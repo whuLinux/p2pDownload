@@ -23,6 +23,11 @@ struct historyRecord{
     qint32 clientID; //下载主机的标识
     qint32 token; //任务token
     QVector<blockInfo> blockId; //下载文件块的下标
+
+    bool operator <(const historyRecord& latter) const{
+        //重载使之能升序排序
+        return blockId.front().index < latter.blockId.front().index;
+    }
 };
 
 struct mission{

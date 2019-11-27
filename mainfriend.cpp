@@ -200,8 +200,9 @@ void MainFriend::downLoadSchedule(){
         //检查任务队列
         if(this->blockQueue.isEmpty()){
             if(this->taskTable.isEmpty()){
-                //TODO:任务完成，等待请求发起机拼接数据
+                qDebug()<<"MainFriend::downLoadSchedule "<<"任务完成，等待拼接、检查数据"<<endl;
                 flag=true;
+                emit(this->callMissionIntegrityCheck(this->historyTable,this->myMission.name,this->downloadManager->getPath(),this->myMission.filesize));
             }
             else {
                 //TODO:任务分配表异常检测
@@ -388,5 +389,14 @@ void MainFriend::taskEndConfig(qint32 clientId,qint32 token){
     this->work2wait(clientId);
 }
 
+void MainFriend::recMissionValidation(bool success){
+    //TODO:缺少后续处理
+    if(!success){
+        qDebug()<<"MainFriend::recMissionValidation 文件拼接失败，完整性缺失"<<endl;
+    }
+    else{
+        qDebug()<<"MainFriend::recMissionValidation "<<this->myMission.name<<" 完成"<<endl;
+    }
+}
 
 

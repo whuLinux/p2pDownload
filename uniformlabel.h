@@ -99,5 +99,9 @@ const QString FRIEND = "friend";
  * Slice 伙伴机向朋友机发送Task时，受TCP限制而进行的文件分片
  * token 任务令牌，任务的唯一标识
  * index 任务等待P2P传送的文件分块后，块的唯一标识
+ *
+ * @brief 临时文件命名
+ * token.tmp
  */
+
 #endif // UNIFORMLABEL_H

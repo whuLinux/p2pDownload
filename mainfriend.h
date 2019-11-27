@@ -113,12 +113,16 @@ public slots:
     void assignTaskToLocal();
     //（上层封装，调用taskEndConfig）本地主机完成当前任务
     void taskEndAsLocal();
+    //接收文件最终状态信息
+    void recMissionValidation(bool success);
 
 signals:
     //调用assignTaskToLocal，执行本地下载
     void callAssignTaskToLocal();
     //本地下载完成，调用taskEndAsLocal处理相关任务表、状态的变更
     void callTaskEndAsLocal();
+    //全部文件下载完成，调用missionIntegrityCheck
+    void callMissionIntegrityCheck(QVector<historyRecord> historyTable,QString missionName, QString filePath,qint32 fileSize);
 
 };
 

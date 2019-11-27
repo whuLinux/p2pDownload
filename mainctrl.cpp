@@ -42,6 +42,9 @@ void mainctrl::signalsConnect(){
     //本地下载完成
     qDebug()<<"connect::callTaskEndAsLocal"<<endl;
     QObject::connect(this->local,SIGNAL(callTaskEndAsLocal()),this->local,SLOT(taskEndAsLocal()));
+    //全部下载完成,校验完整性
+    qDebug()<<"connect::callMissionIntegrityCheck"<<endl;
+    QObject::connect(this->local,SIGNAL(callMissionIntegrityCheck(QVector<historyRecord>,QString)),this->mainctrlutil,SLOT(missionIntegrityCheck(QVector<historyRecord>,QString,QString,Qint32)));
 
 
     //DOWNLOADTASK 伙伴机开始下载
