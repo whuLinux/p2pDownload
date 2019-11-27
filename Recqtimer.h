@@ -4,7 +4,7 @@
 
 /**
  * @brief The RecQTimer class
- * 接收Qtimer timeout 的信号，将之附上token后转发
+ * 接收Qtimer timeout 的信号，将之附上token后转 发
  */
 class RecQTimer:public QTimer
 {

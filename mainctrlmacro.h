@@ -34,9 +34,9 @@ struct mission{
 
 struct partnerTask{
     qint32 token;
-    qint32 index;
-    qint32 sentLength;//已发送字节长度
-    qint32 maxLength;
+    qint32 index;//上一个发送slice的index
+    qint32 sentLength;//已发送字节的最大长度
+    qint32 maxLength;//task长度
     QByteArray *downloadFile;//下载的文件流
 };
 
@@ -51,12 +51,18 @@ const quint32 DDL=102400;
 //初始下载任务数量
 const quint32 INITTASKNUM=1;
 
+//本机端口默认值
 const quint16 DEFAULTPORT=20086;
 const quint16 DEFAULTFILEPORT=20087;
+const quint16 DEFAULTUDPPORT=20090;
 
 //伪记录标识
 const qint8 FAKERECORD=-3;
 const QString LOGPATH="log.txt";
+
+//服务器信息
+const QString SERVERIP="47.102.40.228";
+const quint16 SERVERPORT=8808;
 
 /**
  * @brief The ClientStatus enum

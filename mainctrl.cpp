@@ -7,13 +7,14 @@ mainctrl::mainctrl()
     this->status=ClientStatus::UNKNOWN;//初始化本机状态
     this->local=Client(0,"localhost","127.0.0.1",DEFAULTPORT,DEFAULTFILEPORT);
     this->waitingClients.append(this->local);
+    //TODO:用配置文件初始化端口配置
+    this->udpSocketUtil=new UDPSocketUtil(DEFAULTUDPPORT,SERVERIP,SERVERPORT);
     this->tcpSocketUtil = new TCPSocketUtil(DEFAULTPORT, DEFAULTFILEPORT, true, true, "", ".txt", 1000);
 }
 
 bool mainctrl::regLocalClients(){
     //主机信息
     //TODO:UI 美化
-    //配置文件导入端口
     this->tcpSocketUtil->stablishHost();
     this->tcpSocketUtil->stablishFileHost();
 
@@ -23,14 +24,17 @@ bool mainctrl::regLocalClients(){
     this->hostName=QString::fromStdString(temp_hostName);this->pwd=QString::fromStdString(temp_pwd);
 
     qDebug()<<this->hostName<<this->local.getFilePort();
-    //NOTE: 不知道partneport怎么初始化
     CtrlMsg login_msg=this->msgUtil->createLoginMsg(this->hostName,this->pwd,DEFAULTPORT,DEFAULTFILEPORT);
-    this->udpSocketUtil->login(login_msg);
-
+    if(this->udpSocketUtil->login(login_msg))
+        qDebug()<<"main::regLocalClients 连接请求msg 已发送"<<endl;
+    else
+        qDebug()<<"main::regLocalClients 连接请求msg 发送失败"<<endl;
     QObject::connect(this->udpSocketUtil,SIGNAL(loginSuccess()),this,SLOT(statusToIDLE()));
     QObject::connect(this->udpSocketUtil,SIGNAL(oginFailure()),this,SLOT(statusTOOFFLINE()));
 
-    while(this->status==ClientStatus::UNKNOWN);//等待服务器响应请求
+    while(this->status==ClientStatus::UNKNOWN){
+        qDebug()<<"mainctrl::connecting server";
+    };//等待服务器响应请求
     if(this->status==ClientStatus::OFFLINE){
         qDebug()<<"登录失败，请检查信息"<<endl;
         return false;
@@ -426,7 +430,7 @@ void mainctrl::sliceDivideAndSent(qint32 token,qint32 expectIndex){
     partnerTask *task=mainCtrlUtil::findParnterTask(token,this->sliceScheduler);
     QByteArray slice;
     sliceSize=this->tcpSocketUtil->getSliceSize();
-    pos=sliceSize*(task->index)+1;
+    pos=sliceSize*expectIndex+1;
     if(pos+sliceSize>task->maxLength){
         //最后一块
         slice=task->downloadFile->mid(pos,-1);
@@ -436,9 +440,12 @@ void mainctrl::sliceDivideAndSent(qint32 token,qint32 expectIndex){
         slice=task->downloadFile->mid(pos,blockSize);
         lastOne=0;
     }
+    qDebug()<<"mainctrl::sliceDivideAndSent\t"<<"向主机发送slice:"<<task->token<<"(pos:"<<pos<<")"<<endl;
     msg=this->msgUtil->createTaskExecuingMsg(task->token,task->index,lastOne,slice);
-
     this->tcpSocketUtil->sendToFileFriend(this->friendId,msg);
+    //更新task记录
+    task->index=expectIndex;
+    task->sentLength=pos;
 }
 
 void mainctrl::missionEndAsPartner(){
@@ -450,31 +457,37 @@ void mainctrl::missionEndAsPartner(){
 void mainctrl::signalsConnect(){
     qDebug()<<"mainCtrl::连接槽函数";
 
-    //服务器连接成功
-    QObject::connect(this->udpSocketUtil,SIGNAL(loginOk),this,SLOT(statusToIDLE));
     //TASKEXECUING 接收伙伴机文件
-    QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextSliceForPartner),this,SLOT(recParnterSlice));
+    qDebug()<<"connect::timeForNextSliceForPartner"<<endl;
+    QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextSliceForPartner(qint32,qint32,qint32)),this,SLOT(recParnterSlice(qint32,qint32,qint32)));
     //TASKFINISH 本轮Task接收完成
-    QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextTaskForPartner),this,SLOT(taskEndConfig));
+    qDebug()<<"connect::timeForNextTaskForPartner"<<endl;
+    QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextTaskForPartner(qint32,qint32)),this,SLOT(taskEndConfig(qint32,qint32)));
     //本地下载
-    QObject::connect(this,SIGNAL(callAssignTaskToLocal),this,SLOT(assignTaskToLocal));
+    qDebug()<<"connect::callAssignTaskToLocal"<<endl;
+    QObject::connect(this,SIGNAL(callAssignTaskToLocal()),this,SLOT(assignTaskToLocal()));
 
     //接收本地下载完成的通知
 //    QObject::connect(this->downloadManager,SIGNAL(),this)
     //本地下载完成
-    QObject::connect(this,SIGNAL(callTaskEndAsLocal),this,SLOT(taskEndAsLocal));
-
+    qDebug()<<"connect::callTaskEndAsLocal"<<endl;
+    QObject::connect(this,SIGNAL(callTaskEndAsLocal()),this,SLOT(taskEndAsLocal()));
 
 
     //DOWNLOADTASK 伙伴机开始下载
-    QObject::connect(this->tcpSocketUtil,SIGNAL(starToDownload),this,SLOT(taskStartAsPartner));
+    qDebug()<<"connect::startToDownload"<<endl;
+    QObject::connect(this->tcpSocketUtil,SIGNAL(startToDownload(qint32, qint32, qint64, qint32)),this,SLOT(taskStartAsPartner(qint32, qint32, qint64, qint32)));
     //分片下载完成，伙伴机准备发送
-    QObject::connect(this,SIGNAL(callTaskEndAsPartner),this,SLOT(taskEndAsPartner));
+    qDebug()<<"connect::callTaskEndAsPartner"<<endl;
+    QObject::connect(this,SIGNAL(callTaskEndAsPartner(qint32, qint32, qint32)),this,SLOT(taskEndAsPartner(qint32, qint32, qint32)));
     //THANKYOURHELP Task分片分发调度
-    QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextSliceForFriend),this,SLOT(sliceDivideScheduler));
+    qDebug()<<"connect::timeForNextSliceForFriend"<<endl;
+    QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextSliceForFriend(qint32, qint32, qint32)),this,SLOT(sliceDivideScheduler(qint32, qint32, qint32)));
     //ENDYOURHELP 帮助下载的任务结束
-    QObject::connect(this->tcpSocketUtil,SIGNAL(taskHasFinishedForFriend),this,SLOT(missionEndAsPartner));
+    qDebug()<<"connect::taskHasFinishedForFriend"<<endl;
+    QObject::connect(this->tcpSocketUtil,SIGNAL(taskHasFinishedForFriend(qint32, qint32, qint32)),this,SLOT(missionEndAsPartner(qint32, qint32, qint32)));
     //唤起slice调度器,发送slice
-    QObject::connect(this,SIGNAL(callSliceScheduler),this,SLOT(sliceDivideAndSent));
+    qDebug()<<"connect::callSliceScheduler"<<endl;
+    QObject::connect(this,SIGNAL(callSliceScheduler(qint32,qint32)),this,SLOT(sliceDivideAndSent(qint32,qint32)));
     qDebug()<<"mainCtrl::连接槽函数完成";
 }
