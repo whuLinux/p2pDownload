@@ -12,8 +12,7 @@ MainFriend::MainFriend(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketUti
 
 }
 
-bool MainFriend::regLocalClients(){
-    //主机信息
+void MainFriend::regLocalClients(){
     //TODO:UI 美化
     this->tcpSocketUtil->stablishHost();
     this->tcpSocketUtil->stablishFileHost();
@@ -32,15 +31,24 @@ bool MainFriend::regLocalClients(){
     QObject::connect(this->udpSocketUtil,SIGNAL(loginSuccess()),this,SLOT(statusToIDLE()));
     QObject::connect(this->udpSocketUtil,SIGNAL(oginFailure()),this,SLOT(statusTOOFFLINE()));
 
-    while(this->status==ClientStatus::UNKNOWN){
-        qDebug()<<"MainFriend::connecting server";
-    };//等待服务器响应请求
-    if(this->status==ClientStatus::OFFLINE){
-        qDebug()<<"登录失败，请检查信息"<<endl;
+    qDebug()<<"MainFriend::regLocalClients 开启计时器，倒计时30s检查登录"<<endl;
+    this->loginTimer=new QTimer();
+    this->loginTimer->setSingleShot(true);
+    this->loginTimer->start(30000);//给30s登录时间响应
+    QObject::connect(this->loginTimer,SIGNAL(timeout()),this,SLOT(checkLoginStatus()));
+
+}
+
+bool MainFriend::checkLoginStatus(){
+    //TODO：发alert提醒
+    delete this->loginTimer;
+    this->loginTimer=nullptr;
+    if(this->status==ClientStatus::OFFLINE || this->status==ClientStatus::UNKNOWN){
+        qDebug()<<"MainFriend::checkLoginStatus 登录失败，请检查信息"<<endl;
         return false;
     }
     else{
-        qDebug()<<"登录成功"<<endl;
+        qDebug()<<"MainFriend::checkLoginStatus 登录成功"<<endl;
         return true;
     }
 }

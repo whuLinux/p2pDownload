@@ -26,6 +26,8 @@ public:
     static void createEmptyFile(QString fileName,QString savePath);
     //清空mission结构体
     static void clearMissionStruct(mission &m);
+    //检查相对路径或绝对路径发给出的文件是否存在
+    static bool isFileExist(QString fileNameWithPath);
     //检查任务合法性，包括url可访问性，存储路径
     //TODO:实现
     static bool isValidMission(mission m);

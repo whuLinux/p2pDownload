@@ -2,6 +2,7 @@
 #define MAINFRIEND_H
 
 #include<QQueue>
+#include<QTimer>
 #include <QEventLoop>
 #include"mainrole.h"
 #include"mainrecord.h"
@@ -20,6 +21,7 @@ private:
     QString hostName;//登记在服务器的名字与密码
     QString pwd;
     Client local;//本地主机
+    QTimer *loginTimer;
     //本地下载任务
     QVector<mainRecord> localRecordLists;
     //下载控制
@@ -40,7 +42,7 @@ public:
      * @brief regLocalClients 将本机信息注册到服务器
      * @return
      */
-    bool regLocalClients();
+    void regLocalClients();
 
     /**
      * @brief getExistClient 询问服务器当前注册主机信息
@@ -82,8 +84,7 @@ public:
 
     //注册任务
     void addToTaskTable(QVector<mainRecord> recordLists);
-    //删除任务,调用addToHistoryTable，将任务登记为历史记录
-    //响应伙伴机信号或自身下载完成信号
+    //删除任务,调用addToHistoryTable，将任务登记为历史记录,响应伙伴机信号或自身下载完成信号
     void deleteFromTaskTableLocal(qint32 clientID);
     void deleteFromTaskTablePartner(qint32 clientID);
     //增加历史记录
@@ -102,6 +103,8 @@ public:
 
 
 public slots:
+    //登录检查
+    bool checkLoginStatus();
     //TASKEXECUING 接收到伙伴机文件分片,发送THANKYOURHELP
     void recParnterSlice(qint32 partnerId, qint32 token, qint32 index);
     //从任务表中删除记录，确认任务完成，将Partner转移至空闲队列

@@ -50,7 +50,7 @@ void mainCtrlUtil::createEmptyFile(QString fileName,QString savePath)
     QDir tempDir;
     QString currentDir;
     QString oriPath=tempDir.currentPath();
-    QFile *tempFile = new QFile;
+    QFile *tempFile = new QFile();
     savePath=savePath.trimmed();
     //设定存储路径为当前文件夹
     if(savePath=="./"){
@@ -82,6 +82,20 @@ void mainCtrlUtil::createEmptyFile(QString fileName,QString savePath)
     }
 
     tempDir.setCurrent(oriPath);//恢复原默认路径
+}
+
+bool mainCtrlUtil::isFileExist(QString fileNameWithPath){
+    QFile *tempFile = new QFile();
+    if(tempFile->exists(fileNameWithPath)){
+        qDebug()<<"mainCtrlUtil::isFileExist 文件存在:"<<fileNameWithPath;
+        delete tempFile;
+        return true;
+    }
+    else{
+        qDebug()<<"mainCtrlUtil::isFileExist 文件不存在:"<<fileNameWithPath;
+        delete tempFile;
+        return false;
+    }
 }
 
 void mainCtrlUtil::clearMissionStruct(mission &m){

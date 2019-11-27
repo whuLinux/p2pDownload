@@ -12,6 +12,7 @@ MainPartner::MainPartner(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketU
 
 }
 
+
 void MainPartner::recFriendHelp(qint32 friendId,QString downloadAddress, qint32 lenMax){
     //TODO: GUI选择是否帮助
     CommMsg msg;
@@ -40,20 +41,37 @@ void MainPartner::taskStartAsPartner(qint32 friendId, qint32 token, qint64 pos, 
     this->downloadManager->setBegin(pos);
     this->downloadManager->setEnd(pos+len-1);//转为[begin,end)
     this->downloadManager->setName(taskName);
-    //TODO: 下载地址配置
+    //使用默认存储路径
+    qDebug()<<"MainPartner::taskStartAsPartner 开始任务下载 "<<this->downloadManager->getUrl()<<this->downloadManager->getName()<<endl;
     this->downloadManager->start();
-    //下载结束后发信号，并补上newTask.downloadFile的流指针
-    emit(this->callTaskEndAsPartner(friendId,token,len));
+
+    //TODO 下载结束后发信号，并补上newTask.downloadFile的流指针
 }
 
 void MainPartner::taskEndAsPartner(qint32 friendId, qint32 token, qint32 len){
-    this->friendId=friendId;
+    QString fileName=this->downloadManager->getPath()+this->downloadManager->getName();//拼接得待传输文件名
+    QFile *file;
     partnerTask *newTask=new partnerTask();
+
+    this->friendId=friendId;
     newTask->token=token;newTask->index=newTask->sentLength=0;newTask->maxLength=len;
+
+    if(this->mainctrlutil->isFileExist(fileName)){
+        file=new QFile(fileName);
+    }
+    else{
+        //TODO:UI回显报错信息
+        qDebug()<<"MainPartner::taskEndAsPartner "<<fileName<<"待发送文件不存在，返回"<<endl;
+        return;
+    }
+
+    file->open(QIODevice::ReadOnly);
+    newTask->downloadFile=new QByteArray(file->readAll());
     this->sliceScheduler.append(*newTask);
 
-    //下载结束后发信号，并补上newTask.downloadFile的流指针
     emit(this->callSliceScheduler(friendId,token,0));
+
+    file->close(); delete file;
 }
 
 void MainPartner::sliceDivideAndSent(qint32 friendId,qint32 token,qint32 expectIndex){
