@@ -93,6 +93,12 @@ void HttpDownloader::onContinue() {
     start();
 }
 
+void HttpDownloader::onAbort() {
+
+    file->close();
+    this->deleteLater();
+}
+
 void HttpDownloader::onReadyRead() {
 
     if (file) {

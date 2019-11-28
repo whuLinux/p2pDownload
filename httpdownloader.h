@@ -34,6 +34,7 @@ signals:
 public slots:
     void onPause();             // 响应 暂停下载 的请求
     void onContinue();          // 响应 继续下载 的请求
+    void onAbort();             // 响应 终止下载 的请求
 
 private slots:
     void onReadyRead();
