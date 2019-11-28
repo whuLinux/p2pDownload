@@ -284,6 +284,7 @@ QVector<mainRecord> MainFriend::createTaskRecord(QVector<blockInfo> blockLists, 
     int counter=1;
     int preBlockId=-100;
     int totalBlocks=blockLists.size();
+    qDebug()<<"MainFriend::createTaskRecord 创建任务记录列表"<<endl;
     while(counter<=totalBlocks){
         if(preBlockId+1!=tempBlock.index){
             //block不连续，旧的blocks创建record，入队；创建新record存储block
@@ -291,9 +292,11 @@ QVector<mainRecord> MainFriend::createTaskRecord(QVector<blockInfo> blockLists, 
                 recordLists.append(*recordP);//先前blocks记录创建
             }
             recordP=new mainRecord();
-            //TODO:启动计时器
             recordP->setRecordID(this->mainctrlutil->createRecordId());
             recordP->setClientId(clientId);recordP->setToken(this->mainctrlutil->createTokenId());//每个任务创建唯一Id
+            recordP->createTimer(DDL,true);//设置计时器并开启
+            QObject::connect(recordP,SIGNAL(sendTimeOutToCtrl(qint32)),this,SLOT(checkTimeOutTask(qint32)));
+            qDebug()<<"MainFriend::createTaskRecord  connect::sendTimeOutToCtrl 连接计时器"<<endl;
         }
         recordP->addBlockId(tempBlock);
         counter++;

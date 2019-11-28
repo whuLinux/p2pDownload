@@ -50,9 +50,8 @@ struct partnerTask{
 //单个文件块大小上限
 //TODO: 以什么为单位
 const quint32 MAXBLOCKSIZE=1024;
-//任务下载时长上限
-//TODO: 单位确认
-const quint32 DDL=102400;
+//任务下载时长上限,10 minute
+const quint32 DDL=10000;
 //初始下载任务数量
 const quint32 INITTASKNUM=1;
 

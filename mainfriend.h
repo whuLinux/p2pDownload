@@ -107,6 +107,8 @@ public slots:
     bool checkLoginStatus();
     //TASKEXECUING 接收到伙伴机文件分片,发送THANKYOURHELP
     void recParnterSlice(qint32 partnerId, qint32 token, qint32 index);
+    //接收超时的任务信号，检查任务进度，若超过50%则继续；否则减半该主机taskNum，废弃本次任务，并放回等待队列
+    void checkTimeOutTask(qint32 token);
     //从任务表中删除记录，确认任务完成，将Partner转移至空闲队列
     void taskEndConfig(qint32 clientId,qint32 token);
     //分配任务给本机，执行下载
