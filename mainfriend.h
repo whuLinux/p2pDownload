@@ -111,8 +111,7 @@ public slots:
     //接收超时的任务信号，检查任务进度，若超过50%则继续；否则减半该主机taskNum，废弃本次任务，并放回等待队列
     void checkTimeOutTask(qint32 token);
     //接收伙伴机进度,若超过50%则继续；否则减半该主机taskNum，废弃本次任务，并放回等待队列
-    //TODO：参数补齐
-    void recPartnerProgress();
+    void recPartnerProgress(qint32 partnerId,double progress);
     //从任务表中删除记录，确认任务完成，将Partner转移至空闲队列
     void taskEndConfig(qint32 clientId,qint32 token);
     //分配任务给本机，执行下载

@@ -244,7 +244,6 @@ void MainFriend::assignTaskToLocal(){
         qint64 pos;
         qint64 len;
         QString taskName;
-        //对每个record创建msg发送
         tempBlocks=record->getBlockIds();
         pos=tempBlocks.constFirst().index * this->blockSize;
         if(tempBlocks.constLast().isEndBlock){
@@ -407,7 +406,7 @@ void MainFriend::recPartnerSlice(qint32 partnerId, qint32 token, qint32 index){
     this->tcpSocketUtil->sendToPartner(partnerId,msg);
 }
 
-void MainFriend::recPartnerProgress(){
+void MainFriend::recPartnerProgress(qint32 partnerId,double progress){
     //TODO: not completed
 }
 
