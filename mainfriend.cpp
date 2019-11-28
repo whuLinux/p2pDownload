@@ -13,7 +13,7 @@ MainFriend::MainFriend(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketUti
 }
 
 void MainFriend::regLocalClients(){
-    //TODO:UI 美化
+    //NOTE:UI 美化
     this->tcpSocketUtil->stablishHost();
     this->tcpSocketUtil->stablishFileHost();
 
@@ -22,7 +22,7 @@ void MainFriend::regLocalClients(){
     cout<<"input password: ";cin>>temp_pwd;
     this->hostName=QString::fromStdString(temp_hostName);this->pwd=QString::fromStdString(temp_pwd);
 
-    qDebug()<<this->hostName<<this->local.getFilePort();
+    qDebug()<<"MainFriend::regLocalClients "<<this->hostName<<this->local.getFilePort();
     CtrlMsg login_msg=this->msgUtil->createLoginMsg(this->hostName,this->pwd,DEFAULTPORT,DEFAULTFILEPORT);
     if(this->udpSocketUtil->login(login_msg))
         qDebug()<<"MainFriend::regLocalClients 连接请求msg 已发送"<<endl;
@@ -40,7 +40,7 @@ void MainFriend::regLocalClients(){
 }
 
 bool MainFriend::checkLoginStatus(){
-    //TODO：发alert提醒
+    //TODO:发alert提醒
     delete this->loginTimer;
     this->loginTimer=nullptr;
     if(this->status==ClientStatus::OFFLINE || this->status==ClientStatus::UNKNOWN){
@@ -63,6 +63,7 @@ void MainFriend::getExistClients(){
 
 void MainFriend::initExistClients(){
     if(this->status==ClientStatus::IDLING){
+        qDebug()<<"MainFriend::initExistClients  friend机处于IDLING，初始化existClients"<<endl;
         QVector<ClientNode> partners=this->udpSocketUtil->getAllPartners();
         QVector<ClientNode>::iterator iter;
 
@@ -81,22 +82,25 @@ bool MainFriend::createMission(QString url,QString savePath,QString missionName)
     this->myMission.url=url;
     this->myMission.name=missionName;
 
-    //TODO: url 格式，访问性检查;存储路径检查
+    qDebug()<<"MainFriend::createMission  创建Mission  name>>"<<missionName<<" | url>>"<<url<<endl;
+    //NOTE: url 格式，访问性检查;存储路径检查
     this->myMission.filesize=DownloadManager::getFileSize(url);
     if(this->myMission.filesize==0){
         //请求出错
-        qDebug()<<"请求文件失败";
+        qDebug()<<"MainFriend::createMission ERROR！ 请求下载文件失败";
 
         return false;
     }
     else{
         if(!mainCtrlUtil::createDirectory(dirName,dirPath)){
+            qDebug()<<"MainFriend::createMission  设置下载路径成功"<<savePath;
             this->myMission.savePath=savePath;
+            this->downloadManager->setPath(savePath);
         }
         else{
-            qDebug()<<savePath<<"有误，采用默认路径./tmp";
-            mainCtrlUtil::createDirectory("tmp","./");
-            this->myMission.savePath="./tmp";
+            qDebug()<<savePath<<"MainFriend::createMission ERROR！有误，采用默认路径./";
+//            mainCtrlUtil::createDirectory("tmp","./");
+            this->myMission.savePath="./";
         }
 
         return true;
@@ -109,7 +113,7 @@ bool MainFriend::initWaitingClients(){
     QVector<Client>::iterator iter;
     qint8 tempClientsNum=0;
     CommMsg helpMsg=this->msgUtil->createAskForHelpMsg(this->myMission.url,this->myMission.filesize);
-
+    qDebug()<<"MainFriend::initWaitingClients  向partner发送请求"<<endl;
     //for safety,清空先
     this->waitingClients.clear();
     for(iter=this->existClients.begin();iter!=this->existClients.end();iter++){
@@ -119,7 +123,7 @@ bool MainFriend::initWaitingClients(){
         QObject::connect(this->tcpSocketUtil,SIGNAL(refuseToOfferHelpForPartner(qint32)),this,SLOT(partnerReject(qint32)));
     }
     //设定时间循环，等待伙伴机请求
-    //TODO:GUI用户友好，可视化响应请求数量
+    //NOTE:GUI用户友好，可视化响应请求数量
     timer.start();
     while(this->waitingClients.size()<=this->existClients.size()&&
           timer.elapsed()<=10000){
@@ -132,12 +136,14 @@ bool MainFriend::initWaitingClients(){
     }
 
     if(this->waitingClients.size()==1){
-        qDebug()<<"无伙伴机响应";
+        //仅有本机
+        qDebug()<<"MainFriend::initWaitingClients  无伙伴机响应";
         return false;
     }
     else{
         this->status=ClientStatus::DOWNLOADING;
         this->clientNum=this->waitingClients.size();
+        qDebug()<<"MainFriend::initWaitingClients  请求成功，当前可供下载clients数量： "<<this->clientNum<<endl;
         return true;
     }
 }
@@ -150,22 +156,23 @@ bool MainFriend::partnerAccept(qint32 partnerId){
             iter->attributeTask();//开始任务标记
             iter->setTaskNum(INITTASKNUM);
             this->workingClients.append(*iter);
+            qDebug()<<"MainFriend::partnerAccept  伙伴机同意请求 partnerId>>"<<partnerId<<endl;
             return true;
         }
     }
-    qDebug()<<"ERROR:伙伴机不列表中!";
+    qDebug()<<"MainFriend::partnerAccept  ERROR!伙伴机不列表中 partnerId>>"<<partnerId<<endl;
     return false;
 }
 
 bool MainFriend::partnerReject(qint32 partnerId){
-    //TODO: UI可视化提示
+    //NOTE: UI可视化提示
+    qDebug()<<"MainFriend::partnerReject  伙伴机拒绝请求 partnerId>>"<<partnerId<<endl;
     return true;
 }
 
 bool MainFriend::creatDownloadReq(){
-
     qint8 blockNum=0;
-
+    qDebug()<<" MainFriend::creatDownloadReq  创建下载任务"<<endl;
     //寻求伙伴机帮助
     this->initWaitingClients();
     //下载任务信息更新
@@ -176,8 +183,10 @@ bool MainFriend::creatDownloadReq(){
         this->blockSize=MAXBLOCKSIZE;
     }
 
+
     blockNum=this->myMission.filesize/this->blockSize;
     for(qint8 i=1;i<=blockNum;i++){
+        //创建任务块
         blockInfo *temp=new blockInfo();
         temp->index=i;
         if(i==blockNum)
@@ -185,11 +194,14 @@ bool MainFriend::creatDownloadReq(){
         else temp->isEndBlock=false;
         this->blockQueue.append(*temp);
     }
+    qDebug()<<" MainFriend::creatDownloadReq  划分下载任务块，块数共"<<this->blockQueue.size()<<endl;
     return true;
 }
 
 void MainFriend::downLoadSchedule(){
     bool flag=false;
+
+    qDebug()<<"MainFriend::downLoadSchedule 下载Mission调度"<<endl;
     if(!mainCtrlUtil::isValidMission(this->myMission)){
         qDebug()<<"ERROR:创建下载失败，mission内容不合法"<<this->myMission.url<<this->myMission.savePath;
         //NOTE:状态变化
@@ -216,6 +228,7 @@ void MainFriend::downLoadSchedule(){
 
                 if(client.getId()==0 ||client.getIP()=="127.0.0.1"||client.getName()=="localhost"){
                     //为本地机，执行本地下载任务
+                    qDebug()<<"MainFriend::downLoadSchedule local client空闲，分配任务"<<endl;
                     this->downloadManager->setUrl(this->myMission.url);
                     this->localRecordLists=recordLists;
                     this->status=ClientStatus::DOWNLOADING;
@@ -224,6 +237,7 @@ void MainFriend::downLoadSchedule(){
                 }
                 else{
                     //给伙伴机分配任务
+                    qDebug()<<"MainFriend::downLoadSchedule local client空闲，分配任务 clientID:"<<client.getId()<<endl;
                     this->assignTaskToPartner(client.getId(),recordLists);
                 }
                 this->addToTaskTable(recordLists);
@@ -235,6 +249,7 @@ void MainFriend::downLoadSchedule(){
 }
 
 void MainFriend::assignTaskToLocal(){
+    qDebug()<<"MainFriend::assignTaskToLocal 执行本地下载任务"<<endl;
     if(!this->localRecordLists.isEmpty()){
         mainRecord *record=this->localRecordLists.front();
         QVector<blockInfo> tempBlocks;
@@ -311,6 +326,7 @@ QVector<mainRecord*> MainFriend::createTaskRecord(QVector<blockInfo> blockLists,
 }
 
 void MainFriend::addToTaskTable(QVector<mainRecord*> recordLists){
+    qDebug()<<"MainFriend::addToTaskTable 将recordLists加入taskTable"<<endl;
     while(!recordLists.isEmpty()){
         this->taskTable.append(recordLists.takeFirst());
     }
@@ -335,7 +351,6 @@ void MainFriend::deleteFromTaskTable(qint32 clientID,qint32 token){
             }
             qDebug()<<"MainFriend::deleteFromTaskTablePartner  删除任务记录：token>>"<<hRecord->token
                    <<" | clientID>>"<<hRecord->clientID<<endl;
-            //TODO:正确delete mainRecord*
             iter=this->taskTable.erase(iter);//销毁记录，取下一个iter指针
             //入历史记录
             this->addToHistoryTable(*hRecord);
@@ -352,10 +367,12 @@ void MainFriend::deleteFromTaskTable(qint32 clientID,qint32 token){
 }
 
 void MainFriend::addToHistoryTable(historyRecord &hRecord){
+    qDebug()<<"MainFriend::addToHistoryTable  记录转入historyTable"<<hRecord.token<<endl;
     this->historyTable.append(hRecord);
 }
 
 void MainFriend::assignTaskToPartner(qint32 partnerID,QVector<mainRecord*> recordLists){
+    qDebug()<<"MainFriend::assignTaskToPartner  向伙伴机分配Task， partnerId>> "<<partnerID<<endl;
     QVector<mainRecord*>::iterator iter;
     QVector<blockInfo> tempBlocks;
     qint64 pos;
@@ -373,6 +390,7 @@ void MainFriend::assignTaskToPartner(qint32 partnerID,QVector<mainRecord*> recor
         }
         CommMsg msg=this->msgUtil->createDownloadTaskMsg((*iter)->getToken(),pos,len);
         this->tcpSocketUtil->sendToPartner(partnerID,msg);
+        qDebug()<<"MainFriend::assignTaskToPartner  发createDownloadTaskMsg. partnerId>> "<<partnerID<<endl;
     }
 }
 
@@ -434,6 +452,7 @@ void MainFriend::checkTimeOutTask(qint32 token){
 
 void MainFriend::recPartnerSlice(qint32 partnerId, qint32 token, qint32 index){
     //收到slice，发送THANKYOURHELP
+    qDebug()<<"MainFriend::recPartnerSlice 发送THANKYOURHELP, partner>> "<<partnerId<<" | token>> "<<token<<endl;
     CommMsg msg=this->msgUtil->createThankYourHelpMsg(token,index+1);//期待收的下一个slice index
     this->tcpSocketUtil->sendToPartner(partnerId,msg);
 }
