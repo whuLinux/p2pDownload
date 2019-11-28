@@ -2,7 +2,9 @@
 #define MAINFRIEND_H
 
 #include<QQueue>
+#include<QTimer>
 #include <QEventLoop>
+#include"mainctrlmacro.h"
 #include"mainrole.h"
 #include"mainrecord.h"
 #include"client.h"
@@ -20,15 +22,17 @@ private:
     QString hostName;//登记在服务器的名字与密码
     QString pwd;
     Client local;//本地主机
+    QTimer *loginTimer;
     //本地下载任务
-    QVector<mainRecord> localRecordLists;
+    QVector<mainRecord*> localRecordLists;
     //下载控制
     qint32 clientNum;//参与下载的主机数量
     QVector<blockInfo> blockQueue;
     QVector<Client> existClients;//服务器中注册的主机
     QQueue<Client> waitingClients;//下载任务中待分配的主机
     QVector<Client> workingClients;//任务进行中的主机
-    QVector<mainRecord> taskTable;//进行中的任务分配表
+    //TODO:检查、释放mainRecord指针
+    QVector<mainRecord*> taskTable;//进行中的任务分配表
     QVector<historyRecord> historyTable;//历史记录表
 
 public:
@@ -40,7 +44,7 @@ public:
      * @brief regLocalClients 将本机信息注册到服务器
      * @return
      */
-    bool regLocalClients();
+    void regLocalClients();
 
     /**
      * @brief getExistClient 询问服务器当前注册主机信息
@@ -81,9 +85,10 @@ public:
     void downLoadSchedule();
 
     //注册任务
-    void addToTaskTable(QVector<mainRecord> recordLists);
-    //删除任务,调用addToHistoryTable，将任务登记为历史记录
-    //响应伙伴机信号或自身下载完成信号
+    void addToTaskTable(QVector<mainRecord*> recordLists);
+    //根据progress调整任务、taskNum，若超过50%则继续；否则减半该主机taskNum，废弃本次任务，并放回等待队列
+    void adjustLocalTask(mainRecord *record,double progress);
+    //删除任务,调用addToHistoryTable，将任务登记为历史记录,响应伙伴机信号或自身下载完成信号
     void deleteFromTaskTableLocal(qint32 clientID);
     void deleteFromTaskTablePartner(qint32 clientID);
     //增加历史记录
@@ -93,29 +98,39 @@ public:
     //根据client的能力（taskNum），从blockQueue中取出对应数量的block
     QVector<blockInfo> getTaskBlocks(quint8 taskNum);
     //检查blcok是否连续，创建任务记录
-    QVector<mainRecord> createTaskRecord(QVector<blockInfo> blockLists,qint32 clientId);
+    QVector<mainRecord*> createTaskRecord(QVector<blockInfo> blockLists,qint32 clientId);
     //分配任务，发消息给伙伴机，token从reacordLists中取
-    void assignTaskToPartner(qint32 partnerID,QVector<mainRecord> recordLists);
+    void assignTaskToPartner(qint32 partnerID,QVector<mainRecord*> recordLists);
     //从工作队列挪到空闲队列
     void work2wait(qint32 clientId);
 
 
 
 public slots:
+    //登录检查
+    bool checkLoginStatus();
     //TASKEXECUING 接收到伙伴机文件分片,发送THANKYOURHELP
-    void recParnterSlice(qint32 partnerId, qint32 token, qint32 index);
+    void recPartnerSlice(qint32 partnerId, qint32 token, qint32 index);
+    //接收超时的任务信号，检查任务进度
+    void checkTimeOutTask(qint32 token);
+    //接收伙伴机进度,若超过50%则继续；否则减半该主机taskNum，废弃本次任务，并放回等待队列
+    void recPartnerProgress(qint32 partnerId,double progress);
     //从任务表中删除记录，确认任务完成，将Partner转移至空闲队列
     void taskEndConfig(qint32 clientId,qint32 token);
     //分配任务给本机，执行下载
     void assignTaskToLocal();
     //（上层封装，调用taskEndConfig）本地主机完成当前任务
     void taskEndAsLocal();
+    //接收文件最终状态信息
+    void recMissionValidation(bool success);
 
 signals:
     //调用assignTaskToLocal，执行本地下载
     void callAssignTaskToLocal();
     //本地下载完成，调用taskEndAsLocal处理相关任务表、状态的变更
     void callTaskEndAsLocal();
+    //全部文件下载完成，调用missionIntegrityCheck
+    void callMissionIntegrityCheck(QVector<historyRecord> historyTable,QString missionName, QString filePath,qint32 fileSize);
 
 };
 

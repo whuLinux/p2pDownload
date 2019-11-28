@@ -11,3 +11,11 @@ MainRole::MainRole(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketUtil,
 {
     this->status=ClientStatus::UNKNOWN;
 }
+
+void MainRole::setDownloadPath(QString path){
+    this->downloadManager->setPath(path);
+}
+
+QString MainRole::getDownloadPath(){
+    return this->downloadManager->getPath();
+}

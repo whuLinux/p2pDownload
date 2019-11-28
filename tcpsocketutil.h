@@ -176,7 +176,7 @@ signals:
     // P2PPUNCH
     void timeToInitialTaskForPartner(qint32 partnerId);
     // ISALIVE
-    void whetherToStopTask(qint32 partnerId);
+    void whetherToStopTask(qint32 partnerId, double rate);
     // AGREETOHELP
     void timeForFirstTaskForPartner(qint32 partnerId);
     // REFUSETOHELP

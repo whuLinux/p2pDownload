@@ -14,9 +14,6 @@ MainFriend *mainctrl::getLocal() const
 
 mainctrl::mainctrl()
 {
-    //    this->status=ClientStatus::UNKNOWN;//初始化本机状态
-//    this->local=Client(0,"localhost","127.0.0.1",DEFAULTPORT,DEFAULTFILEPORT);
-//    this->waitingClients.append(this->local);
     //TODO:用配置文件初始化端口配置
     this->udpSocketUtil=new UDPSocketUtil(DEFAULTUDPPORT,SERVERIP,SERVERPORT);
     this->tcpSocketUtil = new TCPSocketUtil(DEFAULTPORT, DEFAULTFILEPORT, true, true, "", ".txt", 1000);
@@ -32,21 +29,30 @@ void mainctrl::signalsConnect(){
 
     //TASKEXECUING 接收伙伴机文件
     qDebug()<<"connect::timeForNextSliceForPartner"<<endl;
-    QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextSliceForPartner(qint32,qint32,qint32)),this->local,SLOT(recParnterSlice(qint32,qint32,qint32)));
+    QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextSliceForPartner(qint32,qint32,qint32)),this->local,SLOT(recPartnerSlice(qint32,qint32,qint32)));
     //TASKFINISH 本轮Task接收完成
     qDebug()<<"connect::timeForNextTaskForPartner"<<endl;
     QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextTaskForPartner(qint32,qint32)),this->local,SLOT(taskEndConfig(qint32,qint32)));
     //本地下载
     qDebug()<<"connect::callAssignTaskToLocal"<<endl;
     QObject::connect(this->local,SIGNAL(callAssignTaskToLocal()),this->local,SLOT(assignTaskToLocal()));
+    //ISALIVE 接收伙伴机下载进度
+    qDebug()<<"connect::whetherToStopTask"<<endl;
+    QObject::connect(this->tcpSocketUtil,SIGNAL(whetherToStopTask(qint32,double)),this->local,SLOT(recPartnerProgress(qint32,double)));
     //本地下载完成
     qDebug()<<"connect::callTaskEndAsLocal"<<endl;
     QObject::connect(this->local,SIGNAL(callTaskEndAsLocal()),this->local,SLOT(taskEndAsLocal()));
+    //全部下载完成,校验完整性
+    qDebug()<<"connect::callMissionIntegrityCheck"<<endl;
+    QObject::connect(this->local,SIGNAL(callMissionIntegrityCheck(QVector<historyRecord>,QString)),this->mainctrlutil,SLOT(missionIntegrityCheck(QVector<historyRecord>,QString,QString,Qint32)));
 
 
     //DOWNLOADTASK 伙伴机开始下载
     qDebug()<<"connect::startToDownload"<<endl;
     QObject::connect(this->tcpSocketUtil,SIGNAL(startToDownload(qint32, qint32, qint64, qint32)),this->partner,SLOT(taskStartAsPartner(qint32, qint32, qint64, qint32)));
+    //AREYOUALIVE 汇报下载进度
+    qDebug()<<"connect::tellTaskProcess"<<endl;
+    QObject::connect(this->tcpSocketUtil,SIGNAL(tellTaskProcess(qint32)),this->partner,SLOT(reportTaskProgress(qint32)));
     //分片下载完成，伙伴机准备发送
     qDebug()<<"connect::callTaskEndAsPartner"<<endl;
     QObject::connect(this->partner,SIGNAL(callTaskEndAsPartner(qint32, qint32, qint32)),this->partner,SLOT(taskEndAsPartner(qint32, qint32, qint32)));

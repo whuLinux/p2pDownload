@@ -34,6 +34,10 @@ public:
     MainRole(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketUtil,
              mainCtrlUtil * mainctrlutil,MsgUtil * msgUtil);
 
+    //设置下载路径
+    void setDownloadPath(QString path);
+    QString getDownloadPath();
+
 public slots:
     void statusToIDLE(){
         qDebug()<<"MainRole::statusToIDLE "<<"status turn to iding";

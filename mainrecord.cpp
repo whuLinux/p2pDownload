@@ -46,7 +46,6 @@ mainRecord::mainRecord()
     //伪记录
     this->recordID=FAKERECORD;this->token=FAKERECORD;this->clientId=FAKERECORD;
     //    this->blockIds=QVector<qint8>();//空向量
-//    this->recTimer=new RecQTimer();
 }
 
 mainRecord::mainRecord(qint8 recordid,qint32 clientId,qint32 token)
@@ -54,7 +53,15 @@ mainRecord::mainRecord(qint8 recordid,qint32 clientId,qint32 token)
     this->recordID=recordid;
     this->clientId=clientId;
     this->token=token;
-//    this->blockIds=blocks;
-//    this->recTimer=new RecQTimer();
-//    this->recTimer->start(DDL); //下载时间上限
+}
+
+void mainRecord::createTimer(qint64 gap, bool isSingle){
+    this->timer=new QTimer();
+    this->timer->setSingleShot(isSingle);
+    this->timer->start(gap);
+    QObject::connect(this->timer,SIGNAL(timeout()),this,SLOT(recAlert));
+}
+
+void mainRecord::recAlert(){
+    emit this->sendTimeOutToCtrl(this->token);
 }

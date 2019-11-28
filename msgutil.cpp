@@ -64,7 +64,7 @@ CommMsg MsgUtil::createAreYouAliveMsg()
     return aliveMsg;
 }
 
-CommMsg MsgUtil::createIsAliveMsg(qint8 rate)
+CommMsg MsgUtil::createIsAliveMsg(double rate)
 {
     CommMsg aliveMsg(TCPCtrlMsgType::ISALIVE, rate);
 

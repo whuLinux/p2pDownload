@@ -23,6 +23,11 @@ struct historyRecord{
     qint32 clientID; //下载主机的标识
     qint32 token; //任务token
     QVector<blockInfo> blockId; //下载文件块的下标
+
+    bool operator <(const historyRecord& latter) const{
+        //重载使之能升序排序
+        return blockId.front().index < latter.blockId.front().index;
+    }
 };
 
 struct mission{
@@ -45,12 +50,15 @@ struct partnerTask{
 //单个文件块大小上限
 //TODO: 以什么为单位
 const quint32 MAXBLOCKSIZE=1024;
-//任务下载时长上限
-//TODO: 单位确认
-const quint32 DDL=102400;
+//任务下载时长上限,10 minute
+const qint64 DDL=600000;
+//连续两个任务指派时，DDL时间增量，1minute
+const qint64 RECORDGAP=60000;
 //初始下载任务数量
 const quint32 INITTASKNUM=1;
 
+//local clientID
+const qint32 LOCALID=0;
 //本机端口默认值
 const quint16 DEFAULTPORT=20086;
 const quint16 DEFAULTFILEPORT=20087;
