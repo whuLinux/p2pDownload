@@ -51,7 +51,9 @@ struct partnerTask{
 //TODO: 以什么为单位
 const quint32 MAXBLOCKSIZE=1024;
 //任务下载时长上限,10 minute
-const quint32 DDL=10000;
+const qint64 DDL=600000;
+//连续两个任务指派时，DDL时间增量，1minute
+const qint64 RECORDGAP=60000;
 //初始下载任务数量
 const quint32 INITTASKNUM=1;
 

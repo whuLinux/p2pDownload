@@ -35,6 +35,10 @@ void MainPartner::recFriendHelp(qint32 friendId,QString downloadAddress, qint32 
     }
 }
 
+void MainPartner::recAbortOrder(){
+    this->downloadManager->abort();
+}
+
 void MainPartner::reportTaskProgress(qint32 friendId){
     double progress=this->downloadManager->getProgress();
     CommMsg msg=this->msgUtil->createIsAliveMsg(progress);
@@ -85,7 +89,7 @@ void MainPartner::sliceDivideAndSent(qint32 friendId,qint32 token,qint32 expectI
     int pos,sliceSize;
     qint8 lastOne;
     FileMsg msg;
-    partnerTask *task=mainCtrlUtil::findParnterTask(token,this->sliceScheduler);
+    partnerTask *task=this->mainctrlutil->findParnterTask(token,this->sliceScheduler);
     QByteArray slice;
     sliceSize=this->tcpSocketUtil->getSliceSize();
     pos=sliceSize*expectIndex+1;

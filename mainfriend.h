@@ -4,6 +4,7 @@
 #include<QQueue>
 #include<QTimer>
 #include <QEventLoop>
+#include"mainctrlmacro.h"
 #include"mainrole.h"
 #include"mainrecord.h"
 #include"client.h"
@@ -85,6 +86,8 @@ public:
 
     //注册任务
     void addToTaskTable(QVector<mainRecord*> recordLists);
+    //根据progress调整任务、taskNum，若超过50%则继续；否则减半该主机taskNum，废弃本次任务，并放回等待队列
+    void adjustLocalTask(mainRecord *record,double progress);
     //删除任务,调用addToHistoryTable，将任务登记为历史记录,响应伙伴机信号或自身下载完成信号
     void deleteFromTaskTableLocal(qint32 clientID);
     void deleteFromTaskTablePartner(qint32 clientID);
@@ -108,7 +111,7 @@ public slots:
     bool checkLoginStatus();
     //TASKEXECUING 接收到伙伴机文件分片,发送THANKYOURHELP
     void recPartnerSlice(qint32 partnerId, qint32 token, qint32 index);
-    //接收超时的任务信号，检查任务进度，若超过50%则继续；否则减半该主机taskNum，废弃本次任务，并放回等待队列
+    //接收超时的任务信号，检查任务进度
     void checkTimeOutTask(qint32 token);
     //接收伙伴机进度,若超过50%则继续；否则减半该主机taskNum，废弃本次任务，并放回等待队列
     void recPartnerProgress(qint32 partnerId,double progress);

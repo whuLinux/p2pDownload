@@ -33,9 +33,11 @@ public:
     void addBlockId(blockInfo blockId);
     QVector<blockInfo> getBlockIds() const;
     //初始化timer,设定时间(毫秒为单位）并开始计时，isSingle决定timer是否循环预报
-    void createTimer(qint32 gap,bool isSingle);
+    void createTimer(qint64 gap,bool isSingle);
     //删除当前timer
     void deleteTimer()  {delete this->timer;this->timer=nullptr;}
+    //timer空指针判断
+    bool isNullTimer()  {return this->timer==nullptr;}
     
 public slots:
     //接收timer timeout信号并转发sendTimeOutToCtrl给主控模块

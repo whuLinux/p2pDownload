@@ -102,6 +102,23 @@ void mainCtrlUtil::clearMissionStruct(mission &m){
     m.url="";m.name="";m.filesize=0;m.savePath="";
 }
 
+bool mainCtrlUtil::deleteFile(QString path, QString name){
+    QFile file;
+    QString fileFullPath=path+name;
+    if(mainCtrlUtil::isFileExist(fileFullPath)){
+        file.setFileName(fileFullPath);
+        if(file.remove()){
+            qDebug()<<"mainCtrlUtil::deleteFile  删除文件"<<fileFullPath<<endl;return true;
+        }
+        else{
+            qDebug()<<"mainCtrlUtil::deleteFile  文件删除失败"<<fileFullPath<<endl;return false;
+        }
+    }
+    else{
+        qDebug()<<"mainCtrlUtil::deleteFile  删除失败，文件不存在"<<fileFullPath<<endl;return false;
+    }
+}
+
 partnerTask* mainCtrlUtil::findParnterTask(qint32 token,QVector<partnerTask> &sliceSchedule){
     partnerTask *task=nullptr;
     for(int i=0;i<sliceSchedule.size();i++){

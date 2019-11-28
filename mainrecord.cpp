@@ -55,7 +55,7 @@ mainRecord::mainRecord(qint8 recordid,qint32 clientId,qint32 token)
     this->token=token;
 }
 
-void mainRecord::createTimer(qint32 gap, bool isSingle){
+void mainRecord::createTimer(qint64 gap, bool isSingle){
     this->timer=new QTimer();
     this->timer->setSingleShot(isSingle);
     this->timer->start(gap);

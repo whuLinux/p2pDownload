@@ -36,6 +36,9 @@ void mainctrl::signalsConnect(){
     //本地下载
     qDebug()<<"connect::callAssignTaskToLocal"<<endl;
     QObject::connect(this->local,SIGNAL(callAssignTaskToLocal()),this->local,SLOT(assignTaskToLocal()));
+    //ISALIVE 接收伙伴机下载进度
+    qDebug()<<"connect::whetherToStopTask"<<endl;
+    QObject::connect(this->tcpSocketUtil,SIGNAL(whetherToStopTask(qint32,double)),this->local,SLOT(recPartnerProgress(qint32,double)));
     //本地下载完成
     qDebug()<<"connect::callTaskEndAsLocal"<<endl;
     QObject::connect(this->local,SIGNAL(callTaskEndAsLocal()),this->local,SLOT(taskEndAsLocal()));
@@ -48,8 +51,8 @@ void mainctrl::signalsConnect(){
     qDebug()<<"connect::startToDownload"<<endl;
     QObject::connect(this->tcpSocketUtil,SIGNAL(startToDownload(qint32, qint32, qint64, qint32)),this->partner,SLOT(taskStartAsPartner(qint32, qint32, qint64, qint32)));
     //AREYOUALIVE 汇报下载进度
-    qDebug()<<"connect::startToDownload"<<endl;
-    QObject::connect(this->tcpSocketUtil,SIGNAL(tellTaskProcess(qint32,double)),this->partner,SLOT(reportTaskProgress(qint32,double)));
+    qDebug()<<"connect::tellTaskProcess"<<endl;
+    QObject::connect(this->tcpSocketUtil,SIGNAL(tellTaskProcess(qint32)),this->partner,SLOT(reportTaskProgress(qint32)));
     //分片下载完成，伙伴机准备发送
     qDebug()<<"connect::callTaskEndAsPartner"<<endl;
     QObject::connect(this->partner,SIGNAL(callTaskEndAsPartner(qint32, qint32, qint32)),this->partner,SLOT(taskEndAsPartner(qint32, qint32, qint32)));

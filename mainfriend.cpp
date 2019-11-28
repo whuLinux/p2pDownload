@@ -204,9 +204,6 @@ void MainFriend::downLoadSchedule(){
                 flag=true;
                 emit(this->callMissionIntegrityCheck(this->historyTable,this->myMission.name,this->downloadManager->getPath(),this->myMission.filesize));
             }
-            else {
-                //TODO:任务分配表异常检测
-            }
         }
         else{
             //空闲主机队列不空
@@ -283,17 +280,19 @@ QVector<mainRecord*> MainFriend::createTaskRecord(QVector<blockInfo> blockLists,
     int counter=1;
     int preBlockId=-100;
     int totalBlocks=blockLists.size();
+    qint64 gap=0;//多个任务记录时，每多一个任务，DDL+gap，以防timer同时到期
     qDebug()<<"MainFriend::createTaskRecord 创建任务记录列表"<<endl;
     while(counter<=totalBlocks){
         if(preBlockId+1!=tempBlock.index){
             //block不连续，旧的blocks创建record，入队；创建新record存储block
             if(recordP->getClientId()!=FAKERECORD){
                 recordLists.append(recordP);//先前blocks记录创建
+                gap+=RECORDGAP;
             }
             recordP=new mainRecord();
             recordP->setRecordID(this->mainctrlutil->createRecordId());
             recordP->setClientId(clientId);recordP->setToken(this->mainctrlutil->createTokenId());//每个任务创建唯一Id
-            recordP->createTimer(DDL,true);//设置计时器并开启
+            recordP->createTimer(DDL+gap,true);//设置计时器并开启
             QObject::connect(recordP,SIGNAL(sendTimeOutToCtrl(qint32)),this,SLOT(checkTimeOutTask(qint32)));
             qDebug()<<"MainFriend::createTaskRecord  connect::sendTimeOutToCtrl 连接计时器"<<endl;
         }
@@ -370,33 +369,59 @@ void MainFriend::assignTaskToPartner(qint32 partnerID,QVector<mainRecord*> recor
     }
 }
 
+void MainFriend::adjustLocalTask(mainRecord *record, double progress){
+    quint8 taskNums;
+    QVector<blockInfo> blocks;
+    if(progress<=0.5){
+        //中止任务
+        qDebug()<<"MainFriend::adjustLocalTask  本地主机进度："<<progress<<" 缓慢，删除任务，重新分配";
+        if(this->downloadManager->abort()){
+            //下载任务终止成功
+            //1.占有blocks归还
+            blocks=record->getBlockIds();
+            for(int i=0;i<blocks.size();i++){
+                this->blockQueue.push_back((blocks[i]));
+            }
+            //2.下载能力下调
+            for(int i=0;i<this->workingClients.size();i++){
+                if(this->workingClients[i].getId()==LOCALID){
+                    //找到主机
+                    taskNums=this->workingClients[i].getTaskNum();
+                    if(taskNums>=2){
+                        this->workingClients[i].setTaskNum(taskNums/2);
+                    }
+                }
+            }
+            //3. 主机入空闲队列
+            this->work2wait(LOCALID);
+        }
+        else{
+            qDebug()<<"MainFriend::adjustLocalTask  ERRROR：主机下载临时文件删除失败！"<<tempFileName<<endl;
+        }
+    }
+    else{
+        qDebug()<<"MainFriend::adjustLocalTask  本地主机进度："<<progress<<" 重启计时器，等待任务完成";
+        record->deleteTimer();record->createTimer(DDL,true);
+        QObject::connect(record,SIGNAL(sendTimeOutToCtrl(qint32)),this,SLOT(checkTimeOutTask(qint32)));
+        qDebug()<<"MainFriend::adjustLocalTask  connect::sendTimeOutToCtrl 连接计时器"<<endl;
+    }
+}
+
 void MainFriend::checkTimeOutTask(qint32 token){
-    //TODO:询问主机下载进度
     mainRecord *record=this->mainctrlutil->findTaskRecord(token,this->taskTable);
     qDebug()<<"MainFriend::checkTimeOutTask  下载超时：token>>"<<record->getToken()<<" | clientID>>"<<record->getClientId()<<endl;
     //TODO:找找看local ID到底初始化成什么了
     if(record->getClientId()==LOCALID){
         //为朋友机（本地主机）
-        //TODO:检查progress单位
-        double progress=this->downloadManager->getProgress();
-        if(progress<=0.5){
-            //中止任务
-            qDebug()<<"MainFriend::checkTimeOutTask  本地主机进度："<<progress<<" 缓慢，删除任务，重新分配";
-            //TODO: 中断任务，清理已下载文件，重新分配
-        }
-        else{
-            qDebug()<<"MainFriend::checkTimeOutTask  本地主机进度："<<progress<<" 重启计时器，等待任务完成";
-            record->deleteTimer();record->createTimer(DDL,true);
-            QObject::connect(record,SIGNAL(sendTimeOutToCtrl(qint32)),this,SLOT(checkTimeOutTask(qint32)));
-            qDebug()<<"MainFriend::checkTimeOutTask  connect::sendTimeOutToCtrl 连接计时器"<<endl;
-        }
+        this->adjustLocalTask(record,this->downloadManager->getProgress());
     }
     else{
         //为伙伴机，发信号询问进度
         qDebug()<<"MainFriend::checkTimeOutTask 发信号询问伙伴机进度："<<record->getClientId()<<endl;
         CommMsg msg=this->msgUtil->createAreYouAliveMsg();
         this->tcpSocketUtil->sendToPartner(record->getClientId(),msg);
-        //TODO: 接收进度信号，进行后续处理
+        //置nullptr，便于按照clientId进行无token的record查找
+        record->deleteTimer();
     }
 }
 
@@ -407,15 +432,75 @@ void MainFriend::recPartnerSlice(qint32 partnerId, qint32 token, qint32 index){
 }
 
 void MainFriend::recPartnerProgress(qint32 partnerId,double progress){
-    //TODO: not completed
+    mainRecord *record=nullptr;
+    QVector<blockInfo> blocks;
+    quint8 taskNums;
+    bool found=false;
+    //寻找对应record
+    for(int i=0;i<this->taskTable.size();i++){
+        //trick：通过nullptr来判断响应的是partner具体哪个token的任务
+        //超时任务的timer已置nullptr
+        if(taskTable[i]->getClientId()==partnerId&&taskTable[i]->isNullTimer()){
+            record=taskTable[i];
+            break;
+        }
+    }
+    if(record==nullptr){
+        qDebug()<<"MainFriend::recPartnerProgress  ERROR！未在taskTable找到partner 的任务，partner："<<partnerId<<endl;
+        return;
+    }
+    qDebug()<<"MainFriend::recPartnerProgress  partner>> "<<partnerId<<" | token>> "<<record->getToken();
+    if(progress<=0.5){
+        //中止任务
+        qDebug()<<"MainFriend::recPartnerProgress  进度："<<progress<<" 缓慢，删除任务，重新分配";
+        //TODO: 发消息让伙伴端中断任务，清理已下载文件
+        //CommMsg msg
+
+        //1.占有blocks归还
+        blocks=record->getBlockIds();
+        for(int i=0;i<blocks.size();i++){
+            this->blockQueue.push_back((blocks[i]));
+        }
+        //2.下载能力下调
+        for(int i=0;i<this->workingClients.size();i++){
+            if(this->workingClients[i].getId()==partnerId){
+                //找到主机
+                taskNums=this->workingClients[i].getTaskNum();
+                found=true;
+                if(taskNums>=2){
+                    this->workingClients[i].setTaskNum(taskNums/2);
+                }
+            }
+        }
+        if(!found){
+            qDebug()<<"MainFriend::recPartnerProgress  ERROR！partner not found in workingClients>> "<<partnerId<<endl;
+            return;
+        }
+        //3. 主机入空闲队列
+        this->work2wait(partnerId);
+
+    }
+    else{
+        qDebug()<<"MainFriend::recPartnerProgress  本地主机进度："<<progress<<" 重启计时器，等待任务完成";
+        record->deleteTimer();record->createTimer(DDL,true);
+        QObject::connect(record,SIGNAL(sendTimeOutToCtrl(qint32)),this,SLOT(checkTimeOutTask(qint32)));
+        qDebug()<<"MainFriend::recPartnerProgress  connect::sendTimeOutToCtrl 连接计时器"<<endl;
+    }
+
 }
 
 void MainFriend::work2wait(qint32 clientId){
+    bool found=false;
     for(int i=0;i<this->workingClients.size();i++){
         if(clientId==workingClients[i].getId()){
+            qDebug()<<"MainFriend::work2wait  clientc move from working to waiting>> "<<clientId<<endl;
             this->waitingClients.enqueue(workingClients.takeAt(i));
+            found=true;
             break;
         }
+    }
+    if(!found){
+        qDebug()<<"MainFriend::work2wait  ERROR! client not found in workinglist>> "<<clientId<<endl;
     }
 }
 
