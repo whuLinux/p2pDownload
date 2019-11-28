@@ -56,7 +56,9 @@ bool UDPSocketUtil::login(CtrlMsg & msg)
     qDebug()<<"UDPSocketUtil::login?  "<<this->serverIP<<this->serverPort;
     if (msg.getMsgType() == UDPCtrlMsgType::LOGIN) {
         qDebug()<<"UDPSocketUtil::login  "<<this->serverIP<<this->serverPort;
-        this->client->writeDatagram(msg.toMsg().data(), msg.toMsg().size(), QHostAddress(this->serverIP), this->serverPort);
+        qDebug()<<msg.toMsg()<<endl;
+        qDebug()<<msg.toMsg().size()<<endl;
+        this->client->writeDatagram(msg.toMsg(), QHostAddress(this->serverIP), this->serverPort);
         return true;
     }
 

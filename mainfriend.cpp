@@ -30,8 +30,10 @@ void MainFriend::regLocalClients(){
     else{
         qDebug()<<"MainFriend::regLocalClients 连接请求msg 发送失败"<<endl;
     }
-    QObject::connect(this->udpSocketUtil,SIGNAL(loginSuccess()),this,SLOT(statusToIDLE()));
-    QObject::connect(this->udpSocketUtil,SIGNAL(oginFailure()),this,SLOT(statusTOOFFLINE()));
+    qDebug()<<"MainFriend::regLocalClients connect::loginOK"<<endl;
+    QObject::connect(this->udpSocketUtil,SIGNAL(loginOK()),this,SLOT(statusToIDLE()));
+    qDebug()<<"MainFriend::regLocalClients connect::loginAgain"<<endl;
+    QObject::connect(this->udpSocketUtil,SIGNAL(loginAgain()),this,SLOT(statusTOOFFLINE()));
 
     qDebug()<<"MainFriend::regLocalClients 开启计时器，倒计时30s检查登录"<<endl;
     this->loginTimer=new QTimer();
