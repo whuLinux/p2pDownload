@@ -24,7 +24,7 @@ public:
      */
     CommMsg createP2PPunchMsg();
     CommMsg createAreYouAliveMsg();
-    CommMsg createIsAliveMsg(qint8 rate);
+    CommMsg createIsAliveMsg(double rate);
     CommMsg createAskForHelpMsg(QString downloadAddress, qint32 lenMax);
     CommMsg creteAgreeToHelpMsg();
     CommMsg creteRefuseToHelpMsg();
