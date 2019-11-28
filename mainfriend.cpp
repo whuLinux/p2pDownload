@@ -236,7 +236,7 @@ void MainFriend::downLoadSchedule(){
 
 void MainFriend::assignTaskToLocal(){
     if(!this->localRecordLists.isEmpty()){
-        mainRecord *record=this->localRecordLists.takeFirst();
+        mainRecord *record=this->localRecordLists.front();
         QVector<blockInfo> tempBlocks;
         qint64 pos;
         qint64 len;
@@ -256,6 +256,7 @@ void MainFriend::assignTaskToLocal(){
         this->downloadManager->setEnd(pos+len-1);
         this->downloadManager->start();
         //NOTE:自定义路径功能尚未开发
+        QObject::connect(this->downloadManager,SIGNAL(taskFinished()),this,SLOT(taskEndAsLocal()));
     }
     else{
         //TODO：task finish，将local 主机放回队列
@@ -315,7 +316,7 @@ void MainFriend::addToTaskTable(QVector<mainRecord*> recordLists){
     }
 }
 
-void MainFriend::deleteFromTaskTablePartner(qint32 clientID,qint32 token){
+void MainFriend::deleteFromTaskTable(qint32 clientID,qint32 token){
     QVector<mainRecord*>::iterator iter;
     QVector<blockInfo> tempBlocks;
     blockInfo *tempBlock;
@@ -511,16 +512,19 @@ void MainFriend::work2wait(qint32 clientId){
 }
 
 void MainFriend::taskEndAsLocal(){
-    this->taskEndConfig(this->local.getId(),-1);//local下载不复查token
+    mainRecord *record=this->localRecordLists.takeFirst();
+    qDebug()<<"MainFriend::taskEndAsLocal  local完成任务"<<record->getToken();
+    this->taskEndConfig(record->getClientId(),record->getToken());//任务表中删除记录
+    //唤起本地下载任务分配，检查是否还有下载任务
+    emit(this->callAssignTaskToLocal());
+    delete record;
 }
 
 void MainFriend::taskEndConfig(qint32 clientId,qint32 token){
     //NOTE：完整性检查，出错重发
     bool found=false;
-    //if(token==1){本地下载完成;}
-    //TODO:多任务处理
     //任务状态更新
-    this->deleteFromTaskTablePartner(clientId,token);
+    this->deleteFromTaskTable(clientId,token);
     //伙伴状态更新
     for(int i=0;i<this->taskTable.size();i++){
         if(this->taskTable[i]->getClientId()==clientId){

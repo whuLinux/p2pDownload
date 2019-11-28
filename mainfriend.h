@@ -89,8 +89,7 @@ public:
     //根据progress调整任务、taskNum，若超过50%则继续；否则减半该主机taskNum，废弃本次任务，并放回等待队列
     void adjustLocalTask(mainRecord *record,double progress);
     //删除taskTable中对应token任务,调用addToHistoryTable，将任务登记为历史记录,响应伙伴机信号或自身下载完成信号
-    void deleteFromTaskTableLocal(qint32 clientID,qint32 token);
-    void deleteFromTaskTablePartner(qint32 clientID,qint32 token);
+    void deleteFromTaskTable(qint32 clientID,qint32 token);
     //增加历史记录
     void addToHistoryTable(historyRecord &hRecord);
     //查询历史记录
@@ -119,7 +118,8 @@ public slots:
     void taskEndConfig(qint32 clientId,qint32 token);
     //分配任务给本机，执行下载
     void assignTaskToLocal();
-    //（上层封装，调用taskEndConfig）本地主机完成当前任务
+    //本地主机完成1个task，在taskTable、localRecordList中删除记录，
+    //并且发callAssignTaskToLocal开始后续可能的下载任务
     void taskEndAsLocal();
     //接收文件最终状态信息
     void recMissionValidation(bool success);
