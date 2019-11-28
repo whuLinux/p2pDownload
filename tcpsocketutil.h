@@ -176,6 +176,7 @@ signals:
     // P2PPUNCH
     void timeToInitialTaskForPartner(qint32 partnerId);
     // ISALIVE
+    //TODO:缺少参数 rate
     void whetherToStopTask(qint32 partnerId);
     // AGREETOHELP
     void timeForFirstTaskForPartner(qint32 partnerId);

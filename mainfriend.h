@@ -23,14 +23,15 @@ private:
     Client local;//本地主机
     QTimer *loginTimer;
     //本地下载任务
-    QVector<mainRecord> localRecordLists;
+    QVector<mainRecord*> localRecordLists;
     //下载控制
     qint32 clientNum;//参与下载的主机数量
     QVector<blockInfo> blockQueue;
     QVector<Client> existClients;//服务器中注册的主机
     QQueue<Client> waitingClients;//下载任务中待分配的主机
     QVector<Client> workingClients;//任务进行中的主机
-    QVector<mainRecord> taskTable;//进行中的任务分配表
+    //TODO:检查、释放mainRecord指针
+    QVector<mainRecord*> taskTable;//进行中的任务分配表
     QVector<historyRecord> historyTable;//历史记录表
 
 public:
@@ -83,7 +84,7 @@ public:
     void downLoadSchedule();
 
     //注册任务
-    void addToTaskTable(QVector<mainRecord> recordLists);
+    void addToTaskTable(QVector<mainRecord*> recordLists);
     //删除任务,调用addToHistoryTable，将任务登记为历史记录,响应伙伴机信号或自身下载完成信号
     void deleteFromTaskTableLocal(qint32 clientID);
     void deleteFromTaskTablePartner(qint32 clientID);
@@ -94,9 +95,9 @@ public:
     //根据client的能力（taskNum），从blockQueue中取出对应数量的block
     QVector<blockInfo> getTaskBlocks(quint8 taskNum);
     //检查blcok是否连续，创建任务记录
-    QVector<mainRecord> createTaskRecord(QVector<blockInfo> blockLists,qint32 clientId);
+    QVector<mainRecord*> createTaskRecord(QVector<blockInfo> blockLists,qint32 clientId);
     //分配任务，发消息给伙伴机，token从reacordLists中取
-    void assignTaskToPartner(qint32 partnerID,QVector<mainRecord> recordLists);
+    void assignTaskToPartner(qint32 partnerID,QVector<mainRecord*> recordLists);
     //从工作队列挪到空闲队列
     void work2wait(qint32 clientId);
 
@@ -106,9 +107,12 @@ public slots:
     //登录检查
     bool checkLoginStatus();
     //TASKEXECUING 接收到伙伴机文件分片,发送THANKYOURHELP
-    void recParnterSlice(qint32 partnerId, qint32 token, qint32 index);
+    void recPartnerSlice(qint32 partnerId, qint32 token, qint32 index);
     //接收超时的任务信号，检查任务进度，若超过50%则继续；否则减半该主机taskNum，废弃本次任务，并放回等待队列
     void checkTimeOutTask(qint32 token);
+    //接收伙伴机进度,若超过50%则继续；否则减半该主机taskNum，废弃本次任务，并放回等待队列
+    //TODO：参数补齐
+    void recPartnerProgress();
     //从任务表中删除记录，确认任务完成，将Partner转移至空闲队列
     void taskEndConfig(qint32 clientId,qint32 token);
     //分配任务给本机，执行下载

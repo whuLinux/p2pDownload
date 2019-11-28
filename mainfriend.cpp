@@ -212,7 +212,7 @@ void MainFriend::downLoadSchedule(){
             //空闲主机队列不空
             if(!this->waitingClients.isEmpty()){
                 //分配任务
-                QVector<mainRecord> recordLists;//block下标不连续时，创建多个任务
+                QVector<mainRecord*> recordLists;//block下标不连续时，创建多个任务
                 Client client=this->waitingClients.dequeue();
                 QVector<blockInfo> taskBlockLists=this->getTaskBlocks(client.getTaskNum());//按照client能力去对应个数的block
                 recordLists=this->createTaskRecord(taskBlockLists,client.getId());
@@ -239,13 +239,13 @@ void MainFriend::downLoadSchedule(){
 
 void MainFriend::assignTaskToLocal(){
     if(!this->localRecordLists.isEmpty()){
-        mainRecord record=this->localRecordLists.takeFirst();
+        mainRecord *record=this->localRecordLists.takeFirst();
         QVector<blockInfo> tempBlocks;
         qint64 pos;
         qint64 len;
         QString taskName;
         //对每个record创建msg发送
-        tempBlocks=record.getBlockIds();
+        tempBlocks=record->getBlockIds();
         pos=tempBlocks.constFirst().index * this->blockSize;
         if(tempBlocks.constLast().isEndBlock){
             //如果是最后的块
@@ -254,7 +254,7 @@ void MainFriend::assignTaskToLocal(){
         else{
             len=tempBlocks.size()*this->blockSize;
         }
-        taskName=QString::number(record.getToken())+".tmp";
+        taskName=QString::number(record->getToken())+".tmp";
         this->downloadManager->setName(taskName);
         this->downloadManager->setBegin(pos);
         this->downloadManager->setEnd(pos+len-1);
@@ -277,8 +277,8 @@ QVector<blockInfo> MainFriend::getTaskBlocks(quint8 taskNum){
     return taskBlockLists;
 }
 
-QVector<mainRecord> MainFriend::createTaskRecord(QVector<blockInfo> blockLists, qint32 clientId){
-    QVector<mainRecord> recordLists;//block下标不连续时，创建多个任务
+QVector<mainRecord*> MainFriend::createTaskRecord(QVector<blockInfo> blockLists, qint32 clientId){
+    QVector<mainRecord*> recordLists;//block下标不连续时，创建多个任务
     mainRecord *recordP=new mainRecord();
     blockInfo tempBlock=blockLists.takeFirst();
     int counter=1;
@@ -289,7 +289,7 @@ QVector<mainRecord> MainFriend::createTaskRecord(QVector<blockInfo> blockLists, 
         if(preBlockId+1!=tempBlock.index){
             //block不连续，旧的blocks创建record，入队；创建新record存储block
             if(recordP->getClientId()!=FAKERECORD){
-                recordLists.append(*recordP);//先前blocks记录创建
+                recordLists.append(recordP);//先前blocks记录创建
             }
             recordP=new mainRecord();
             recordP->setRecordID(this->mainctrlutil->createRecordId());
@@ -303,33 +303,40 @@ QVector<mainRecord> MainFriend::createTaskRecord(QVector<blockInfo> blockLists, 
         tempBlock=blockLists.takeFirst();
     }
 
+    //若块一直连续，循环中未能将记录入vector，此处才入
+    if(recordP->getClientId()!=FAKERECORD){
+        recordLists.append(recordP);//blocks记录创建
+    }
+
     return  recordLists;
 }
 
-void MainFriend::addToTaskTable(QVector<mainRecord> recordLists){
+void MainFriend::addToTaskTable(QVector<mainRecord*> recordLists){
     while(!recordLists.isEmpty()){
         this->taskTable.append(recordLists.takeFirst());
     }
 }
 
 void MainFriend::deleteFromTaskTablePartner(qint32 clientID){
-    QVector<mainRecord>::iterator iter;
+    QVector<mainRecord*>::iterator iter;
     QVector<blockInfo> tempBlocks;
     blockInfo *tempBlock;
     for(iter=this->taskTable.begin();iter!=taskTable.end();){
-        if(iter->getClientId()==clientID){
+        if((*iter)->getClientId()==clientID){
             //插入历史记录表
             historyRecord *hRecord=new historyRecord();
-            hRecord->token=iter->getToken();
-            hRecord->recordID=iter->getRecordID();
-            hRecord->clientID=iter->getClientId();
-            tempBlocks=iter->getBlockIds();
+            hRecord->token=(*iter)->getToken();
+            hRecord->recordID=(*iter)->getRecordID();
+            hRecord->clientID=(*iter)->getClientId();
+            tempBlocks=(*iter)->getBlockIds();
             for(int i=0;i<tempBlocks.size();i++){
                 tempBlock=new blockInfo(tempBlocks[i]);
                 hRecord->blockId.append(*tempBlock); //复制块信息到历史记录中保存
             }
-            iter=this->taskTable.erase(iter);//销毁
-
+            qDebug()<<"MainFriend::deleteFromTaskTablePartner  删除任务记录：token>>"<<hRecord->token
+                   <<" | clientID>>"<<hRecord->clientID<<endl;
+            //TODO:正确delete mainRecord*
+            iter=this->taskTable.erase(iter);//销毁记录，取下一个iter指针
             //入历史记录
             this->addToHistoryTable(*hRecord);
         }
@@ -343,14 +350,14 @@ void MainFriend::addToHistoryTable(historyRecord &hRecord){
     this->historyTable.append(hRecord);
 }
 
-void MainFriend::assignTaskToPartner(qint32 partnerID,QVector<mainRecord> recordLists){
-    QVector<mainRecord>::iterator iter;
+void MainFriend::assignTaskToPartner(qint32 partnerID,QVector<mainRecord*> recordLists){
+    QVector<mainRecord*>::iterator iter;
     QVector<blockInfo> tempBlocks;
     qint64 pos;
     qint32 len;
     for(iter=recordLists.begin();iter!=recordLists.end();iter++){
         //对每个record创建msg发送
-        tempBlocks=iter->getBlockIds();
+        tempBlocks=(*iter)->getBlockIds();
         pos=tempBlocks.constFirst().index * this->blockSize;//下载起始地址
         if(tempBlocks.constLast().isEndBlock){
             //如果是最后的块
@@ -359,15 +366,49 @@ void MainFriend::assignTaskToPartner(qint32 partnerID,QVector<mainRecord> record
         else{
             len=tempBlocks.size()*this->blockSize;
         }
-        CommMsg msg=this->msgUtil->createDownloadTaskMsg(iter->getToken(),pos,len);
+        CommMsg msg=this->msgUtil->createDownloadTaskMsg((*iter)->getToken(),pos,len);
         this->tcpSocketUtil->sendToPartner(partnerID,msg);
     }
 }
 
-void MainFriend::recParnterSlice(qint32 partnerId, qint32 token, qint32 index){
+void MainFriend::checkTimeOutTask(qint32 token){
+    //TODO:询问主机下载进度
+    mainRecord *record=this->mainctrlutil->findTaskRecord(token,this->taskTable);
+    qDebug()<<"MainFriend::checkTimeOutTask  下载超时：token>>"<<record->getToken()<<" | clientID>>"<<record->getClientId()<<endl;
+    //TODO:找找看local ID到底初始化成什么了
+    if(record->getClientId()==LOCALID){
+        //为朋友机（本地主机）
+        //TODO:检查progress单位
+        double progress=this->downloadManager->getProgress();
+        if(progress<=0.5){
+            //中止任务
+            qDebug()<<"MainFriend::checkTimeOutTask  本地主机进度："<<progress<<" 缓慢，删除任务，重新分配";
+            //TODO: 中断任务，清理已下载文件，重新分配
+        }
+        else{
+            qDebug()<<"MainFriend::checkTimeOutTask  本地主机进度："<<progress<<" 重启计时器，等待任务完成";
+            record->deleteTimer();record->createTimer(DDL,true);
+            QObject::connect(record,SIGNAL(sendTimeOutToCtrl(qint32)),this,SLOT(checkTimeOutTask(qint32)));
+            qDebug()<<"MainFriend::checkTimeOutTask  connect::sendTimeOutToCtrl 连接计时器"<<endl;
+        }
+    }
+    else{
+        //为伙伴机，发信号询问进度
+        qDebug()<<"MainFriend::checkTimeOutTask 发信号询问伙伴机进度："<<record->getClientId()<<endl;
+        CommMsg msg=this->msgUtil->createAreYouAliveMsg();
+        this->tcpSocketUtil->sendToPartner(record->getClientId(),msg);
+        //TODO: 接收进度信号，进行后续处理
+    }
+}
+
+void MainFriend::recPartnerSlice(qint32 partnerId, qint32 token, qint32 index){
     //收到slice，发送THANKYOURHELP
     CommMsg msg=this->msgUtil->createThankYourHelpMsg(token,index+1);//期待收的下一个slice index
     this->tcpSocketUtil->sendToPartner(partnerId,msg);
+}
+
+void MainFriend::recPartnerProgress(){
+    //TODO: not completed
 }
 
 void MainFriend::work2wait(qint32 clientId){

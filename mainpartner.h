@@ -27,6 +27,8 @@ public slots:
     void taskStartAsPartner(qint32 friendId, qint32 token, qint64 pos, qint32 len);
     //task下载完成，向主机发送TASKFINISH
     void taskEndAsPartner(qint32 friendId, qint32 token,qint32 len);
+    //响应AREYOUALIVE 汇报下载进度
+    void reportTaskProgress(qint32 friendId);
     //slice分片调度器，切分并发送slice.
     void sliceDivideAndSent(qint32 friendId,qint32 token,qint32 expectIndex);
     //mission完成，状态置为空闲

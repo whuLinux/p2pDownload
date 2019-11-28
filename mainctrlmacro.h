@@ -55,6 +55,8 @@ const quint32 DDL=10000;
 //初始下载任务数量
 const quint32 INITTASKNUM=1;
 
+//local clientID
+const qint32 LOCALID=0;
 //本机端口默认值
 const quint16 DEFAULTPORT=20086;
 const quint16 DEFAULTFILEPORT=20087;

@@ -35,6 +35,13 @@ void MainPartner::recFriendHelp(qint32 friendId,QString downloadAddress, qint32 
     }
 }
 
+void MainPartner::reportTaskProgress(qint32 friendId){
+    double progress=this->downloadManager->getProgress();
+    CommMsg msg=this->msgUtil->createIsAliveMsg(progress);
+    qDebug()<<"MainPartner::reportTaskProgress 汇报下载进度："<<progress<<" to friend:"<<friendId<<endl;
+    this->tcpSocketUtil->sendToFriend(friendId,msg);
+}
+
 void MainPartner::taskStartAsPartner(qint32 friendId, qint32 token, qint64 pos, qint32 len){
     QString taskName=QString::number(token)+".tmp";
     this->downloadManager->setUrl(this->myMission.url);

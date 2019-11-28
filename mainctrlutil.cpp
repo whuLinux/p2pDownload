@@ -102,7 +102,7 @@ void mainCtrlUtil::clearMissionStruct(mission &m){
     m.url="";m.name="";m.filesize=0;m.savePath="";
 }
 
-partnerTask* mainCtrlUtil::findParnterTask(qint32 token, QVector<partnerTask> sliceSchedule){
+partnerTask* mainCtrlUtil::findParnterTask(qint32 token,QVector<partnerTask> &sliceSchedule){
     partnerTask *task=nullptr;
     for(int i=0;i<sliceSchedule.size();i++){
         if(sliceSchedule[i].token==token){
@@ -113,6 +113,16 @@ partnerTask* mainCtrlUtil::findParnterTask(qint32 token, QVector<partnerTask> sl
     return task;
 }
 
+mainRecord* mainCtrlUtil::findTaskRecord(qint32 token, QVector<mainRecord *> &taskTable){
+    mainRecord *record=nullptr;
+    for(int i=0;i<taskTable.size();i++){
+        if(taskTable[i]->getToken()==token){
+            record=taskTable[i];
+            break;
+        }
+    }
+    return record;
+}
 
 bool mainCtrlUtil::isValidMission(mission m){
     //TODO:任务校验

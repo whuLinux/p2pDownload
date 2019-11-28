@@ -4,6 +4,7 @@
 #include<qstring.h>
 #include<QtAlgorithms>
 #include"mainctrlmacro.h"
+#include"mainrecord.h"
 
 class mainCtrlUtil:public QObject
 {
@@ -39,8 +40,9 @@ public:
     //TODO:实现
     static bool isValidMission(mission m);
     //从scheduler中找对应token的task
-    static partnerTask* findParnterTask(qint32 token,QVector<partnerTask> sliceSchedule);
-
+    static partnerTask* findParnterTask(qint32 token,QVector<partnerTask> &sliceSchedule);
+    //从taskRecord中找对应token的task
+    static mainRecord* findTaskRecord(qint32 token,QVector<mainRecord*> &taskTable);
 public slots:
     //根据历史纪录表检查下载文件完整性
     bool missionIntegrityCheck(const QVector<historyRecord> &historyTable,

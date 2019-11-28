@@ -29,7 +29,7 @@ void mainctrl::signalsConnect(){
 
     //TASKEXECUING 接收伙伴机文件
     qDebug()<<"connect::timeForNextSliceForPartner"<<endl;
-    QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextSliceForPartner(qint32,qint32,qint32)),this->local,SLOT(recParnterSlice(qint32,qint32,qint32)));
+    QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextSliceForPartner(qint32,qint32,qint32)),this->local,SLOT(recPartnerSlice(qint32,qint32,qint32)));
     //TASKFINISH 本轮Task接收完成
     qDebug()<<"connect::timeForNextTaskForPartner"<<endl;
     QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextTaskForPartner(qint32,qint32)),this->local,SLOT(taskEndConfig(qint32,qint32)));
@@ -47,6 +47,9 @@ void mainctrl::signalsConnect(){
     //DOWNLOADTASK 伙伴机开始下载
     qDebug()<<"connect::startToDownload"<<endl;
     QObject::connect(this->tcpSocketUtil,SIGNAL(startToDownload(qint32, qint32, qint64, qint32)),this->partner,SLOT(taskStartAsPartner(qint32, qint32, qint64, qint32)));
+    //AREYOUALIVE 汇报下载进度
+    qDebug()<<"connect::startToDownload"<<endl;
+    QObject::connect(this->tcpSocketUtil,SIGNAL(tellTaskProcess(qint32)),this->partner,SLOT(reportTaskProgress(qint32)));
     //分片下载完成，伙伴机准备发送
     qDebug()<<"connect::callTaskEndAsPartner"<<endl;
     QObject::connect(this->partner,SIGNAL(callTaskEndAsPartner(qint32, qint32, qint32)),this->partner,SLOT(taskEndAsPartner(qint32, qint32, qint32)));
