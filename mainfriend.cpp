@@ -315,12 +315,13 @@ void MainFriend::addToTaskTable(QVector<mainRecord*> recordLists){
     }
 }
 
-void MainFriend::deleteFromTaskTablePartner(qint32 clientID){
+void MainFriend::deleteFromTaskTablePartner(qint32 clientID,qint32 token){
     QVector<mainRecord*>::iterator iter;
     QVector<blockInfo> tempBlocks;
     blockInfo *tempBlock;
+    bool found=false;
     for(iter=this->taskTable.begin();iter!=taskTable.end();){
-        if((*iter)->getClientId()==clientID){
+        if((*iter)->getClientId()==clientID && (*iter)->getToken()==token){
             //插入历史记录表
             historyRecord *hRecord=new historyRecord();
             hRecord->token=(*iter)->getToken();
@@ -337,10 +338,15 @@ void MainFriend::deleteFromTaskTablePartner(qint32 clientID){
             iter=this->taskTable.erase(iter);//销毁记录，取下一个iter指针
             //入历史记录
             this->addToHistoryTable(*hRecord);
+            found=true;break;
         }
         else{
             iter++;
         }
+    }
+    if(!found){
+        qDebug()<<"MainFriend::deleteFromTaskTablePartner  删除任务记录失败，任务未找到：token>>"<<token
+               <<" | clientID>>"<<clientID<<endl;
     }
 }
 
@@ -396,7 +402,7 @@ void MainFriend::adjustLocalTask(mainRecord *record, double progress){
             this->work2wait(LOCALID);
         }
         else{
-            qDebug()<<"MainFriend::adjustLocalTask  ERRROR：主机下载临时文件删除失败！"<<tempFileName<<endl;
+            qDebug()<<"MainFriend::adjustLocalTask  ERRROR：主机下载临时文件删除失败！"<<this->downloadManager->getName()<<endl;
         }
     }
     else{
@@ -509,12 +515,25 @@ void MainFriend::taskEndAsLocal(){
 }
 
 void MainFriend::taskEndConfig(qint32 clientId,qint32 token){
-    //TODO：完整性检查，出错重发
+    //NOTE：完整性检查，出错重发
+    bool found=false;
     //if(token==1){本地下载完成;}
+    //TODO:多任务处理
     //任务状态更新
-    this->deleteFromTaskTablePartner(clientId);
+    this->deleteFromTaskTablePartner(clientId,token);
     //伙伴状态更新
-    this->work2wait(clientId);
+    for(int i=0;i<this->taskTable.size();i++){
+        if(this->taskTable[i]->getClientId()==clientId){
+            //仍有下载任务
+            qDebug()<<"MainFriend::taskEndConfig  仍有下载任务，client不空闲。 client>> "<<clientId<<endl;
+            found=true;break;
+        }
+    }
+    if(!found){
+        //client全部下载任务完成
+        qDebug()<<"MainFriend::taskEndConfig  client任务全部完成，移至waiting队列，等待新任务分配。 client>> "<<clientId<<endl;
+        this->work2wait(clientId);
+    }
 }
 
 void MainFriend::recMissionValidation(bool success){

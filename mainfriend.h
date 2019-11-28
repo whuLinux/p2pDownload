@@ -88,9 +88,9 @@ public:
     void addToTaskTable(QVector<mainRecord*> recordLists);
     //根据progress调整任务、taskNum，若超过50%则继续；否则减半该主机taskNum，废弃本次任务，并放回等待队列
     void adjustLocalTask(mainRecord *record,double progress);
-    //删除任务,调用addToHistoryTable，将任务登记为历史记录,响应伙伴机信号或自身下载完成信号
-    void deleteFromTaskTableLocal(qint32 clientID);
-    void deleteFromTaskTablePartner(qint32 clientID);
+    //删除taskTable中对应token任务,调用addToHistoryTable，将任务登记为历史记录,响应伙伴机信号或自身下载完成信号
+    void deleteFromTaskTableLocal(qint32 clientID,qint32 token);
+    void deleteFromTaskTablePartner(qint32 clientID,qint32 token);
     //增加历史记录
     void addToHistoryTable(historyRecord &hRecord);
     //查询历史记录

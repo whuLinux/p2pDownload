@@ -28,9 +28,9 @@ public:
     //根据历史记录表合并文件,filePath:临时文件所在路径
     void mergeMissionFiles(QVector<historyRecord> historyTable,
                            const QString missionName,const QString filePath);
-    //从scheduler中找对应token的task
-    partnerTask* findParnterTask(qint32 token,QVector<partnerTask> &sliceSchedule);
-    //从taskRecord中找对应token的task
+    //partner机 从scheduler中找对应token的task的slices结构体
+    partnerSlices* findParnterTaskSlices(qint32 token,QVector<partnerSlices> &sliceSchedule);
+    //friend机 从taskRecord中找对应token的task
     mainRecord* findTaskRecord(qint32 token,QVector<mainRecord*> &taskTable);
 
     //指定路径下创建文件夹，指定路径不存在导致创建失败return false

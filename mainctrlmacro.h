@@ -37,7 +37,8 @@ struct mission{
     QString name;
 };
 
-struct partnerTask{
+struct partnerSlices{
+    //用于slice分发记录
     qint32 token;
     qint32 index;//上一个发送slice的index
     qint32 sentLength;//已发送字节的最大长度
@@ -45,8 +46,16 @@ struct partnerTask{
     QByteArray *downloadFile;//下载的文件流
 };
 
-//TODO: 待改为配置文件
+struct partnerTask{
+    //记录friend机发来的task 信息
+    qint32 friendId;
+    qint32 token;
+    qint64 pos;
+    qint32 len;
+};
 
+
+//TODO: 待改为配置文件
 //单个文件块大小上限
 //TODO: 以什么为单位
 const quint32 MAXBLOCKSIZE=1024;

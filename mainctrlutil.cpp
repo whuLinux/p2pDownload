@@ -119,8 +119,8 @@ bool mainCtrlUtil::deleteFile(QString path, QString name){
     }
 }
 
-partnerTask* mainCtrlUtil::findParnterTask(qint32 token,QVector<partnerTask> &sliceSchedule){
-    partnerTask *task=nullptr;
+partnerSlices* mainCtrlUtil::findParnterTaskSlices(qint32 token,QVector<partnerSlices> &sliceSchedule){
+    partnerSlices *task=nullptr;
     for(int i=0;i<sliceSchedule.size();i++){
         if(sliceSchedule[i].token==token){
             task=&sliceSchedule[i];
