@@ -23,9 +23,7 @@ class mainctrl:public QObject
     Q_OBJECT
 
 private:
-    //角色
-    MainPartner *partner;
-    MainFriend *local;
+
     //工具类
     UDPSocketUtil * udpSocketUtil;
     TCPSocketUtil * tcpSocketUtil;
@@ -34,6 +32,9 @@ private:
 
 public:
     mainctrl();
+    //角色
+    MainPartner *partner;
+    MainFriend *local;
 
     //统一进行信号槽连接
     void signalsConnect();

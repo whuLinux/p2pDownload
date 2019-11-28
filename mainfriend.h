@@ -40,6 +40,10 @@ public:
     MainFriend(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketUtil,
                mainCtrlUtil * mainctrlutil,MsgUtil * msgUtil);
 
+    //临时用
+    void addClientToExist(Client c){this->existClients.append(c);}
+
+
     /**
      * @brief regLocalClients 将本机信息注册到服务器
      * @return
