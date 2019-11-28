@@ -10,7 +10,7 @@ CommMsg::CommMsg(TCPCtrlMsgType msgType) : msgType(msgType)
 
 }
 
-CommMsg::CommMsg(TCPCtrlMsgType msgType, qint8 rate) : msgType(msgType), rate(rate)
+CommMsg::CommMsg(TCPCtrlMsgType msgType, double rate) : msgType(msgType), rate(rate)
 {
 
 }

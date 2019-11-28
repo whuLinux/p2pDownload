@@ -429,9 +429,9 @@ bool TCPSocketUtil::recFromPartner(qint32 partnerId)
         // P2P打洞完成后，告知伙伴客户端下载地址
         emit timeToInitialTaskForPartner(partnerId);
 
-    } else if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toInt()) == TCPCtrlMsgType::ISALIVE) {
+    } else if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toDouble()) == TCPCtrlMsgType::ISALIVE) {
         // 伙伴客户端确认存活
-        emit whetherToStopTask(partnerId);
+        emit whetherToStopTask(partnerId, jsonMsg.value(RATE).toDouble());
 
     } else if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toInt()) == TCPCtrlMsgType::AGREETOHELP) {
         // 伙伴客户端接受下载协助请求，准备为伙伴客户端分配下载任务
