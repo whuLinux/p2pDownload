@@ -139,25 +139,25 @@ bool UDPSocketUtil::rename()
 
 bool UDPSocketUtil::loginSuccess()
 {
-    emit loginSuccess();
+    emit loginOk();
     return true;
 }
 
 bool UDPSocketUtil::loginFailure()
 {
-    emit loginFailure();
+    emit loginAgain();
     return true;
 }
 
 bool UDPSocketUtil::logoutSuccess()
 {
-    emit logoutSuccess();
+    emit logoutOk();
     return true;
 }
 
 bool UDPSocketUtil::logoutFailure()
 {
-    emit logoutFailure();
+    emit logoutAgain();
     return true;
 }
 
