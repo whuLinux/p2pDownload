@@ -129,6 +129,9 @@ bool MainFriend::initWaitingClients(){
     //设定时间循环，等待伙伴机请求
     //NOTE:GUI用户友好，可视化响应请求数量
     timer.start();
+
+    qDebug()<<"MainFriend::initWaitingClients  当前waiting>>"<<this->waitingClients.size()
+           <<"当前exist:"<<this->existClients.size();
     while(this->waitingClients.size()<=this->existClients.size()&&
           timer.elapsed()<=10000){
         //未达到伙伴机上限且未达到时间上限，等待
@@ -139,7 +142,7 @@ bool MainFriend::initWaitingClients(){
         }
     }
 
-    if(this->waitingClients.size()==1){
+    if(this->waitingClients.size()<=1){
         //仅有本机
         qDebug()<<"MainFriend::initWaitingClients  无伙伴机响应";
         return false;
