@@ -28,6 +28,7 @@ public:
 public:
     void start();
     void pause();
+    bool abort();
 
 public:
     static qint64  getFileSize(QUrl url);
@@ -53,6 +54,7 @@ public:
 signals:
     void continueDownload();
     void pauseDownload();
+    void abortDownload();
 
     void updateData(qint64 time, double speed, double progress);
     void taskFinished();    // 此下载任务已完成，通知调用者

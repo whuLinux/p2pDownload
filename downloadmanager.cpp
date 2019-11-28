@@ -87,6 +87,8 @@ void DownloadManager::start() {
                          downloader, &HttpDownloader::onPause);
         QObject::connect(this,       &DownloadManager::continueDownload,
                          downloader, &HttpDownloader::onContinue);
+        QObject::connect(this,       &DownloadManager::abortDownload,
+                         downloader, &HttpDownloader::onAbort);
         QObject::connect(downloader, &HttpDownloader::downloadProgress,
                          this,       &DownloadManager::onDownloadProgress);
 
@@ -109,6 +111,8 @@ void DownloadManager::start() {
                              downloader, &HttpDownloader::onPause);
             QObject::connect(this,       &DownloadManager::continueDownload,
                              downloader, &HttpDownloader::onContinue);
+            QObject::connect(this,       &DownloadManager::abortDownload,
+                             downloader, &HttpDownloader::onAbort);
             QObject::connect(downloader, &HttpDownloader::downloadProgress,
                              this,       &DownloadManager::onDownloadProgress);
         }
@@ -126,6 +130,36 @@ void DownloadManager::pause() {
     totalTime += QDateTime::currentDateTime().toTime_t() - startTime;
 
     emit pauseDownload();
+}
+
+bool DownloadManager::abort() {
+
+    qDebug() << "[Manager] 终止任务中...";
+
+    pause();
+    emit abortDownload();
+
+    qDebug() << "\t[Manager] 删除分块文件中...";
+    if (threadCount == 1) {
+        QFile::remove(path+name+"/"+name);
+    } else if (threadCount > 1) {
+        for (int i = 0; i < threadCount; i++) {
+            QFile::remove(path+name+"/"+name+".part"+QString::number(i+1));
+        }
+    }
+
+    qDebug() << "\t[Manager] 删除临时文件夹中...";
+    QDir dir;
+    if (!dir.rmdir(path+"."+name+"/")) {
+        qDebug() << "\t[Manager] 未能删除临时文件夹";
+        qDebug() << "[Manager] 任务终止失败";
+        return false;
+    }
+
+    qDebug() << "[Manager] 任务已终止";
+    this->deleteLater();
+
+    return true;
 }
 
 qint64 DownloadManager::getFileSize(QUrl url) {
