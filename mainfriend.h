@@ -61,8 +61,6 @@ public:
      * @return
      */
     bool initWaitingClients();
-    bool partnerAccept(qint32 partnerId);//加入waitingClients
-    bool partnerReject(qint32 partnerId);
 
     /**
      * @brief createMission 创建下载任务，检测url可达性，获取文件大小，设置存储路径
@@ -112,6 +110,9 @@ public:
 public slots:
     //登录检查
     bool checkLoginStatus();
+    //伙伴机是否响应帮助
+    bool partnerAccept(qint32 partnerId);//加入waitingClients
+    bool partnerReject(qint32 partnerId);
     //TASKEXECUING 接收到伙伴机文件分片,发送THANKYOURHELP
     void recPartnerSlice(qint32 partnerId, qint32 token, qint32 index);
     //接收超时的任务信号，检查任务进度

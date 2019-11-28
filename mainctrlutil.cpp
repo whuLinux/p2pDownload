@@ -153,8 +153,8 @@ void mainCtrlUtil::mergeMissionFiles(QVector<historyRecord> historyTable,const Q
     QString taskFileName;
     QVector<historyRecord>::iterator iter;
 
-    qStableSort(historyTable.begin(),historyTable.end());//按照下载块的下标排序
-
+//    qStableSort(historyTable.begin(),historyTable.end());//按照下载块的下标排序
+    std::stable_sort(historyTable.begin(),historyTable.end());
 
     if(!tempDir.setCurrent(filePath)){
         qDebug()<<"mainCtrlUtil::mergeMissionFiles  路径无效："<<filePath<<endl;
@@ -184,8 +184,8 @@ void mainCtrlUtil::mergeMissionFiles(QVector<historyRecord> historyTable,const Q
 
 }
 
-bool mainCtrlUtil::missionIntegrityCheck(const QVector<historyRecord> &historyTable,
-                                         const QString missionName,const QString filePath,const qint32 fileSize){
+bool mainCtrlUtil::missionIntegrityCheck( QVector<historyRecord> &historyTable,
+                                          QString missionName, QString filePath, qint32 fileSize){
     bool validation=false;
     this->mergeMissionFiles(historyTable,missionName,filePath);//合并文件
     //获取文件信息

@@ -46,7 +46,7 @@ void mainctrl::signalsConnect(){
     QObject::connect(this->local,SIGNAL(callTaskEndAsLocal()),this->local,SLOT(taskEndAsLocal()));
     //全部下载完成,校验完整性
     qDebug()<<"connect::callMissionIntegrityCheck"<<endl;
-    QObject::connect(this->local,SIGNAL(callMissionIntegrityCheck(QVector<historyRecord>,QString)),this->mainctrlutil,SLOT(missionIntegrityCheck(QVector<historyRecord>,QString,QString,Qint32)));
+    QObject::connect(this->local,SIGNAL(callMissionIntegrityCheck(QVector<historyRecord>,QString,QString,qint32)),this->mainctrlutil,SLOT(missionIntegrityCheck(QVector<historyRecord>,QString,QString,qint32)));
 
 
     //DOWNLOADTASK 伙伴机接收下载任务
@@ -54,7 +54,7 @@ void mainctrl::signalsConnect(){
     QObject::connect(this->tcpSocketUtil,SIGNAL(startToDownload(qint32, qint32, qint64, qint32)),this->partner,SLOT(recTaskFromFriend(qint32, qint32, qint64, qint32)));
     //下载器空闲 伙伴机执行新下载任务
     qDebug()<<"connect::callTaskStartAsPartner"<<endl;
-    QObject::connect(this->partner,SIGNAL(callTaskStartAsPartner()),this->partner,SLOT(taskStartAsPartner));
+    QObject::connect(this->partner,SIGNAL(callTaskStartAsPartner()),this->partner,SLOT(taskStartAsPartner()));
     //AREYOUALIVE 汇报下载进度
     qDebug()<<"connect::tellTaskProcess"<<endl;
     QObject::connect(this->tcpSocketUtil,SIGNAL(tellTaskProcess(qint32)),this->partner,SLOT(reportTaskProgress(qint32)));
@@ -63,7 +63,7 @@ void mainctrl::signalsConnect(){
     QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextSliceForFriend(qint32, qint32, qint32)),this->partner,SLOT(sliceDivideAndSent(qint32, qint32, qint32)));
     //ENDYOURHELP 帮助下载的任务结束
     qDebug()<<"connect::taskHasFinishedForFriend"<<endl;
-    QObject::connect(this->tcpSocketUtil,SIGNAL(taskHasFinishedForFriend(qint32, qint32, qint32)),this->partner,SLOT(missionEndAsPartner(qint32, qint32, qint32)));
+    QObject::connect(this->tcpSocketUtil,SIGNAL(taskHasFinishedForFriend(qint32, qint32)),this->partner,SLOT(missionEndAsPartner()));
     //唤起slice调度器,发送slice
     qDebug()<<"connect::callSliceScheduler"<<endl;
     QObject::connect(this->partner,SIGNAL(callSliceScheduler(qint32,qint32,qint32)),this->partner,SLOT(sliceDivideAndSent(qint32,qint32,qint32)));
