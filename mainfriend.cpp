@@ -18,16 +18,18 @@ void MainFriend::regLocalClients(){
     this->tcpSocketUtil->stablishFileHost();
 
     string temp_pwd,temp_hostName;
-    cout<<"input your hostname: ";cin>>temp_hostName;
-    cout<<"input password: ";cin>>temp_pwd;
+//    cout<<"input your hostname: ";cin>>temp_hostName;
+//    cout<<"input password: ";cin>>temp_pwd;
+    temp_pwd="bar";temp_hostName="foo";
     this->hostName=QString::fromStdString(temp_hostName);this->pwd=QString::fromStdString(temp_pwd);
 
     qDebug()<<"MainFriend::regLocalClients "<<this->hostName<<this->local.getFilePort();
     CtrlMsg login_msg=this->msgUtil->createLoginMsg(this->hostName,this->pwd,DEFAULTPORT,DEFAULTFILEPORT);
     if(this->udpSocketUtil->login(login_msg))
         qDebug()<<"MainFriend::regLocalClients 连接请求msg 已发送"<<endl;
-    else
+    else{
         qDebug()<<"MainFriend::regLocalClients 连接请求msg 发送失败"<<endl;
+    }
     QObject::connect(this->udpSocketUtil,SIGNAL(loginSuccess()),this,SLOT(statusToIDLE()));
     QObject::connect(this->udpSocketUtil,SIGNAL(oginFailure()),this,SLOT(statusTOOFFLINE()));
 

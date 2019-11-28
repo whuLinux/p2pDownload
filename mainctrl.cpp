@@ -15,7 +15,9 @@ MainFriend *mainctrl::getLocal() const
 mainctrl::mainctrl()
 {
     //TODO:用配置文件初始化端口配置
-    this->udpSocketUtil=new UDPSocketUtil(DEFAULTUDPPORT,SERVERIP,SERVERPORT);
+//    this->udpSocketUtil=new UDPSocketUtil(DEFAULTUDPPORT,SERVERIP,SERVERPORT);
+//    this->tcpSocketUtil = new TCPSocketUtil(DEFAULTPORT, DEFAULTFILEPORT, true, true, "", ".txt", 1000);
+    this->udpSocketUtil=new UDPSocketUtil(DEFAULTUDPPORT,"192.168.43.117",SERVERPORT);
     this->tcpSocketUtil = new TCPSocketUtil(DEFAULTPORT, DEFAULTFILEPORT, true, true, "", ".txt", 1000);
     this->msgUtil=new MsgUtil();
     this->mainctrlutil=new mainCtrlUtil();
