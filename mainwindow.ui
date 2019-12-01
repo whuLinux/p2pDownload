@@ -50,7 +50,7 @@
       </widget>
      </item>
      <item row="0" column="0">
-      <widget class="QLineEdit" name="lineEdit_2">
+      <widget class="QLineEdit" name="lineEdit_name">
        <property name="text">
         <string>hostName:</string>
        </property>
@@ -159,10 +159,10 @@
    <widget class="QWidget" name="gridLayoutWidget_4">
     <property name="geometry">
      <rect>
-      <x>200</x>
+      <x>160</x>
       <y>230</y>
-      <width>160</width>
-      <height>80</height>
+      <width>211</width>
+      <height>131</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_4">

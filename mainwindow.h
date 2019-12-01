@@ -17,6 +17,17 @@ public:
 
     ~MainWindow();
 
+private slots:
+    void on_pushButton_name_clicked();
+
+    void on_pushButton_pwd_clicked();
+
+    void on_pushButton_path_clicked();
+
+    void on_pushButton_url_clicked();
+
+    void on_pushButton_login_clicked();
+
 private:
     Ui::MainWindow *ui;
 };

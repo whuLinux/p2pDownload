@@ -18,7 +18,7 @@ using namespace std;
 
 class MainRole
 {
-protected:
+public:
     ClientStatus status;
     mission myMission;//待下载文件信息结构体
     qint32 blockSize;

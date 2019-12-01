@@ -39,11 +39,13 @@ void MainFriend::regLocalClients(){
     this->tcpSocketUtil->stablishHost();
     this->tcpSocketUtil->stablishFileHost();
 
-    string temp_pwd,temp_hostName;
+    //假定hostName,pwd由UI界面完成设置
+    //TODO：UI界面输入检查与连接
+//    string temp_pwd,temp_hostName;
 //    cout<<"input your hostname: ";cin>>temp_hostName;
 //    cout<<"input password: ";cin>>temp_pwd;
-    temp_pwd="bar";temp_hostName="foo";
-    this->hostName=QString::fromStdString(temp_hostName);this->pwd=QString::fromStdString(temp_pwd);
+//    temp_pwd="bar";temp_hostName="foo";
+//    this->hostName=QString::fromStdString(temp_hostName);this->pwd=QString::fromStdString(temp_pwd);
 
     qDebug()<<"MainFriend::regLocalClients "<<this->hostName<<this->local.getFilePort();
     CtrlMsg login_msg=this->msgUtil->createLoginMsg(this->hostName,this->pwd,DEFAULTPORT,DEFAULTFILEPORT);
