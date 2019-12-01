@@ -107,7 +107,12 @@ public:
 
 
 
+    QString getHostName() const;
+    QString getPwd() const;
+
 public slots:
+    void setHostName(const QString &value);
+    void setPwd(const QString &value);
     //登录检查
     bool checkLoginStatus();
     //伙伴机是否响应帮助

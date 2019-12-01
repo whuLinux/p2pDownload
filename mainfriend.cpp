@@ -1,8 +1,30 @@
 #include "mainfriend.h"
 
+QString MainFriend::getHostName() const
+{
+    return hostName;
+}
+
+void MainFriend::setHostName(const QString &value)
+{
+    qDebug()<<"MainFriend::setHostName  hostName>>"<<value<<endl;
+    hostName = value;
+}
+
+QString MainFriend::getPwd() const
+{
+    return pwd;
+}
+
+void MainFriend::setPwd(const QString &value)
+{
+    qDebug()<<"MainFriend::setPwd  Pwd>>"<<value<<endl;
+    pwd = value;
+}
+
 MainFriend::MainFriend()
 {
-
+    
 }
 
 MainFriend::MainFriend(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketUtil,
