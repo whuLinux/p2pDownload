@@ -32,6 +32,12 @@ MainFriend::MainFriend(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketUti
     MainRole(udpSocketUtil,tcpSocketUtil,mainctrlutil,msgUtil)
 {
     this->downloadManager=new DownloadManager();
+
+    //NOTE:UI 美化
+    if (!this->tcpSocketUtil->stablishHost() || !this->tcpSocketUtil->stablishFileHost()) {
+        qDebug() << "MainFriend::MainFriend " << "TcpSocket 对象建立失败" << endl;
+    }
+
 }
 
 MainFriend::~MainFriend(){
@@ -40,11 +46,6 @@ MainFriend::~MainFriend(){
 }
 
 void MainFriend::regLocalClients(){
-    //NOTE:UI 美化
-    if (!this->tcpSocketUtil->stablishHost() || !this->tcpSocketUtil->stablishFileHost()) {
-        qDebug() << "MainFriend::regLocalClients " << "TcpSocket 对象建立失败" << endl;
-    }
-
     if (!this->udpSocketUtil->stablishClient()) {
         qDebug() << "MainFriend::regLocalClients " << "UdpSocket 对象建立失败" << endl;
     }
@@ -72,7 +73,7 @@ void MainFriend::regLocalClients(){
     qDebug()<<"MainFriend::regLocalClients 开启计时器，倒计时30s检查登录"<<endl;
     this->loginTimer=new QTimer();
     this->loginTimer->setSingleShot(true);
-    this->loginTimer->start(30000);//给30s登录时间响应
+    this->loginTimer->start(3000);//给30s登录时间响应
     QObject::connect(this->loginTimer,SIGNAL(timeout()),this,SLOT(checkLoginStatus()));
 
 }

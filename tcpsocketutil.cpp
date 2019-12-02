@@ -250,7 +250,7 @@ bool TCPSocketUtil::closeFileGuest(qint32 partnerId)
 
 bool TCPSocketUtil::listenPort()
 {
-    if (!this->host->listen(QHostAddress::Any, hostPort)) {
+    if (!this->host->listen(QHostAddress::AnyIPv4, hostPort)) {
         qDebug() << "TCPSocketUtil::listenPort " << "端口侦听失败" << endl;
         qDebug() << "TCPSocketUtil::listenPort " << this->host->errorString() << endl;
 
@@ -278,7 +278,7 @@ bool TCPSocketUtil::connectToFriend(qint32 partnerId)
         return false;
     }
 
-    if (!this->guests[partnerId]->bind(QHostAddress::Any, this->guestPort[partnerId])) {
+    if (!this->guests[partnerId]->bind(QHostAddress::AnyIPv4, this->guestPort[partnerId])) {
         qDebug() << "TCPSocketUtil::connectToFriend " << "端口侦听失败 " << partnerId << endl;
         qDebug() << "TCPSocketUtil::connectToFriend " << this->guests[partnerId]->errorString() << endl;
 
@@ -313,7 +313,7 @@ bool TCPSocketUtil::disConnectToFriend(qint32 friendId)
 
 bool TCPSocketUtil::listenFilePort()
 {
-    if (!this->fileHost->listen(QHostAddress::Any, fileHostPort)) {
+    if (!this->fileHost->listen(QHostAddress::AnyIPv4, fileHostPort)) {
         qDebug() << "TCPSocketUtil::listenFilePort " << "端口侦听失败" << endl;
         qDebug() << "TCPSocketUtil::listenFilePort " << this->fileHost->errorString() << endl;
         this->fileHost->close();
@@ -342,7 +342,7 @@ bool TCPSocketUtil::connectToFileFriend(qint32 partnerId)
         return false;
     }
 
-    if (!this->fileGuests[partnerId]->bind(QHostAddress::Any, this->fileGuestPort[partnerId])) {
+    if (!this->fileGuests[partnerId]->bind(QHostAddress::AnyIPv4, this->fileGuestPort[partnerId])) {
         qDebug() << "TCPSocketUtil::connectToPartner " << "端口侦听失败 " << partnerId << endl;
         qDebug() << "TCPSocketUtil::connectToPartner " << this->fileGuests[partnerId]->errorString() << endl;
 

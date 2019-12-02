@@ -60,6 +60,8 @@ public slots:
     bool logoutFailure();
     bool p2pNeedHole(QJsonObject & jsonMsg);
     bool receiveAllPartners(QJsonObject & jsonMsg);
+    bool obtainSuccess();
+    bool obtainFailure();
 
     /**
      * @brief 和主控单元交互，提供伙伴客户端数据
@@ -76,6 +78,8 @@ signals:
     void loginAgain();
     void logoutOk();
     void logoutAgain();
+    void obtainOk();
+    void obtainAgain();
     void p2pHoleRequestFromServer(QString name, QString ip, quint16 port);
     void timeToGetAllPartners();
 };

@@ -26,6 +26,10 @@ QByteArray CtrlMsg::toMsg()
         jsonMsg.insert(HOSTNAME, this->hostName);
         jsonMsg.insert(PWD, this->pwd);
 
+    } else if (this->msgType == UDPCtrlMsgType::OBTAINALLPARTNERS) {
+        jsonMsg.insert(HOSTNAME, this->hostName);
+        jsonMsg.insert(PWD, this->pwd);
+
     } else if (this->msgType == UDPCtrlMsgType::P2PTRANS) {
         jsonMsg.insert(HOSTNAME, this->hostName);
         jsonMsg.insert(PWD, this->pwd);

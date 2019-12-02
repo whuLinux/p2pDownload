@@ -25,9 +25,11 @@ CtrlMsg MsgUtil::createLogoutMsg(QString hostName, QString pwd)
     return logoutMsg;
 }
 
-CtrlMsg MsgUtil::createObtainAllPartners()
+CtrlMsg MsgUtil::createObtainAllPartners(QString hostName, QString pwd)
 {
     CtrlMsg obtainMsg(UDPCtrlMsgType::OBTAINALLPARTNERS);
+    obtainMsg.setHostName(hostName);
+    obtainMsg.setPwd(pwd);
 
     return obtainMsg;
 }

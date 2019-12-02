@@ -10,6 +10,7 @@ MainPartner::MainPartner(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketU
     MainRole(udpSocketUtil,tcpSocketUtil,mainctrlutil,msgUtil)
 {
     this->downloadManager=new DownloadManager();
+
 }
 
 

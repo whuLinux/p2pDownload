@@ -40,7 +40,7 @@ bool UDPSocketUtil::createSocket()
 
 bool UDPSocketUtil::bindClientPort()
 {
-    if (!this->client->bind(QHostAddress::Any, this->clientPort)) {
+    if (!this->client->bind(QHostAddress::AnyIPv4, this->clientPort)) {
         qDebug() << "UDPSocketUtil::bindClientPort " << "客户端无法监听端口" << endl;
         qDebug() << "UDPSocketUtil::bindClientPort " << this->client->errorString() << endl;
 
@@ -124,6 +124,10 @@ bool UDPSocketUtil::recfromServer()
             return logoutFailure();
         } else if (jsonMsg.value(MSGTYPE).toInt() == qint8(UDPCtrlMsgType::RETURNALLPARTNERS)) {
             return receiveAllPartners(jsonMsg);
+        } else if (jsonMsg.value(MSGTYPE).toInt() == qint8(UDPCtrlMsgType::OBTAINSUCCESS)) {
+            return obtainSuccess();
+        } else if (jsonMsg.value(MSGTYPE).toInt() == qint8(UDPCtrlMsgType::OBTAINFAILURE)) {
+            return obtainFailure();
         } else if (jsonMsg.value(MSGTYPE).toInt() == qint8(UDPCtrlMsgType::P2PNEEDHOLE)) {
             return p2pNeedHole(jsonMsg);
         }   
@@ -159,6 +163,18 @@ bool UDPSocketUtil::logoutSuccess()
 bool UDPSocketUtil::logoutFailure()
 {
     emit logoutAgain();
+    return true;
+}
+
+bool UDPSocketUtil::obtainSuccess()
+{
+    emit obtainOk();
+    return true;
+}
+
+bool UDPSocketUtil::obtainFailure()
+{
+    emit obtainAgain();
     return true;
 }
 
