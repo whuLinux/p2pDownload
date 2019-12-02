@@ -31,7 +31,7 @@ MainFriend::MainFriend(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketUti
                        mainCtrlUtil * mainctrlutil,MsgUtil * msgUtil):
     MainRole(udpSocketUtil,tcpSocketUtil,mainctrlutil,msgUtil)
 {
-
+    this->downloadManager=new DownloadManager();
 }
 
 void MainFriend::regLocalClients(){
@@ -124,17 +124,22 @@ bool MainFriend::createMission(QString url,QString savePath,QString missionName)
         return false;
     }
     else{
-        if(!mainCtrlUtil::createDirectory(dirName,dirPath)){
-            qDebug()<<"MainFriend::createMission  设置下载路径成功"<<savePath;
-//            this->myMission.savePath=savePath;
+        if(savePath==""){
+            qDebug()<<savePath<<"MainFriend::createMission 采用默认路径";
             this->downloadManager->setPath(savePath);
         }
         else{
-            qDebug()<<savePath<<"MainFriend::createMission ERROR！有误，采用默认路径./";
-//            mainCtrlUtil::createDirectory("tmp","./");
-//            this->myMission.savePath="./";
+            if(!mainCtrlUtil::createDirectory(dirName,dirPath)){
+                qDebug()<<"MainFriend::createMission  设置下载路径成功"<<savePath;
+    //            this->myMission.savePath=savePath;
+                this->downloadManager->setPath(savePath);
+            }
+            else{
+                qDebug()<<savePath<<"MainFriend::createMission ERROR！有误，采用默认路径";
+    //            mainCtrlUtil::createDirectory("tmp","./");
+    //            this->myMission.savePath="./";
+            }
         }
-
         return true;
     }
 }

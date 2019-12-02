@@ -111,7 +111,7 @@
      <item row="0" column="0">
       <widget class="QLineEdit" name="lineEdit_path">
        <property name="text">
-        <string>./</string>
+        <string/>
        </property>
       </widget>
      </item>
