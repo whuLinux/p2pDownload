@@ -198,6 +198,8 @@ signals:
     void whetherToHelpFriend(qint32 friendId, QString downloadAddress, qint32 lenMax);
     // DOWNLOADTASK
     void startToDownload(qint32 friendId, qint32 token, qint64 pos, qint32 len);
+    // ABORTTASK
+    void abortDownloadTask(qint32 friendId, qint32 token);
     // THANKYOURHELP
     void timeForNextSliceForFriend(qint32 friendId, qint32 token, qint32 index);
     // ENDYOURHELP

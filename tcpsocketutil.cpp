@@ -95,7 +95,7 @@ bool TCPSocketUtil::stablishHost()
         return false;
     }
 
-    connect(host, SIGNAL(newConnection()), this, SLOT(recFromPartner()));
+    connect(this->host, SIGNAL(newConnection()), this, SLOT(newConnectionWithPartner()));
     return true;
 }
 
@@ -135,7 +135,7 @@ bool TCPSocketUtil::stablishFileHost()
         return false;
     }
 
-    connect(fileHost, SIGNAL(newConnection()), this, SLOT(recFileFromPartner()));
+    connect(fileHost, SIGNAL(newConnection()), this, SLOT(newConnectionWithFilePartner()));
     return true;
 }
 
@@ -529,6 +529,15 @@ bool TCPSocketUtil::recFromFriend(qint32 friendId)
 
         // 确定具体任务
         emit startToDownload(friendId, qint32(jsonMsg.value(TOKEN).toInt()), qint64(jsonMsg.value(POS).toInt()), qint32(jsonMsg.value(LEN).toInt()));
+
+    } else if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toInt()) == TCPCtrlMsgType::ABORTTASK) {
+        if (jsonMsg.value(TOKEN).isUndefined()) {
+            qDebug() << "TCPSocketUtil::recFromFriend " << "朋友客户端发来的消息不完整" << endl;
+            return false;
+        }
+
+       // 终止并清除当前下载任务
+       emit abortDownloadTask(friendId, qint32(jsonMsg.value(TOKEN).toInt()));
 
     } else if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toInt()) == TCPCtrlMsgType::THANKYOURHELP) {
         if (jsonMsg.value(TOKEN).isUndefined() || jsonMsg.value(INDEX).isUndefined()) {
