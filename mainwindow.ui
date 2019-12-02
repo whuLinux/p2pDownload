@@ -162,24 +162,31 @@
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_3">
-     <item row="0" column="0">
+     <item row="1" column="0">
       <widget class="QPushButton" name="pushButton_help">
        <property name="text">
         <string>ask for help</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
+     <item row="3" column="0">
+      <widget class="QPushButton" name="pushButton_downloadpause">
+       <property name="text">
+        <string>pause download</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
       <widget class="QPushButton" name="pushButton_downloadstart">
        <property name="text">
         <string>start download</string>
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
-      <widget class="QPushButton" name="pushButton_downloadpause">
+     <item row="0" column="0">
+      <widget class="QPushButton" name="pushButton_get_clients">
        <property name="text">
-        <string>pause download</string>
+        <string>get clients</string>
        </property>
       </widget>
      </item>
@@ -281,13 +288,6 @@
       <widget class="QLabel" name="label_3">
        <property name="text">
         <string>DEBUG</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QPushButton" name="pushButton">
-       <property name="text">
-        <string>show clients</string>
        </property>
       </widget>
      </item>
