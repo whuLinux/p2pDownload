@@ -54,7 +54,6 @@ public:
      * @brief getExistClient 询问服务器当前注册主机信息
      */
     void getExistClients();
-    void initExistClients();
 
     /**
      * @brief initWaitingClients 初始化空闲主机队列
@@ -115,6 +114,8 @@ public slots:
     void setPwd(const QString &value);
     //登录检查
     bool checkLoginStatus();
+    //响应服务器回复主机信息
+    void initExistClients();
     //伙伴机是否响应帮助
     bool partnerAccept(qint32 partnerId);//加入waitingClients
     bool partnerReject(qint32 partnerId);
