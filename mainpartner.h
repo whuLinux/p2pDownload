@@ -7,7 +7,7 @@
  * @brief The MainPartner class
  * 作为伙伴机协助下载
  */
-class MainPartner:public QObject,public MainRole
+class MainPartner:public MainRole
 {
     Q_OBJECT
 
