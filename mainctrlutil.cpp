@@ -29,7 +29,7 @@ bool mainCtrlUtil::createDirectory(QString dirName,QString savePath){
     //绝对路径 及 文件夹内相对路径检查
     //如果filePath路径不存在，创建它
     if(!tempDir.exists(savePath)){
-        qDebug()<<"不存在该路径"<<endl;
+        qDebug()<<"mainCtrlUtil::createDirectory 不存在该路径"<<savePath<<endl;
         return false;
     }
     else{

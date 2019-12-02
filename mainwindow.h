@@ -28,6 +28,10 @@ private slots:
 
     void on_pushButton_login_clicked();
 
+    void on_pushButton_create_clicked();
+
+    void on_pushButton_mname_clicked();
+
 private:
     Ui::MainWindow *ui;
 };

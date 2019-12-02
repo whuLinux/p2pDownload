@@ -31,7 +31,7 @@ MainFriend::MainFriend(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketUti
                        mainCtrlUtil * mainctrlutil,MsgUtil * msgUtil):
     MainRole(udpSocketUtil,tcpSocketUtil,mainctrlutil,msgUtil)
 {
-
+    this->downloadManager=new DownloadManager();
 }
 
 void MainFriend::regLocalClients(){
@@ -112,12 +112,16 @@ bool MainFriend::createMission(QString url,QString savePath,QString missionName)
     //NOTE：debug检查字符串分割
     dirName=savePath.section('/',-1);//取末尾字符串
     dirPath=savePath.section('/',1,-2);
-    this->myMission.url=url;
-    this->myMission.name=missionName;
+    qDebug()<<"MainFriend::createMission 设置mission url>>"<<url
+           <<" | path>>"<<savePath<<" | name>>"<<missionName<<endl;
 
-    qDebug()<<"MainFriend::createMission  创建Mission  name>>"<<missionName<<" | url>>"<<url<<endl;
+//    this->myMission.url=url;
+//    this->myMission.name=missionName;
+
     //NOTE: url 格式，访问性检查;存储路径检查
+    this->downloadManager->setUrl(url);
     this->myMission.filesize=DownloadManager::getFileSize(url);
+    qDebug()<<"MainFriend::createMission 目标文件大小："<<this->myMission.filesize<<endl;
     if(this->myMission.filesize==0){
         //请求出错
         qDebug()<<"MainFriend::createMission ERROR！ 请求下载文件失败";
@@ -125,17 +129,22 @@ bool MainFriend::createMission(QString url,QString savePath,QString missionName)
         return false;
     }
     else{
-        if(!mainCtrlUtil::createDirectory(dirName,dirPath)){
-            qDebug()<<"MainFriend::createMission  设置下载路径成功"<<savePath;
-            this->myMission.savePath=savePath;
+        if(savePath==""){
+            qDebug()<<savePath<<"MainFriend::createMission 采用默认路径";
             this->downloadManager->setPath(savePath);
         }
         else{
-            qDebug()<<savePath<<"MainFriend::createMission ERROR！有误，采用默认路径./";
-//            mainCtrlUtil::createDirectory("tmp","./");
-            this->myMission.savePath="./";
+            if(!mainCtrlUtil::createDirectory(dirName,dirPath)){
+                qDebug()<<"MainFriend::createMission  设置下载路径成功"<<savePath;
+    //            this->myMission.savePath=savePath;
+                this->downloadManager->setPath(savePath);
+            }
+            else{
+                qDebug()<<savePath<<"MainFriend::createMission ERROR！有误，采用默认路径";
+    //            mainCtrlUtil::createDirectory("tmp","./");
+    //            this->myMission.savePath="./";
+            }
         }
-
         return true;
     }
 }
@@ -516,7 +525,7 @@ void MainFriend::recPartnerProgress(qint32 partnerId,double progress){
         //中止任务
         qDebug()<<"MainFriend::recPartnerProgress  进度："<<progress<<" 缓慢，删除任务，重新分配";
         //TODO: 发消息让伙伴端中断任务，清理已下载文件
-        //CommMsg msg
+        //CommMsg msg AbortDownload Task
 
         //1.占有blocks归还
         blocks=record->getBlockIds();
