@@ -56,7 +56,7 @@ void MainWindow::on_pushButton_create_clicked()
 
 void MainWindow::on_pushButton_help_clicked()
 {
-
+    this->ctrl.local->creatDownloadReq();
 }
 
 void MainWindow::on_pushButton_get_clients_clicked()

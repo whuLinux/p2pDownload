@@ -17,6 +17,8 @@ void MainPartner::recFriendHelp(qint32 friendId,QString downloadAddress, qint32 
     //NOTE: GUI选择是否帮助
     CommMsg msg;
     qDebug()<<"MainPartner::recFriendHelp  "<<"接收伙伴机请求，选择是否协助下载"<<endl;
+    qDebug()<<"MainPartner::recFriendHelp  friendId>>"<<friendId
+           <<"  |  downloadAddress>>"<<downloadAddress<<" | lenMax>>"<<lenMax<<endl;
     bool decision=true;
     if(decision){
         msg=this->msgUtil->creteAgreeToHelpMsg();

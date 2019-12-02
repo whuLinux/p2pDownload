@@ -34,6 +34,11 @@ MainFriend::MainFriend(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketUti
     this->downloadManager=new DownloadManager();
 }
 
+MainFriend::~MainFriend(){
+    CtrlMsg msg=this->msgUtil->createLogoutMsg(this->hostName,this->pwd);
+    this->udpSocketUtil->logout(msg);
+}
+
 void MainFriend::regLocalClients(){
     //NOTE:UI 美化
     if (!this->tcpSocketUtil->stablishHost() || !this->tcpSocketUtil->stablishFileHost()) {
@@ -230,8 +235,9 @@ bool MainFriend::creatDownloadReq(){
         this->blockSize=MAXBLOCKSIZE;
     }
 
-
+    qDebug()<<"MainFriend::creatDownloadReq  blockSize>>"<<this->blockSize<<endl;
     blockNum=this->myMission.filesize/this->blockSize;
+    qDebug()<<"MainFriend::creatDownloadReq  blockNum>>"<<blockNum<<endl;
     for(qint8 i=1;i<=blockNum;i++){
         //创建任务块
         blockInfo *temp=new blockInfo();

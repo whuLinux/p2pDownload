@@ -29,6 +29,8 @@ mainctrl::mainctrl()
 void mainctrl::signalsConnect(){
     qDebug()<<"mainCtrl::连接槽函数";
 
+    /*--------------friend-----------------*/
+
     //TASKEXECUING 接收伙伴机文件
     qDebug()<<"connect::timeForNextSliceForPartner"<<endl;
     QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextSliceForPartner(qint32,qint32,qint32)),this->local,SLOT(recPartnerSlice(qint32,qint32,qint32)));
@@ -48,7 +50,11 @@ void mainctrl::signalsConnect(){
     qDebug()<<"connect::callMissionIntegrityCheck"<<endl;
     QObject::connect(this->local,SIGNAL(callMissionIntegrityCheck(QVector<historyRecord>,QString,QString,qint32)),this->mainctrlutil,SLOT(missionIntegrityCheck(QVector<historyRecord>,QString,QString,qint32)));
 
+    /*---------------partner----------------*/
 
+    //ASKFORHELP 接收伙伴机帮助请求
+    qDebug()<<"connect::whetherToHelpFriend"<<endl;
+    QObject::connect(this->tcpSocketUtil,SIGNAL(whetherToHelpFriend(qin32,QString,qint32)),this->partner,SIGNAL(recFriendHelp(qin32,QString,qint32)));
     //DOWNLOADTASK 伙伴机接收下载任务
     qDebug()<<"connect::startToDownload"<<endl;
     QObject::connect(this->tcpSocketUtil,SIGNAL(startToDownload(qint32, qint32, qint64, qint32)),this->partner,SLOT(recTaskFromFriend(qint32, qint32, qint64, qint32)));

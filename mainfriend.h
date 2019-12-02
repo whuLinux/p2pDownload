@@ -39,7 +39,7 @@ public:
     MainFriend();
     MainFriend(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketUtil,
                mainCtrlUtil * mainctrlutil,MsgUtil * msgUtil);
-
+    ~MainFriend();//退出登录
     //临时用
     void addClientToExist(Client c){this->existClients.append(c);}
 
