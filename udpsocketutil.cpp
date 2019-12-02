@@ -40,7 +40,7 @@ bool UDPSocketUtil::createSocket()
 
 bool UDPSocketUtil::bindClientPort()
 {
-    if (!this->client->bind(QHostAddress::LocalHost, this->clientPort)) {
+    if (!this->client->bind(QHostAddress::Any, this->clientPort)) {
         qDebug() << "UDPSocketUtil::bindClientPort " << "客户端无法监听端口" << endl;
         qDebug() << "UDPSocketUtil::bindClientPort " << this->client->errorString() << endl;
 
@@ -58,6 +58,7 @@ bool UDPSocketUtil::login(CtrlMsg & msg)
         qDebug()<<"UDPSocketUtil::login  "<<this->serverIP<<this->serverPort;
         qDebug()<<msg.toMsg()<<endl;
         qDebug()<<msg.toMsg().size()<<endl;
+
         this->client->writeDatagram(msg.toMsg(), QHostAddress(this->serverIP), this->serverPort);
         return true;
     }

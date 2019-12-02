@@ -102,6 +102,8 @@ void MainFriend::initExistClients(){
 
         for(iter=partners.begin();iter!=partners.end();iter++){
             Client *temp=new Client(this->mainctrlutil->createId(),iter->name,iter->ip,iter->port,iter->filePort);
+            qDebug()<<"MainFriend::initExistClients  创建伙伴机："<<temp->getIP()<<"  "
+                   <<temp->getName()<<" ID: "<<temp->getId()<<" Port:"<<temp->getPort()<<endl;
             this->existClients.append(*temp);
         }
     }
