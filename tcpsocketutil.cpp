@@ -41,22 +41,22 @@ TCPSocketUtil::~TCPSocketUtil()
     this->parntersMap.clear();
 }
 
-bool TCPSocketUtil::bindClients(QVector<Client *> clients, QVector<quint16> ports, QVector<quint16> filePorts)
+bool TCPSocketUtil::bindClients(QVector<Client *> clients)
 {
-    if (clients.empty() || ports.empty() || filePorts.empty()) {
+    if (clients.empty()) {
         qDebug() << "TCPSocketUtil::bindClients " << "初始化伙伴客户端信息失败" << endl;
         return false;
     }
 
     int len = clients.size();
     for (int i = 0; i < len; i++) {
-        addClient(clients.at(i), ports.at(i), filePorts.at(i));
+        addClient(clients.at(i));
     }
 
     return true;
 }
 
-bool TCPSocketUtil::addClient(Client * client, quint16 port, quint16 filePort)
+bool TCPSocketUtil::addClient(Client * client)
 {
     if (this->parntersMap.contains(client->getId())) {
         qDebug() << "TCPSocketUtil::addClient " << "伙伴客户端不允许重复加入队列" << client->getId() << endl;
@@ -64,14 +64,25 @@ bool TCPSocketUtil::addClient(Client * client, quint16 port, quint16 filePort)
     }
 
     this->parntersMap[client->getId()] = client;
-    this->guestPort[client->getId()] = port;
-    this->fileGuestPort[client->getId()] = filePort;
 
-    bool guestSucceedBind = stablishGuest(client->getId());
-    bool fileGuestSucceedBind = stablishFileGuest(client->getId());
+    return true;
+}
+
+bool TCPSocketUtil::addGuest(qint32 id, quint16 port, quint16 filePort)
+{
+    if (!this->parntersMap.contains(id) {
+        qDebug() << "TCPSocketUtil::addClient " << "陌生客户端不允许加入队列" << id << endl;
+        return false;
+    }
+
+    this->guestPort[id] = port;
+    this->fileGuestPort[id] = filePort;
+
+    bool guestSucceedBind = stablishGuest(id);
+    bool fileGuestSucceedBind = stablishFileGuest(id);
 
     if (!guestSucceedBind || !fileGuestSucceedBind) {
-        qDebug() << "TCPSocketUtil::addClient " << "无法添加新的朋友客户端" << endl;
+        qDebug() << "TCPSocketUtil::addGuest " << "无法添加新的朋友客户端" << endl;
         return false;
     }
 
