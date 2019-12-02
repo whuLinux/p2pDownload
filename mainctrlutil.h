@@ -49,7 +49,7 @@ public:
 
 public slots:
     //根据历史纪录表检查下载文件完整性
-    bool missionIntegrityCheck( QVector<historyRecord> &historyTable,
+    bool missionIntegrityCheck( QVector<historyRecord> historyTable,
                                 QString missionName, QString filePath, qint32 fileSize);
 
 signals:

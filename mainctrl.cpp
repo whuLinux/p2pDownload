@@ -54,7 +54,7 @@ void mainctrl::signalsConnect(){
 
     //ASKFORHELP 接收伙伴机帮助请求
     qDebug()<<"connect::whetherToHelpFriend"<<endl;
-    QObject::connect(this->tcpSocketUtil,SIGNAL(whetherToHelpFriend(qin32,QString,qint32)),this->partner,SIGNAL(recFriendHelp(qin32,QString,qint32)));
+    QObject::connect(this->tcpSocketUtil,SIGNAL(whetherToHelpFriend(qint32,QString,qint32)),this->partner,SLOT(recFriendHelp(qint32,QString,qint32)));
     //DOWNLOADTASK 伙伴机接收下载任务
     qDebug()<<"connect::startToDownload"<<endl;
     QObject::connect(this->tcpSocketUtil,SIGNAL(startToDownload(qint32, qint32, qint64, qint32)),this->partner,SLOT(recTaskFromFriend(qint32, qint32, qint64, qint32)));

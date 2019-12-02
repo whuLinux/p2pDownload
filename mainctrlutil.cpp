@@ -184,7 +184,7 @@ void mainCtrlUtil::mergeMissionFiles(QVector<historyRecord> historyTable,const Q
 
 }
 
-bool mainCtrlUtil::missionIntegrityCheck( QVector<historyRecord> &historyTable,
+bool mainCtrlUtil::missionIntegrityCheck( QVector<historyRecord> historyTable,
                                           QString missionName, QString filePath, qint32 fileSize){
     bool validation=false;
     this->mergeMissionFiles(historyTable,missionName,filePath);//合并文件
