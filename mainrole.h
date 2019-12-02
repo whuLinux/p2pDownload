@@ -36,6 +36,9 @@ public:
 
     //设置下载路径
     void setDownloadPath(QString path);
+    void setMissionUrl(QString url);
+    void setMissionName(QString name);
+    void setMissionPath(QString path);
     QString getDownloadPath();
 
 public slots:

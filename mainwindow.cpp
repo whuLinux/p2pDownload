@@ -5,6 +5,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
+    this->ctrl.signalsConnect();
     ui->setupUi(this);
 }
 
@@ -26,15 +27,29 @@ void MainWindow::on_pushButton_pwd_clicked()
 
 void MainWindow::on_pushButton_path_clicked()
 {
-    this->ctrl.local->downloadManager->setPath(ui->lineEdit_path->text());
+    this->ctrl.local->setMissionPath(ui->lineEdit_path->text());
 }
 
 void MainWindow::on_pushButton_url_clicked()
 {
-    this->ctrl.local->downloadManager->setUrl(ui->lineEdit_URL->text());
+    this->ctrl.local->setMissionUrl(ui->lineEdit_URL->text());
 }
+
+void MainWindow::on_pushButton_mname_clicked()
+{
+    this->ctrl.local->setMissionName(ui->lineEdit_name->text());
+}
+
 
 void MainWindow::on_pushButton_login_clicked()
 {
     this->ctrl.local->regLocalClients();
 }
+
+void MainWindow::on_pushButton_create_clicked()
+{
+    this->ctrl.local->createMission(this->ctrl.local->myMission.url,
+                                    this->ctrl.local->myMission.savePath,
+                                    this->ctrl.local->myMission.name);
+}
+
