@@ -36,8 +36,13 @@ MainFriend::MainFriend(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketUti
 
 void MainFriend::regLocalClients(){
     //NOTE:UI 美化
-    this->tcpSocketUtil->stablishHost();
-    this->tcpSocketUtil->stablishFileHost();
+    if (!this->tcpSocketUtil->stablishHost() || !this->tcpSocketUtil->stablishFileHost()) {
+        qDebug() << "MainFriend::regLocalClients " << "TcpSocket 对象建立失败" << endl;
+    }
+
+    if (!this->udpSocketUtil->stablishClient()) {
+        qDebug() << "MainFriend::regLocalClients " << "UdpSocket 对象建立失败" << endl;
+    }
 
     //假定hostName,pwd由UI界面完成设置
     //TODO：UI界面输入检查与连接
@@ -54,8 +59,8 @@ void MainFriend::regLocalClients(){
     else{
         qDebug()<<"MainFriend::regLocalClients 连接请求msg 发送失败"<<endl;
     }
-    qDebug()<<"MainFriend::regLocalClients connect::loginOK"<<endl;
-    QObject::connect(this->udpSocketUtil,SIGNAL(loginOK()),this,SLOT(statusToIDLE()));
+    qDebug()<<"MainFriend::regLocalClients connect::loginOk"<<endl;
+    QObject::connect(this->udpSocketUtil,SIGNAL(loginOk()),this,SLOT(statusToIDLE()));
     qDebug()<<"MainFriend::regLocalClients connect::loginAgain"<<endl;
     QObject::connect(this->udpSocketUtil,SIGNAL(loginAgain()),this,SLOT(statusTOOFFLINE()));
 

@@ -11,13 +11,16 @@
 #include"downloadmanager.h"
 
 //TODO:测试用控制台 UI待制作
+#include<QObject>
 #include<string>
 #include<iostream>  //cin cout
 #include<stdio.h> //printf
 using namespace std;
 
-class MainRole
+class MainRole : public QObject
 {
+    Q_OBJECT
+
 public:
     ClientStatus status;
     mission myMission;//待下载文件信息结构体
@@ -35,6 +38,7 @@ public:
              mainCtrlUtil * mainctrlutil,MsgUtil * msgUtil);
 
     //设置下载路径
+
     void setDownloadPath(QString path);
     QString getDownloadPath();
 
