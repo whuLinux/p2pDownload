@@ -70,7 +70,7 @@ bool TCPSocketUtil::addClient(Client * client)
 
 bool TCPSocketUtil::addGuest(qint32 id, quint16 port, quint16 filePort)
 {
-    if (!this->parntersMap.contains(id) {
+    if (!this->parntersMap.contains(id)) {
         qDebug() << "TCPSocketUtil::addClient " << "陌生客户端不允许加入队列" << id << endl;
         return false;
     }
