@@ -1,5 +1,15 @@
 #include "client.h"
 
+bool Client::getPunchSuccess() const
+{
+    return punchSuccess;
+}
+
+void Client::setPunchSuccess(bool value)
+{
+    punchSuccess = value;
+}
+
 Client::Client()
 {
 
@@ -9,6 +19,7 @@ Client::Client(qint32 id, QString name, QString ip, quint16 port, quint16 filePo
 {
     this->hasTask=false;
     this->taskNum=0;
+    this->punchSuccess=false;
 }
 
 Client::~Client()

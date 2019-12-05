@@ -19,6 +19,7 @@ private:
     quint16 port;
     quint16 filePort;
     bool hasTask;
+    bool punchSuccess;//是否成功打洞
     quint8 taskNum;//本轮分配的下载任务数量
 
     /**
@@ -26,6 +27,7 @@ private:
     * 特殊标记为id=0 name="localhost"
     * ip="127.0.0.1"
     * port=filePort=0
+    * punchSuccess=true
     * */
 
 public:
@@ -45,6 +47,8 @@ public:
     inline quint8 getTaskNum();
 
     inline void setTaskNum(quint8 taskNum);
+    bool getPunchSuccess() const;
+    void setPunchSuccess(bool value);
 };
 
 void Client::attributeTask()

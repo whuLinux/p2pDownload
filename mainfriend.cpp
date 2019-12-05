@@ -38,6 +38,11 @@ MainFriend::MainFriend(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketUti
         qDebug() << "MainFriend::MainFriend " << "TcpSocket 对象建立失败" << endl;
     }
 
+    //将本机加入等待队列，保证无论如何可以执行单机下载
+    Client *localhost=new Client(0,"localhost","127.0.0.1",0,0);
+    localhost->setPunchSuccess(true);
+    this->waitingClients.append(localhost);
+
 }
 
 MainFriend::~MainFriend(){
@@ -107,6 +112,20 @@ void MainFriend::initExistClients(){
         //TCP 打洞用
         qDebug()<<"MainFriend::initExistClients  bindClients 执行"<<endl;
         this->tcpSocketUtil->bindClients(this->existClients);
+
+        //复制存在client list给partner模块
+        qDebug()<<"MainFriend::initExistClients  copyExistClientsToMainPartner 信号发送"<<endl;
+        emit(this->copyExistClientsToMainPartner(this->existClients));
+    }
+}
+
+void MainFriend::sendPunchToPartners(){
+    CtrlMsg msg;
+    qDebug()<<"MainFriend::givePunchToPartners making P2PTRANS"<<endl;
+    for(int i=0;i<this->existClients.size()&&i<MAXPARTNERSPUNCH;i++){
+        msg=this->msgUtil->createP2PTrans(this->hostName,this->pwd,this->existClients[i]->getName());
+        this->udpSocketUtil->p2pTrans(msg);
+        qDebug()<<"MainFriend::givePunchToPartners partnerName>>"<<this->existClients[i]->getName()<<endl;
     }
 }
 
@@ -164,7 +183,7 @@ bool MainFriend::initWaitingClients(){
     for(iter=this->existClients.begin();iter!=this->existClients.end();iter++){
         this->tcpSocketUtil->sendToPartner((*iter)->getId(),helpMsg);
         //处理伙伴机响应
-        QObject::connect(this->tcpSocketUtil,SIGNAL(timeToInitialTaskForPartner(qint32)),this,SLOT(partnerAccept(qint32)));
+        QObject::connect(this->tcpSocketUtil,SIGNAL(timeForFirstTaskForPartner(qint32)),this,SLOT(partnerAccept(qint32)));
         QObject::connect(this->tcpSocketUtil,SIGNAL(refuseToOfferHelpForPartner(qint32)),this,SLOT(partnerReject(qint32)));
     }
     //设定时间循环，等待伙伴机请求
@@ -193,6 +212,20 @@ bool MainFriend::initWaitingClients(){
         this->clientNum=this->waitingClients.size();
         qDebug()<<"MainFriend::initWaitingClients  请求成功，当前可供下载clients数量： "<<this->clientNum<<endl;
         return true;
+    }
+}
+
+void MainFriend::recPunchFromPartner(qint32 partnerId){
+    bool found=false;
+    for(int i=0;i<this->existClients.size();i++){
+        if(this->existClients[i]->getId()==partnerId){
+            this->existClients[i]->setPunchSuccess(true);
+            found=true;
+            break;
+        }
+    }
+    if(!found){
+        qDebug()<<"MainFriend::recPunchFromPartner  ERROR!partner not found in existClients>>"<<partnerId<<endl;
     }
 }
 

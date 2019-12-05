@@ -66,5 +66,5 @@ void MainWindow::on_pushButton_get_clients_clicked()
 
 void MainWindow::on_pushButton_punch_clicked()
 {
-
+    this->ctrl.local->sendPunchToPartners();
 }

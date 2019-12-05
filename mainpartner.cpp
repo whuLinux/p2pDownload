@@ -13,6 +13,26 @@ MainPartner::MainPartner(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketU
 
 }
 
+void MainPartner::recExistClientsFromMainPartner(QVector<Client*> existClients){
+    qDebug()<<"MainPartner::recExistClientsFromMainPartner 接收mainFriend发送的existClients"<<endl;
+    this->existClients=existClients;
+}
+
+void MainPartner::recHoleReqFromServer(QString name, QString ip, quint16 port){
+    qint32 friendId=this->mainctrlutil->findIdFromExistClientsByName(name,this->existClients);
+    if(friendId==-1){
+        qDebug()<<"MainPartner::recHoleReqFromServer ERROR! 未找到client>>"<<name<<endl;
+        return;
+    }
+    CommMsg msg=this->msgUtil->createP2PPunchMsg();
+    //addGuest
+    this->tcpSocketUtil->addGuest(friendId,
+                                  this->mainctrlutil->createPort(),
+                                  this->mainctrlutil->createFilePort());
+    //send Punch
+    this->tcpSocketUtil->sendToFriend(friendId,msg);
+
+}
 
 void MainPartner::recFriendHelp(qint32 friendId,QString downloadAddress, qint32 lenMax){
     //NOTE: GUI选择是否帮助

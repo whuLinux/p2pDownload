@@ -30,7 +30,15 @@ void mainctrl::signalsConnect(){
     qDebug()<<"mainCtrl::连接槽函数";
 
     /*--------------friend-----------------*/
+    //让local的mainPartner接收mainFriend的复制
+    qDebug()<<"connect::copyExistClientsToMainPartner"<<endl;
+    QObject::connect(this->local,SIGNAL(copyExistClientsToMainPartner(QVector<Client*>)),
+                     this->partner,SLOT(recExistClientsFromMainPartner(QVector<Client*>)));
 
+    //P2PPUNCH 接收打洞成功信号
+    qDebug()<<"connect::timeToInitialTaskForPartner"<<endl;
+    QObject::connect(this->tcpSocketUtil,SIGNAL(timeToInitialTaskForPartner(qint32)),
+                     this->local,SLOT(recPunchFromPartner(qint32)));
     //TASKEXECUING 接收伙伴机文件
     qDebug()<<"connect::timeForNextSliceForPartner"<<endl;
     QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextSliceForPartner(qint32,qint32,qint32)),this->local,SLOT(recPartnerSlice(qint32,qint32,qint32)));
@@ -51,7 +59,9 @@ void mainctrl::signalsConnect(){
     QObject::connect(this->local,SIGNAL(callMissionIntegrityCheck(QVector<historyRecord>,QString,QString,qint32)),this->mainctrlutil,SLOT(missionIntegrityCheck(QVector<historyRecord>,QString,QString,qint32)));
 
     /*---------------partner----------------*/
-
+    //P2PHOLEPACKAGE 接收打洞请求
+    qDebug()<<"connect::p2pHoleRequestFromServer"<<endl;
+    QObject::connect(this->udpSocketUtil,SIGNAL(p2pHoleRequestFromServer(QString,QString,quint16)),this->partner,SLOT(recHoleReqFromServer(QString,QString,quint16)));
     //ASKFORHELP 接收伙伴机帮助请求
     qDebug()<<"connect::whetherToHelpFriend"<<endl;
     QObject::connect(this->tcpSocketUtil,SIGNAL(whetherToHelpFriend(qint32,QString,qint32)),this->partner,SLOT(recFriendHelp(qint32,QString,qint32)));

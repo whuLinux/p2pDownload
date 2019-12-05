@@ -20,6 +20,8 @@ using namespace std;
 class MainRole : public QObject
 {
     Q_OBJECT
+protected:
+    QVector<Client*> existClients;//服务器中注册的主机
 
 public:
     ClientStatus status;

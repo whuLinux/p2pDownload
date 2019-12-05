@@ -25,20 +25,33 @@ public:
 
 
 public slots:
+    //收到mainFriend的copyExistClientsToMainPartner，复制existClients
+    void recExistClientsFromMainPartner(QVector<Client*> existClients);
+
+    //收到打洞请求 P2PHOLEPACKAGE ，自动发送打洞包给朋友机
+    void recHoleReqFromServer(QString name, QString ip, quint16 port);
+
     //收到求助请求,选择是否下载
     void recFriendHelp(qint32 friendId,QString downloadAddress, qint32 lenMax);
+
     //收到ctrl中止当前下载的命令，终止当前下载任务
     void recAbortOrder();
+
     //收到DOWNLOADTASK，记录下载任务并通知taskStartAsPartner
     void recTaskFromFriend(qint32 friendId, qint32 token, qint64 pos, qint32 len);
+
     //接受DOWNLOADTASK，开始task下载
     void taskStartAsPartner();
+
     //task下载完成，向主机发送TASKFINISH,唤起sliceScheduler准备分片发送，检查taskLists是否仍有等待任务，有则唤起下载
     void taskEndAsPartner();
+
     //响应AREYOUALIVE 汇报下载进度
     void reportTaskProgress(qint32 friendId);
+
     //slice分片调度器，将对应token的task文件切分并发送给friend，发TASKEXECUTING；完全发送完，发TASKFINISH
     void sliceDivideAndSent(qint32 friendId,qint32 token,qint32 expectIndex);
+
     //mission完成，状态置为空闲
     void missionEndAsPartner();
 

@@ -28,7 +28,6 @@ private:
     //下载控制
     qint32 clientNum;//参与下载的主机数量
     QVector<blockInfo> blockQueue;
-    QVector<Client*> existClients;//服务器中注册的主机
     QQueue<Client*> waitingClients;//下载任务中待分配的主机
     QVector<Client*> workingClients;//任务进行中的主机
     //TODO:检查、释放mainRecord指针
@@ -83,6 +82,8 @@ public:
      */
     void downLoadSchedule();
 
+    //p2pTrans 向设定数量内的伙伴机发送打洞请求
+    void sendPunchToPartners();
 
     //注册任务
     void addToTaskTable(QVector<mainRecord*> recordLists);
@@ -125,6 +126,9 @@ public slots:
     //响应服务器回复主机信息
     void initExistClients();
 
+    //接收punch信号，调整existClient的punchSuccess bool值
+    void recPunchFromPartner(qint32 partnerId);
+
     //伙伴机是否响应帮助
     bool partnerAccept(qint32 partnerId);//加入waitingClients
     bool partnerReject(qint32 partnerId);
@@ -152,10 +156,15 @@ public slots:
     void recMissionValidation(bool success);
 
 signals:
+    //将建立好的exist client lists复制给同主机的mainPartner对象
+    void copyExistClientsToMainPartner(QVector<Client*> existClients);
+
     //调用assignTaskToLocal，执行本地下载
     void callAssignTaskToLocal();
+
     //本地下载完成，调用taskEndAsLocal处理相关任务表、状态的变更
     void callTaskEndAsLocal();
+
     //全部文件下载完成，调用missionIntegrityCheck
     void callMissionIntegrityCheck(QVector<historyRecord> historyTable,QString missionName, QString filePath,qint32 fileSize);
 
