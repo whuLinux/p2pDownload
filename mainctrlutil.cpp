@@ -8,6 +8,8 @@ mainCtrlUtil::mainCtrlUtil()
     startId=nowId=3;
     startTokenId=nowTokenId=24;
     startRecordId=nowRecordId=47;
+    startPort=24047;
+    startFilePort=24048;
 }
 
 qint32 mainCtrlUtil::createId(){
@@ -20,6 +22,16 @@ qint32 mainCtrlUtil::createTokenId(){
 
 qint32 mainCtrlUtil::createRecordId(){
     return this->nowRecordId++;
+}
+
+quint16 mainCtrlUtil::createPort(){
+    this->nowPort+=2;
+    return this->nowPort;
+}
+
+quint16 mainCtrlUtil::createFilePort(){
+    this->nowFilePort+=2;
+    return this->nowFilePort;
 }
 
 bool mainCtrlUtil::createDirectory(QString dirName,QString savePath){
@@ -116,6 +128,16 @@ bool mainCtrlUtil::deleteFile(QString path, QString name){
     }
     else{
         qDebug()<<"mainCtrlUtil::deleteFile  删除失败，文件不存在"<<fileFullPath<<endl;return false;
+    }
+}
+
+qint32 mainCtrlUtil::findIdFromExistClientsByName(QString name, QVector<Client *> existClients){
+    qint32 id=-1;
+    for(int i=0;i<existClients.size();i++){
+        if(existClients[i]->getName()=="name"){
+            id=existClients[i]->getId();
+            break;
+        }
     }
 }
 
