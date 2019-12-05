@@ -181,10 +181,14 @@ bool MainFriend::initWaitingClients(){
     //for safety,清空先
     this->waitingClients.clear();
     for(iter=this->existClients.begin();iter!=this->existClients.end();iter++){
-        this->tcpSocketUtil->sendToPartner((*iter)->getId(),helpMsg);
-        //处理伙伴机响应
-        QObject::connect(this->tcpSocketUtil,SIGNAL(timeForFirstTaskForPartner(qint32)),this,SLOT(partnerAccept(qint32)));
-        QObject::connect(this->tcpSocketUtil,SIGNAL(refuseToOfferHelpForPartner(qint32)),this,SLOT(partnerReject(qint32)));
+        if((*iter)->getPunchSuccess()){
+            //已经成功打洞
+            qDebug()<<"MainFriend::initWaitingClients askforhelp to partner>>"<<(*iter)->getName()<<(*iter)->getId()<<endl;
+            this->tcpSocketUtil->sendToPartner((*iter)->getId(),helpMsg);
+            //处理伙伴机响应
+            QObject::connect(this->tcpSocketUtil,SIGNAL(timeForFirstTaskForPartner(qint32)),this,SLOT(partnerAccept(qint32)));
+            QObject::connect(this->tcpSocketUtil,SIGNAL(refuseToOfferHelpForPartner(qint32)),this,SLOT(partnerReject(qint32)));
+        }
     }
     //设定时间循环，等待伙伴机请求
     //NOTE:GUI用户友好，可视化响应请求数量
