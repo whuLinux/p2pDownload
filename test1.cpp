@@ -9,7 +9,7 @@ void test1::runTest(){
     t.signalsConnect();
     Client * client = new Client(11,"bar","192.168.43.111",DEFAULTPORT,DEFAULTFILEPORT);
     CommMsg msg=t.partner->msgUtil->createP2PPunchMsg();
-    t.partner->tcpSocketUtil->addClient(client, 8809, 8810);
+//    t.partner->tcpSocketUtil->addClient(client, 8809, 8810);
     while(true){
         t.partner->tcpSocketUtil->sendToFriend(11,msg);
     }

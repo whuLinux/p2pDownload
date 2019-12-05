@@ -127,3 +127,5 @@ dmypy.json
 *.iml
 *.user
 *.autosave
+*.oom
+*.oob

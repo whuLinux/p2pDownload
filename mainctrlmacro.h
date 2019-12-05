@@ -66,6 +66,9 @@ const qint64 RECORDGAP=60000;
 //初始下载任务数量
 const quint32 INITTASKNUM=1;
 
+//登录时发送punch的伙伴机数量上限
+const quint32 MAXPARTNERSPUNCH=30;
+
 //local clientID
 const qint32 LOCALID=0;
 //本机端口默认值

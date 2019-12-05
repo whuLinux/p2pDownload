@@ -4,8 +4,6 @@
 #include<QDebug>
 #include"mainpartner.h"
 #include"mainfriend.h"
-
-//TODO:测试用控制台 UI待制作
 #include<string>
 #include<iostream>  //cin cout
 #include<stdio.h> //printf

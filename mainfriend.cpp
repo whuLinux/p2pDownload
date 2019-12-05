@@ -50,14 +50,6 @@ void MainFriend::regLocalClients(){
         qDebug() << "MainFriend::regLocalClients " << "UdpSocket 对象建立失败" << endl;
     }
 
-    //假定hostName,pwd由UI界面完成设置
-    //TODO：UI界面输入检查与连接
-//    string temp_pwd,temp_hostName;
-//    cout<<"input your hostname: ";cin>>temp_hostName;
-//    cout<<"input password: ";cin>>temp_pwd;
-//    temp_pwd="bar";temp_hostName="foo";
-//    this->hostName=QString::fromStdString(temp_hostName);this->pwd=QString::fromStdString(temp_pwd);
-
     qDebug()<<"MainFriend::regLocalClients "<<this->hostName<<this->local.getFilePort();
     CtrlMsg login_msg=this->msgUtil->createLoginMsg(this->hostName,this->pwd,DEFAULTPORT,DEFAULTFILEPORT);
     if(this->udpSocketUtil->login(login_msg))
@@ -73,7 +65,7 @@ void MainFriend::regLocalClients(){
     qDebug()<<"MainFriend::regLocalClients 开启计时器，倒计时30s检查登录"<<endl;
     this->loginTimer=new QTimer();
     this->loginTimer->setSingleShot(true);
-    this->loginTimer->start(3000);//给30s登录时间响应
+    this->loginTimer->start(10000);//给10s登录时间响应
     QObject::connect(this->loginTimer,SIGNAL(timeout()),this,SLOT(checkLoginStatus()));
 
 }
@@ -94,7 +86,7 @@ bool MainFriend::checkLoginStatus(){
 
 void MainFriend::getExistClients(){
     qDebug()<<"MainFriend::getExistClients  "<<"向服务器请求全部clients"<<endl;
-    CtrlMsg msg=this->msgUtil->createObtainAllPartners();
+    CtrlMsg msg=this->msgUtil->createObtainAllPartners(this->hostName,this->pwd);
     this->udpSocketUtil->obtainAllPartners(msg);
     this->existClients.clear();
     QObject::connect(this->udpSocketUtil,SIGNAL(timeToGetAllPartners()),this,SLOT(initExistClients()));
@@ -110,8 +102,11 @@ void MainFriend::initExistClients(){
             Client *temp=new Client(this->mainctrlutil->createId(),iter->name,iter->ip,iter->port,iter->filePort);
             qDebug()<<"MainFriend::initExistClients  创建伙伴机："<<temp->getIP()<<"  "
                    <<temp->getName()<<" ID: "<<temp->getId()<<" Port:"<<temp->getPort()<<endl;
-            this->existClients.append(*temp);
+            this->existClients.append(temp);
         }
+        //TCP 打洞用
+        qDebug()<<"MainFriend::initExistClients  bindClients 执行"<<endl;
+        this->tcpSocketUtil->bindClients(this->existClients);
     }
 }
 
@@ -160,14 +155,14 @@ bool MainFriend::createMission(QString url,QString savePath,QString missionName)
 bool MainFriend::initWaitingClients(){
     //时限内响应的伙伴机，加入队列
     QTime timer;
-    QVector<Client>::iterator iter;
+    QVector<Client*>::iterator iter;
     qint8 tempClientsNum=0;
     CommMsg helpMsg=this->msgUtil->createAskForHelpMsg(this->myMission.url,this->myMission.filesize);
     qDebug()<<"MainFriend::initWaitingClients  向partner发送请求"<<endl;
     //for safety,清空先
     this->waitingClients.clear();
     for(iter=this->existClients.begin();iter!=this->existClients.end();iter++){
-        this->tcpSocketUtil->sendToPartner(iter->getId(),helpMsg);
+        this->tcpSocketUtil->sendToPartner((*iter)->getId(),helpMsg);
         //处理伙伴机响应
         QObject::connect(this->tcpSocketUtil,SIGNAL(timeToInitialTaskForPartner(qint32)),this,SLOT(partnerAccept(qint32)));
         QObject::connect(this->tcpSocketUtil,SIGNAL(refuseToOfferHelpForPartner(qint32)),this,SLOT(partnerReject(qint32)));
@@ -203,11 +198,11 @@ bool MainFriend::initWaitingClients(){
 
 bool MainFriend::partnerAccept(qint32 partnerId){
     //将同意协助的伙伴加入等待分配任务队列
-    QVector<Client>::iterator iter;
+    QVector<Client*>::iterator iter;
     for(iter=this->existClients.begin();iter!=this->existClients.end();iter++){
-        if(iter->getId()==partnerId){
-            iter->attributeTask();//开始任务标记
-            iter->setTaskNum(INITTASKNUM);
+        if((*iter)->getId()==partnerId){
+            (*iter)->attributeTask();//开始任务标记
+            (*iter)->setTaskNum(INITTASKNUM);
             this->workingClients.append(*iter);
             qDebug()<<"MainFriend::partnerAccept  伙伴机同意请求 partnerId>>"<<partnerId<<endl;
             return true;
@@ -276,11 +271,11 @@ void MainFriend::downLoadSchedule(){
             if(!this->waitingClients.isEmpty()){
                 //分配任务
                 QVector<mainRecord*> recordLists;//block下标不连续时，创建多个任务
-                Client client=this->waitingClients.dequeue();
-                QVector<blockInfo> taskBlockLists=this->getTaskBlocks(client.getTaskNum());//按照client能力去对应个数的block
-                recordLists=this->createTaskRecord(taskBlockLists,client.getId());
+                Client *client=this->waitingClients.dequeue();
+                QVector<blockInfo> taskBlockLists=this->getTaskBlocks(client->getTaskNum());//按照client能力去对应个数的block
+                recordLists=this->createTaskRecord(taskBlockLists,client->getId());
 
-                if(client.getId()==0 ||client.getIP()=="127.0.0.1"||client.getName()=="localhost"){
+                if(client->getId()==0 ||client->getIP()=="127.0.0.1"||client->getName()=="localhost"){
                     //为本地机，执行本地下载任务
                     qDebug()<<"MainFriend::downLoadSchedule local client空闲，分配任务"<<endl;
                     this->downloadManager->setUrl(this->myMission.url);
@@ -291,8 +286,8 @@ void MainFriend::downLoadSchedule(){
                 }
                 else{
                     //给伙伴机分配任务
-                    qDebug()<<"MainFriend::downLoadSchedule local client空闲，分配任务 clientID:"<<client.getId()<<endl;
-                    this->assignTaskToPartner(client.getId(),recordLists);
+                    qDebug()<<"MainFriend::downLoadSchedule local client空闲，分配任务 clientID:"<<client->getId()<<endl;
+                    this->assignTaskToPartner(client->getId(),recordLists);
                 }
                 this->addToTaskTable(recordLists);
                 this->workingClients.append(client);//加入工作状态
@@ -463,11 +458,11 @@ void MainFriend::adjustLocalTask(mainRecord *record, double progress){
             }
             //2.下载能力下调
             for(int i=0;i<this->workingClients.size();i++){
-                if(this->workingClients[i].getId()==LOCALID){
+                if(this->workingClients[i]->getId()==LOCALID){
                     //找到主机
-                    taskNums=this->workingClients[i].getTaskNum();
+                    taskNums=this->workingClients[i]->getTaskNum();
                     if(taskNums>=2){
-                        this->workingClients[i].setTaskNum(taskNums/2);
+                        this->workingClients[i]->setTaskNum(taskNums/2);
                     }
                 }
             }
@@ -543,12 +538,12 @@ void MainFriend::recPartnerProgress(qint32 partnerId,double progress){
         }
         //2.下载能力下调
         for(int i=0;i<this->workingClients.size();i++){
-            if(this->workingClients[i].getId()==partnerId){
+            if(this->workingClients[i]->getId()==partnerId){
                 //找到主机
-                taskNums=this->workingClients[i].getTaskNum();
+                taskNums=this->workingClients[i]->getTaskNum();
                 found=true;
                 if(taskNums>=2){
-                    this->workingClients[i].setTaskNum(taskNums/2);
+                    this->workingClients[i]->setTaskNum(taskNums/2);
                 }
             }
         }
@@ -572,7 +567,7 @@ void MainFriend::recPartnerProgress(qint32 partnerId,double progress){
 void MainFriend::work2wait(qint32 clientId){
     bool found=false;
     for(int i=0;i<this->workingClients.size();i++){
-        if(clientId==workingClients[i].getId()){
+        if(clientId==workingClients[i]->getId()){
             qDebug()<<"MainFriend::work2wait  clientc move from working to waiting>> "<<clientId<<endl;
             this->waitingClients.enqueue(workingClients.takeAt(i));
             found=true;

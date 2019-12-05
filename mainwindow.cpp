@@ -63,3 +63,8 @@ void MainWindow::on_pushButton_get_clients_clicked()
 {
     this->ctrl.local->getExistClients();
 }
+
+void MainWindow::on_pushButton_punch_clicked()
+{
+
+}
