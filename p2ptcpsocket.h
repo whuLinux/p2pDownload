@@ -12,6 +12,7 @@ private:
 public:
     P2PTcpSocket();
     inline void setId(qint32 id);
+    inline qint32 getId();
 
 public slots:
     void ensureReadyRead();
@@ -27,6 +28,11 @@ signals:
 void P2PTcpSocket::setId(qint32 id)
 {
     this->id = id;
+}
+
+qint32 P2PTcpSocket::getId()
+{
+    return this->id;
 }
 
 #endif // P2PTCPSOCKET_H

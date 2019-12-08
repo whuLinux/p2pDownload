@@ -397,8 +397,10 @@ bool TCPSocketUtil::newConnectionWithPartner()
 {
     qDebug() << "TCPSocketUtil::newConnectionWithPartner" << endl;
 
-    P2PTcpSocket * vistor = dynamic_cast<P2PTcpSocket *>(this->host->nextPendingConnection());
-    qint32 vistorId = vistor->peerName().toInt();
+    QTcpSocket * oringinVistor = this->host->nextPendingConnection();
+    P2PTcpSocket * vistor = dynamic_cast<P2PTcpSocket *>(oringinVistor);
+
+    qint32 vistorId = vistor->getId();
 
     if (!this->partnerConnections.contains(vistorId) && !this->parntersMap.contains(vistorId)) {
         qDebug() << "TCPSocketUtil::newConnectionWithPartner " << "陌生客户端非法访问" << endl;
