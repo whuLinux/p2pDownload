@@ -8,8 +8,8 @@ mainCtrlUtil::mainCtrlUtil()
     startId=nowId=3;
     startTokenId=nowTokenId=24;
     startRecordId=nowRecordId=47;
-    startPort=24047;
-    startFilePort=24048;
+    startPort=nowPort=24047;
+    startFilePort=nowFilePort=24048;
 }
 
 qint32 mainCtrlUtil::createId(){

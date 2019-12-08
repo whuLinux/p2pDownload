@@ -71,7 +71,7 @@ void MainFriend::regLocalClients(){
     this->loginTimer=new QTimer();
     this->loginTimer->setSingleShot(true);
     //TODO: 处理login响应逻辑
-    this->loginTimer->start(10000);//给10s登录时间响应
+    this->loginTimer->start(3000);//给10s登录时间响应
     QObject::connect(this->loginTimer,SIGNAL(timeout()),this,SLOT(checkLoginStatus()));
 
 }
