@@ -72,7 +72,7 @@ bool TCPSocketUtil::addClient(Client * client)
 
 bool TCPSocketUtil::addGuest(qint32 id, quint16 port, quint16 filePort)
 {    
-    qDebug() << "TCPSocketUtil::addGuest " << "朋友客户端ID " << id << endl;
+    qDebug() << "TCPSocketUtil::addGuest " << "朋友客户端ID " << id << "port" << port << "filePort" << filePort << endl;
 
     if (!this->parntersMap.contains(id)) {
         qDebug() << "TCPSocketUtil::addGuest " << "陌生客户端不允许加入队列" << id << endl;
@@ -293,6 +293,8 @@ bool TCPSocketUtil::connectToFriend(qint32 partnerId)
         return false;
     }
 
+    qDebug() << "TCPSocketUtil::connectToFriend " << "partnerId" << partnerId << "guestPort" << this->guestPort[partnerId] << endl;
+
     if (!this->guests[partnerId]->bind(QHostAddress::AnyIPv4, this->guestPort[partnerId])) {
         qDebug() << "TCPSocketUtil::connectToFriend " << "端口侦听失败 " << partnerId << endl;
         qDebug() << "TCPSocketUtil::connectToFriend " << this->guests[partnerId]->errorString() << endl;
@@ -306,7 +308,7 @@ bool TCPSocketUtil::connectToFriend(qint32 partnerId)
 
     connect(this->guests[partnerId], SIGNAL(readyRead()), this->guests[partnerId], SLOT(ensureReadyRead()));
     connect(this->guests[partnerId], SIGNAL(error(QAbstractSocket::SocketError)), this->guests[partnerId], SLOT(ensureError(QAbstractSocket::SocketError)));
-    connect(this->guests[partnerId], SIGNAL(disconnected()), this->guests[partnerId], SLOT(ensureDisconnected));
+    connect(this->guests[partnerId], SIGNAL(disconnected()), this->guests[partnerId], SLOT(ensureDisconnected()));
 
     connect(this->guests[partnerId], SIGNAL(readyReadFromOthers(qint32)), this, SLOT(recFromFriend(qint32)));
     connect(this->guests[partnerId], SIGNAL(socketErrorOfOthers(QAbstractSocket::SocketError, qint32)), this, SLOT(failToHelpFriend(QAbstractSocket::SocketError, qint32)));
