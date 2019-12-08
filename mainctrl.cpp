@@ -25,6 +25,11 @@ mainctrl::mainctrl()
     this->partner=new MainPartner(this->udpSocketUtil,this->tcpSocketUtil,this->mainctrlutil,this->msgUtil);
 }
 
+mainctrl::~mainctrl(){
+    delete this->local;
+    delete this->partner;
+}
+
 /*————————————————————信号槽———————————————————*/
 void mainctrl::signalsConnect(){
     qDebug()<<"mainCtrl::连接槽函数";

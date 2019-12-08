@@ -30,6 +30,7 @@ private:
 
 public:
     mainctrl();
+    ~mainctrl();
     //角色
     MainPartner *partner;
     MainFriend *local;

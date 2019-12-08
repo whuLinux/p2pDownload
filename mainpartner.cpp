@@ -1,5 +1,5 @@
 #include "mainpartner.h"
-
+//FIXME:sendToFriend 处理！正确发送msg
 MainPartner::MainPartner()
 {
 
@@ -24,6 +24,7 @@ void MainPartner::recHoleReqFromServer(QString name, QString ip, quint16 port){
         qDebug()<<"MainPartner::recHoleReqFromServer ERROR! 未找到client>>"<<name<<endl;
         return;
     }
+    qDebug()<<"MainPartner::recHoleReqFromServer  partnter接收服务器请求，send punch to friend."<<endl;
     CommMsg msg=this->msgUtil->createP2PPunchMsg();
     //addGuest
     this->tcpSocketUtil->addGuest(friendId,
@@ -41,7 +42,7 @@ void MainPartner::recFriendHelp(qint32 friendId,QString downloadAddress, qint32 
     qDebug()<<"MainPartner::recFriendHelp  friendId>>"<<friendId
            <<"  |  downloadAddress>>"<<downloadAddress<<" | lenMax>>"<<lenMax<<endl;
     bool decision=true;
-    if(decision){
+    if(decision&&this->status!=ClientStatus::HELPING){
         msg=this->msgUtil->creteAgreeToHelpMsg();
         this->tcpSocketUtil->sendToFriend(friendId,msg);
         //切换状态，告诉主控准备下载
