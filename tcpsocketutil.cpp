@@ -58,6 +58,8 @@ bool TCPSocketUtil::bindClients(QVector<Client *> clients)
 
 bool TCPSocketUtil::addClient(Client * client)
 {
+    qDebug() << "TCPSocketUtil::addClient " << "伙伴客户端ID " << client->getId() << endl;
+
     if (this->parntersMap.contains(client->getId())) {
         qDebug() << "TCPSocketUtil::addClient " << "伙伴客户端不允许重复加入队列" << client->getId() << endl;
         return false;
@@ -69,9 +71,11 @@ bool TCPSocketUtil::addClient(Client * client)
 }
 
 bool TCPSocketUtil::addGuest(qint32 id, quint16 port, quint16 filePort)
-{
+{    
+    qDebug() << "TCPSocketUtil::addGuest " << "朋友客户端ID " << id << endl;
+
     if (!this->parntersMap.contains(id)) {
-        qDebug() << "TCPSocketUtil::addClient " << "陌生客户端不允许加入队列" << id << endl;
+        qDebug() << "TCPSocketUtil::addGuest " << "陌生客户端不允许加入队列" << id << endl;
         return false;
     }
 

@@ -133,12 +133,18 @@ bool mainCtrlUtil::deleteFile(QString path, QString name){
 
 qint32 mainCtrlUtil::findIdFromExistClientsByName(QString name, QVector<Client *> existClients){
     qint32 id=-1;
+    qDebug() << "mainCtrlUtil::findIdFromExistClientsByName " << "name " << name << endl;
+
     for(int i=0;i<existClients.size();i++){
-        if(existClients[i]->getName()=="name"){
+        qDebug() << "mainCtrlUtil::findIdFromExistClientsByName " << "existClients[i]->getName() " << existClients[i]->getName() << endl;
+
+        if(existClients[i]->getName()==name){
             id=existClients[i]->getId();
             break;
         }
     }
+
+    return id;
 }
 
 partnerSlices* mainCtrlUtil::findParnterTaskSlices(qint32 token,QVector<partnerSlices> &sliceSchedule){
