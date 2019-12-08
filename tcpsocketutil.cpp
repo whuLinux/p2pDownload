@@ -122,7 +122,6 @@ bool TCPSocketUtil::stablishGuest(qint32 partnerId)
     }
 
     createGuest(partnerId);
-    connectToFriend(partnerId);
 
     if (!connectToFriend(partnerId)) {
         qDebug() << "TCPSocketUtil::stablishGuest " << "连接朋友客户端失败 " << partnerId << endl;
@@ -187,6 +186,8 @@ bool TCPSocketUtil::createGuest(qint32 partnerId)
     }
 
     this->guests[partnerId] = new P2PTcpSocket();
+    this->guests[partnerId]->setId(partnerId);
+
     return true;
 }
 
@@ -374,7 +375,7 @@ bool TCPSocketUtil::connectToFileFriend(qint32 partnerId)
     connect(this->fileGuests[partnerId], SIGNAL(error(QAbstractSocket::SocketError)), this->fileGuests[partnerId], SLOT(ensureError(QAbstractSocket::SocketError)));
     connect(this->fileGuests[partnerId], SIGNAL(disconnected()), this->fileGuests[partnerId], SLOT(ensureDisconnected()));
 
-    connect(this->fileGuests[partnerId], SIGNAL(readyReadFromOthers(qint32)), this, SLOT(recFromFileFriend(qint32)));
+    // connect(this->fileGuests[partnerId], SIGNAL(readyReadFromOthers(qint32)), this, SLOT(recFromFileFriend(qint32)));
     connect(this->fileGuests[partnerId], SIGNAL(socketErrorOfOthers(QAbstractSocket::SocketError, qint32)), this, SLOT(failToHelpFriend(QAbstractSocket::SocketError, qint32)));
     connect(this->fileGuests[partnerId], SIGNAL(disconnectedFromOthers(qint32)), this, SLOT(disConnectToFileFriend(qint32)));
 
@@ -394,6 +395,8 @@ bool TCPSocketUtil::disConnectToFileFriend(qint32 friendId)
 
 bool TCPSocketUtil::newConnectionWithPartner()
 {
+    qDebug() << "TCPSocketUtil::newConnectionWithPartner" << endl;
+
     P2PTcpSocket * vistor = dynamic_cast<P2PTcpSocket *>(this->host->nextPendingConnection());
     qint32 vistorId = vistor->peerName().toInt();
 
