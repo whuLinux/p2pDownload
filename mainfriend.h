@@ -48,6 +48,12 @@ public:
     void regLocalClients();
 
     /**
+     * @brief logoutLocalClients
+     * 退出登录，向服务器发送logout msg
+     */
+    void logoutLocalClients();
+
+    /**
      * @brief getExistClient 询问服务器当前注册主机信息
      */
     void getExistClients();

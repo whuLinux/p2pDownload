@@ -68,3 +68,8 @@ void MainWindow::on_pushButton_punch_clicked()
 {
     this->ctrl.local->sendPunchToPartners();
 }
+
+void MainWindow::on_pushButton_logout_clicked()
+{
+    this->ctrl.local->logoutLocalClients();
+}

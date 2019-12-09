@@ -80,6 +80,12 @@ void MainFriend::regLocalClients(){
 
 }
 
+void MainFriend::logoutLocalClients(){
+    qDebug()<<"MainFriend::logoutLocalClients send logout to server"<<endl;
+    CtrlMsg msg=this->msgUtil->createLogoutMsg(this->hostName,this->pwd);
+    this->udpSocketUtil->logout(msg);
+}
+
 bool MainFriend::checkLoginStatus(){
     //TODO:发alert提醒
 
