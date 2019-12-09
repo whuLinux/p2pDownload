@@ -692,8 +692,6 @@ bool TCPSocketUtil::failToGetHelpFromPartner(QAbstractSocket::SocketError error,
     qDebug() << "TCPSocketUtil::failToGetHelpFromPartner " << this->partnerConnections[partnerId]->errorString() << endl;
     qDebug() << "TCPSocketUtil::failToGetHelpFromPartner " << "SocketError " << error << endl;
 
-    closeConnection(partnerId);
-
     qDebug() << "TCPSocketUtil::failToGetHelpFromPartner " << "end" << endl;
     return true;
 }
@@ -780,8 +778,6 @@ bool TCPSocketUtil::failToHelpFriend(QAbstractSocket::SocketError error, qint32 
     qDebug() << "TCPSocketUtil::failToHelpFriend " << "无法和伙伴客户端建立稳定连接 " << friendId << endl;
     qDebug() << "TCPSocketUtil::failToHelpFriend " << this->guests[friendId]->errorString() << endl;
     qDebug() << "TCPSocketUtil::failToHelpFriend " << "SocketError " << error << endl;
-
-    closeGuest(friendId);
 
     qDebug() << "TCPSocketUtil::failToHelpFriend " << "end" << endl;
     return true;
@@ -901,8 +897,6 @@ bool TCPSocketUtil::failToGetHelpFromFilePartner(QAbstractSocket::SocketError er
     qDebug() << "TCPSocketUtil::failToGetHelpFromFilePartner " << this->partnerFileConnections[partnerId]->errorString() << endl;
     qDebug() << "TCPSocketUtil::failToGetHelpFromFilePartner " << "SocketError " << error << endl;
 
-    closeFileConnection(partnerId);
-
     qDebug() << "TCPSocketUtil::failToGetHelpFromFilePartner " << "end" << endl;
     return true;
 }
@@ -933,8 +927,6 @@ bool TCPSocketUtil::failToHelpFileFriend(QAbstractSocket::SocketError error, qin
     qDebug() << "TCPSocketUtil::failToHelpFileFriend " << "无法和伙伴客户端建立稳定连接 " << friendId << endl;
     qDebug() << "TCPSocketUtil::failToHelpFileFriend " << this->fileGuests[friendId]->errorString() << endl;
     qDebug() << "TCPSocketUtil::failToHelpFileFriend " << "SocketError " << error << endl;
-
-    closeFileGuest(friendId);
 
     qDebug() << "TCPSocketUtil::failToHelpFileFriend " << "end" << endl;
 
