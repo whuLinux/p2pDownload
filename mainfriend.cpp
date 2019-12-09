@@ -119,12 +119,18 @@ void MainFriend::initExistClients(){
         qDebug()<<"MainFriend::initExistClients  friend机处于IDLING，初始化existClients"<<endl;
         QVector<ClientNode> partners=this->udpSocketUtil->getAllPartners();
         QVector<ClientNode>::iterator iter;
-
+        qint32 existed_id;
         for(iter=partners.begin();iter!=partners.end();iter++){
-            Client *temp=new Client(this->mainctrlutil->createId(),iter->name,iter->ip,iter->port,iter->filePort);
-            qDebug()<<"MainFriend::initExistClients  创建伙伴机："<<temp->getIP()<<"  "
-                   <<temp->getName()<<" ID: "<<temp->getId()<<" Port:"<<temp->getPort()<<endl;
-            this->existClients.append(temp);
+            existed_id=this->mainctrlutil->findIdFromExistClientsByName(iter->name,this->existClients);
+            if(existed_id==-1){
+                qDebug()<<"MainFriend::initExistClients client已存在 name>>"<<iter->name<<" | id>>"<<existed_id<<endl;
+            }
+            else{
+                Client *temp=new Client(this->mainctrlutil->createId(),iter->name,iter->ip,iter->port,iter->filePort);
+                qDebug()<<"MainFriend::initExistClients  创建伙伴机："<<temp->getIP()<<"  "
+                       <<temp->getName()<<" ID: "<<temp->getId()<<" Port:"<<temp->getPort()<<endl;
+                this->existClients.append(temp);
+            }
         }
         //TCP 打洞用
         qDebug()<<"MainFriend::initExistClients  bindClients 执行"<<endl;
