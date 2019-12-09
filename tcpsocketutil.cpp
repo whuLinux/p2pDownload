@@ -128,7 +128,7 @@ bool TCPSocketUtil::stablishGuest(qint32 friendId)
     createGuest(friendId);
 
     if (!connectToFriend(friendId)) {
-        qDebug() << "TCPSocketUtil::stablishGuest " << "连接朋友客户端失败 " << friendId << endl;
+        qDebug() << "TCPSocketUtil::stablishGuest " << "连接朋友客户端失败 " << "friendId" << friendId << endl;
 
         closeGuest(friendId);
         return false;
@@ -167,7 +167,7 @@ bool TCPSocketUtil::stablishFileGuest(qint32 friendId)
     createFileGuest(friendId);
 
     if (!connectToFileFriend(friendId)) {
-        qDebug() << "TCPSocketUtil::stablishFileGuest " << "连接朋友客户端失败 " << friendId << endl;
+        qDebug() << "TCPSocketUtil::stablishFileGuest " << "连接朋友客户端失败 " << "friendId" << friendId << endl;
 
         closeFileGuest(friendId);
         return false;
@@ -451,6 +451,7 @@ bool TCPSocketUtil::disConnectToFriend(qint32 friendId)
     }
 
     this->guests[friendId]->disconnectFromHost();
+    this->connectedNum--;
 
     qDebug() << "TCPSocketUtil::disConnectToFriend " << "finish disConnecting" << endl;
 
@@ -759,14 +760,23 @@ bool TCPSocketUtil::recFromFriend(qint32 friendId)
 
 bool TCPSocketUtil::sendToFriend(qint32 friendId, CommMsg & msg)
 {
-    if (!this->guests.contains(friendId)) {
+    if (!this->guests.contains(friendId) || this->guests[friendId] == nullptr) {
         qDebug() << "TCPSocketUtil::sendToFriend " << "指定连接该朋友客户端的P2PTcpSocket对象尚未建立 " << friendId << endl;
-        createGuest(friendId);
+        return false;
     }
 
     if (msg.getMsgType() != TCPCtrlMsgType::P2PPUNCH && msg.getMsgType() != TCPCtrlMsgType::ISALIVE && msg.getMsgType() != TCPCtrlMsgType::AGREETOHELP && msg.getMsgType() == TCPCtrlMsgType::REFUSETOHELP && msg.getMsgType() == TCPCtrlMsgType::TASKFINISH && msg.getMsgType() == TCPCtrlMsgType::TASKFAILURE) {
         qDebug() << "TCPSocketUtil::sendToFriend " << "向朋友客户端发送的消息类型不合法 " << friendId << endl;
         return false;
+    }
+
+    if (this->guests[friendId]->state() == QAbstractSocket::UnconnectedState) {
+        if (!connectToFriend(friendId)) {
+            qDebug() << "TCPSocketUtil::sendToFriend " << "连接朋友客户端失败 " << "friendId" << friendId << endl;
+
+            closeGuest(friendId);
+            return false;
+        }
     }
 
     this->guests[friendId]->write(msg.toMsg());
@@ -903,9 +913,9 @@ bool TCPSocketUtil::failToGetHelpFromFilePartner(QAbstractSocket::SocketError er
 
 bool TCPSocketUtil::sendToFileFriend(qint32 friendId, FileMsg & msg)
 {
-    if (!this->fileGuests.contains(friendId)) {
+    if (!this->fileGuests.contains(friendId) || this->guests[friendId] == nullptr) {
         qDebug() << "TCPSocketUtil::sendToFileFriend " << "指定连接该朋友客户端的P2PTcpSocket对象尚未建立 " << friendId << endl;
-        createGuest(friendId);
+        return false;
     }
 
     if (!this->clientsMap.contains(friendId)) {
@@ -918,8 +928,17 @@ bool TCPSocketUtil::sendToFileFriend(qint32 friendId, FileMsg & msg)
         return false;
     }
 
+    if (this->fileGuests[friendId]->state() == QAbstractSocket::UnconnectedState) {
+        if (!connectToFriend(friendId)) {
+            qDebug() << "TCPSocketUtil::sendToFileFriend " << "连接朋友客户端失败 " << "friendId" << friendId << endl;
+
+            closeFileGuest(friendId);
+            return false;
+        }
+    }
+
     this->fileGuests[friendId]->write(msg.toMsg());
-    return true;
+      return true;
 }
 
 bool TCPSocketUtil::failToHelpFileFriend(QAbstractSocket::SocketError error, qint32 friendId)
