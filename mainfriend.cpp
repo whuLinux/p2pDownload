@@ -245,6 +245,7 @@ bool MainFriend::initWaitingClients(){
 }
 
 void MainFriend::recPunchFromPartner(qint32 partnerId){
+    qDebug() << "MainFriend::recPunchFromPartner " << "partnerId " << partnerId << endl;
     bool found=false;
     for(int i=0;i<this->existClients.size();i++){
         if(this->existClients[i]->getId()==partnerId){

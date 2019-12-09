@@ -336,6 +336,7 @@ bool TCPSocketUtil::connectToFriend(qint32 friendId)
     }
 
     this->p2pGuests[friendId]->setId(friendId);
+    this->guests[friendId]->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
     this->guests[friendId]->connectToHost(this->clientsMap[friendId]->getIP(), this->clientsMap[friendId]->getPort());
     this->connectedNum++;
 
@@ -409,6 +410,7 @@ bool TCPSocketUtil::connectToFileFriend(qint32 friendId)
     }
 
     this->p2pFileGuests[friendId]->setId(friendId);
+    this->guests[friendId]->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
     this->fileGuests[friendId]->connectToHost(this->clientsMap[friendId]->getIP(), this->clientsMap[friendId]->getFilePort());
     this->fileConnectedNum++;
 
@@ -447,6 +449,7 @@ bool TCPSocketUtil::newConnectionWithPartner()
     qDebug() << "TCPSocketUtil::newConnectionWithPartner" << endl;
 
     QTcpSocket * oringinVistor = this->host->nextPendingConnection();
+    oringinVistor->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
     P2PTcpSocket * vistor = new P2PTcpSocket();
 
     QString partnerIP = oringinVistor->peerAddress().toString();
@@ -455,7 +458,7 @@ bool TCPSocketUtil::newConnectionWithPartner()
     qint32 vistorId = findIdFromClientsByIP(partnerIP);
     // qint32 vistorId = findIdFromClientsByIPAndPort(partnerIP, partnerPort);
 
-    if (vistorId == -1 && !this->clientsMap.contains(vistorId)) {
+    if (vistorId == -1) {
         qDebug() << "TCPSocketUtil::newConnectionWithPartner " << "陌生客户端非法访问" << endl;
         return false;
     }
@@ -472,7 +475,7 @@ bool TCPSocketUtil::newConnectionWithPartner()
 
     connect(this->partnerConnections[vistorId], SIGNAL(readyRead()), this->partnerP2PConnections[vistorId], SLOT(ensureReadyRead()));
     connect(this->partnerConnections[vistorId], SIGNAL(error(QAbstractSocket::SocketError)), this->partnerP2PConnections[vistorId], SLOT(ensureError(QAbstractSocket::SocketError)));
-    connect(this->partnerConnections[vistorId], SIGNAL(disconnected()), this->partnerP2PConnections[vistorId], SLOT(ensureDisconnected));
+    connect(this->partnerConnections[vistorId], SIGNAL(disconnected()), this->partnerP2PConnections[vistorId], SLOT(ensureDisconnected()));
 
     connect(this->partnerP2PConnections[vistorId], SIGNAL(readyReadFromOthers(qint32)), this, SLOT(recFromPartner(qint32)));
     connect(this->partnerP2PConnections[vistorId], SIGNAL(socketErrorOfOthers(QAbstractSocket::SocketError, qint32)), this, SLOT(failToGetHelpFromPartner(QAbstractSocket::SocketError, qint32)));
@@ -501,7 +504,9 @@ bool TCPSocketUtil::disConnectToPartner(qint32 partnerId)
 }
 
 bool TCPSocketUtil::recFromPartner(qint32 partnerId)
-{    
+{
+    qDebug() << "TCPSocketUtil::recFromPartner " << "start receving" << endl;
+
     if (!this->partnerConnections.contains(partnerId)) {
         qDebug() << "TCPSocketUtil::recFromPartner " << "P2PTcpSocket::readyReadFromPartner信号的partnerId错误 " << partnerId << endl;
         return false;
@@ -516,10 +521,10 @@ bool TCPSocketUtil::recFromPartner(qint32 partnerId)
     }
 
     if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toInt()) == TCPCtrlMsgType::P2PPUNCH) {
-        // P2P打洞完成后，告知伙伴客户端下载地址
+        qDebug() << "TCPSocketUtil::recFromPartner " << "P2P打洞完成后，告知伙伴客户端下载地址" << endl;
         emit timeToInitialTaskForPartner(partnerId);
 
-    } else if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toDouble()) == TCPCtrlMsgType::ISALIVE) {
+    } else if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toInt()) == TCPCtrlMsgType::ISALIVE) {
         // 伙伴客户端确认存活
         emit whetherToStopTask(partnerId, jsonMsg.value(RATE).toDouble());
 
@@ -550,7 +555,13 @@ bool TCPSocketUtil::recFromPartner(qint32 partnerId)
         qint32 token = qint32(jsonMsg.value(TOKEN).toInt());
         // 文件传送失败，准备重新分配任务或重传
         emit taskFailureForPartner(partnerId, token);
+
+    } else {
+        qDebug() << "TCPSocketUtil::recFromPartner " << "伙伴客户端发来的消息类型错误" << endl;
+        return false;
     }
+
+    qDebug() << "TCPSocketUtil::recFromPartner " << "finish receving" << endl;
 
     return true;
 }
