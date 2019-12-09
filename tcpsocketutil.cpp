@@ -183,6 +183,7 @@ bool TCPSocketUtil::createGuest(qint32 friendId)
     }
 
     this->guests[friendId] = new QTcpSocket();
+    this->p2pGuests[friendId] = new P2PTcpSocket();
 
     return true;
 }
@@ -246,6 +247,8 @@ bool TCPSocketUtil::createFileGuest(qint32 friendId)
     }
 
     this->fileGuests[friendId] = new QTcpSocket();
+    this->p2pFileGuests[friendId] = new P2PTcpSocket();
+
     return true;
 }
 
@@ -329,8 +332,6 @@ bool TCPSocketUtil::connectToFriend(qint32 friendId)
     if (!this->guests[friendId]->bind(QHostAddress::AnyIPv4, this->guestPort[friendId])) {
         qDebug() << "TCPSocketUtil::connectToFriend " << "端口侦听失败 " << friendId << endl;
         qDebug() << "TCPSocketUtil::connectToFriend " << this->guests[friendId]->errorString() << endl;
-
-        this->guests[friendId]->close();
         return false;
     }
 
