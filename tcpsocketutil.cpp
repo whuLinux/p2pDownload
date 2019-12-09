@@ -839,16 +839,16 @@ qint32 TCPSocketUtil::findIdFromClientsByIPAndPort(QString ip, quint16 port)
     qint32 id = -1;
     qDebug() << "TCPSocketUtil::findIdFromClientsByIPAndPort " << "ip " << ip << " port " << port << endl;
 
-    for(int i = 0; i < this->clientsMap.size(); i++) {
-        qDebug() << "TCPSocketUtil::findIdFromClientsByIPAndPort " << "ip " << this->clientsMap[i]->getIP()
-                 << " port " << this->clientsMap[i]->getPort() << endl;
+    for(QMap<qint32, Client *>::iterator it = this->clientsMap.begin(); it != this->clientsMap.end(); it++) {
+        qDebug() << "TCPSocketUtil::findIdFromClientsByIPAndPort " << "ip " << it.value()->getIP()
+                 << " port " << it.value()->getPort() << endl;
 
-        if(this->clientsMap[i]->getIP() == ip && this->clientsMap[i]->getPort() == port){            
-            id = this->clientsMap[i]->getId();
+        if(it.value()->getIP() == ip && it.value()->getPort() == port){
+            id = it.value()->getId();
             break;
         }
     }
 
-    qDebug()<<"TCPSocketUtil::findIdFromClientsByIPAndPort  id>>"<<id<<endl;
+    qDebug() << "TCPSocketUtil::findIdFromClientsByIPAndPort " << "id " << id << endl;
     return id;
 }
