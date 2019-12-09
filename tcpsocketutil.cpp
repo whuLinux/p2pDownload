@@ -450,9 +450,10 @@ bool TCPSocketUtil::newConnectionWithPartner()
     P2PTcpSocket * vistor = new P2PTcpSocket();
 
     QString partnerIP = oringinVistor->peerAddress().toString();
-    quint16 partnerPort = oringinVistor->peerPort();
+    // quint16 partnerPort = oringinVistor->peerPort();
 
-    qint32 vistorId = findIdFromClientsByIPAndPort(partnerIP, partnerPort);
+    qint32 vistorId = findIdFromClientsByIP(partnerIP);
+    // qint32 vistorId = findIdFromClientsByIPAndPort(partnerIP, partnerPort);
 
     if (vistorId == -1 && !this->clientsMap.contains(vistorId)) {
         qDebug() << "TCPSocketUtil::newConnectionWithPartner " << "陌生客户端非法访问" << endl;
@@ -688,9 +689,10 @@ bool TCPSocketUtil::newConnectionWithFilePartner()
     P2PTcpSocket * vistor = new P2PTcpSocket();
 
     QString partnerIP = oringinVistor->peerAddress().toString();
-    quint16 partnerPort = oringinVistor->peerPort();
+    // quint16 partnerPort = oringinVistor->peerPort();
 
-    qint32 vistorId = findIdFromClientsByIPAndPort(partnerIP, partnerPort);
+    // qint32 vistorId = findIdFromClientsByIPAndPort(partnerIP, partnerPort);
+    qint32 vistorId = findIdFromClientsByIP(partnerIP);
 
     qDebug() << "TCPSocketUtil::newConnectionWithFilePartner " << "vistorId " << vistorId << endl;
 
@@ -834,21 +836,40 @@ bool TCPSocketUtil::failToHelpFileFriend(QAbstractSocket::SocketError error, qin
     return true;
 }
 
-qint32 TCPSocketUtil::findIdFromClientsByIPAndPort(QString ip, quint16 port)
+qint32 TCPSocketUtil::findIdFromClientsByIP(QString ip)
 {
     qint32 id = -1;
-    qDebug() << "TCPSocketUtil::findIdFromClientsByIPAndPort " << "ip " << ip << " port " << port << endl;
+    qDebug() << "TCPSocketUtil::findIdFromClientsByIPAndPort " << "ip " << ip << endl;
 
     for(QMap<qint32, Client *>::iterator it = this->clientsMap.begin(); it != this->clientsMap.end(); it++) {
-        qDebug() << "TCPSocketUtil::findIdFromClientsByIPAndPort " << "ip " << it.value()->getIP()
-                 << " port " << it.value()->getPort() << endl;
+        qDebug() << "TCPSocketUtil::findIdFromClientsByIPAndPort " << "ip " << it.value()->getIP() << endl;
 
-        if(it.value()->getIP() == ip && it.value()->getPort() == port){
+        if(it.value()->getIP() == ip){
             id = it.value()->getId();
             break;
         }
     }
 
-    qDebug() << "TCPSocketUtil::findIdFromClientsByIPAndPort " << "id " << id << endl;
+    qDebug() << "TCPSocketUtil::findIdFromClientsByIP " << "id " << id << endl;
     return id;
 }
+
+//qint32 TCPSocketUtil::findIdFromClientsByIPAndPort(QString ip, quint16 port)
+//{
+//    qint32 id = -1;
+//    qDebug() << "TCPSocketUtil::findIdFromClientsByIPAndPort " << "ip " << ip << " port " << port << endl;
+
+//    for(QMap<qint32, Client *>::iterator it = this->clientsMap.begin(); it != this->clientsMap.end(); it++) {
+//        qDebug() << "TCPSocketUtil::findIdFromClientsByIPAndPort " << "ip " << it.value()->getIP()
+//                 << " port " << it.value()->getPort() << endl;
+
+//        if(it.value()->getIP() == ip && it.value()->getPort() == port){
+//            id = it.value()->getId();
+//            break;
+//        }
+//    }
+
+//    qDebug() << "TCPSocketUtil::findIdFromClientsByIPAndPort " << "id " << id << endl;
+//    return id;
+//}
+

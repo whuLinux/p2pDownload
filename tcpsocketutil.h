@@ -140,7 +140,8 @@ public:
     bool listenFilePort();    
     bool connectToFileFriend(qint32 friendId);
 
-    qint32 findIdFromClientsByIPAndPort(QString ip, quint16 port);
+    qint32 findIdFromClientsByIP(QString ip);
+    // qint32 findIdFromClientsByIPAndPort(QString ip, quint16 port);
 
     inline void setOpenHost(bool openHost);
     inline void setOpenGuest(bool openGuest);
