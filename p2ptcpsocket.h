@@ -1,9 +1,10 @@
 #ifndef P2PTCPSOCKET_H
 #define P2PTCPSOCKET_H
 
+#include <QObject>
 #include <QTcpSocket>
 
-class P2PTcpSocket : public QTcpSocket
+class P2PTcpSocket : public QObject
 {
     Q_OBJECT
 private:

@@ -27,8 +27,14 @@ private:
     /**
      * 作为朋友客户端的伙伴而建立的QTcpSocket对象，需要兼备收发数据的功能，每个连接对应一个C/S对
      */
-    QMap<qint32, P2PTcpSocket *> guests;
-    QMap<qint32, P2PTcpSocket *> fileGuests;
+    QMap<qint32, QTcpSocket *> guests;
+    QMap<qint32, QTcpSocket *> fileGuests;
+
+    /**
+     * 作为朋友客户端的伙伴而建立的P2PTcpSocket对象
+     */
+    QMap<qint32, P2PTcpSocket *> p2pGuests;
+    QMap<qint32, P2PTcpSocket *> p2pFileGuests;
 
     /**
      * 作为伙伴客户端的朋友而建立的QTcpServer对象，需要兼备收发数据的功能，每个连接对应多个伙伴客户端
