@@ -33,15 +33,20 @@ MainFriend::MainFriend(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketUti
 {
     this->downloadManager=new DownloadManager();
 
+    //将本机加入等待队列，保证无论如何可以执行单机下载
+    Client *localhost=new Client(0,"localhost","127.0.0.1",0,0);
+    localhost->setPunchSuccess(true);
+    this->waitingClients.append(localhost);
+
     //NOTE:UI 美化
     if (!this->tcpSocketUtil->stablishHost() || !this->tcpSocketUtil->stablishFileHost()) {
         qDebug() << "MainFriend::MainFriend " << "TcpSocket 对象建立失败" << endl;
     }
 
-    //将本机加入等待队列，保证无论如何可以执行单机下载
-    Client *localhost=new Client(0,"localhost","127.0.0.1",0,0);
-    localhost->setPunchSuccess(true);
-    this->waitingClients.append(localhost);
+    //建立UDPSocket
+    if (!this->udpSocketUtil->stablishClient()) {
+        qDebug() << "MainFriend::regLocalClients " << "UdpSocket 对象建立失败" << endl;
+    }
 
 }
 
@@ -51,9 +56,6 @@ MainFriend::~MainFriend(){
 }
 
 void MainFriend::regLocalClients(){
-    if (!this->udpSocketUtil->stablishClient()) {
-        qDebug() << "MainFriend::regLocalClients " << "UdpSocket 对象建立失败" << endl;
-    }
 
     qDebug()<<"MainFriend::regLocalClients "<<this->hostName<<this->local.getFilePort();
     CtrlMsg login_msg=this->msgUtil->createLoginMsg(this->hostName,this->pwd,DEFAULTPORT,DEFAULTFILEPORT);
@@ -122,7 +124,7 @@ void MainFriend::initExistClients(){
         qint32 existed_id;
         for(iter=partners.begin();iter!=partners.end();iter++){
             existed_id=this->mainctrlutil->findIdFromExistClientsByName(iter->name,this->existClients);
-            if(existed_id==-1){
+            if(existed_id!=-1){
                 qDebug()<<"MainFriend::initExistClients client已存在 name>>"<<iter->name<<" | id>>"<<existed_id<<endl;
             }
             else{

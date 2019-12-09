@@ -124,7 +124,7 @@ void MainPartner::taskEndAsPartner(){
     this->sliceScheduler.append(*newTask);
 
     emit(this->callSliceScheduler(friendId,finishedTask.token,0));
-    emit
+
     file->close(); delete file;
     this->rubbishBin.push_back(finishedTask.token);//token入回收站
 
