@@ -668,7 +668,7 @@ bool TCPSocketUtil::recFromPartner(qint32 partnerId)
 
 bool TCPSocketUtil::sendToPartner(qint32 partnerId, CommMsg & msg)
 {
-    if (!this->partnerConnections.contains(partnerId)) {
+    if (!this->partnerConnections.contains(partnerId) || this->partnerConnections[partnerId] == nullptr) {
         qDebug() << "TCPSocketUtil::sendToPartner " << "指定连接该朋友客户端的P2PTcpSocket对象尚未建立 " << partnerId << endl;
         return false;
     }
