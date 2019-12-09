@@ -62,22 +62,32 @@ void MainFriend::regLocalClients(){
     else{
         qDebug()<<"MainFriend::regLocalClients 连接请求msg 发送失败"<<endl;
     }
+
+    //收到服务器返回消息时马上更新登录状态
     qDebug()<<"MainFriend::regLocalClients connect::loginOk"<<endl;
     QObject::connect(this->udpSocketUtil,SIGNAL(loginOk()),this,SLOT(statusToIDLE()));
+    QObject::connect(this->udpSocketUtil,SIGNAL(loginOk()),this,SLOT(checkLoginStatus()));
     qDebug()<<"MainFriend::regLocalClients connect::loginAgain"<<endl;
     QObject::connect(this->udpSocketUtil,SIGNAL(loginAgain()),this,SLOT(statusTOOFFLINE()));
+    QObject::connect(this->udpSocketUtil,SIGNAL(loginAgain()),this,SLOT(checkLoginStatus()));
 
-    qDebug()<<"MainFriend::regLocalClients 开启计时器，倒计时30s检查登录"<<endl;
+    qDebug()<<"MainFriend::regLocalClients 开启计时器，倒计时10s检查登录"<<endl;
     this->loginTimer=new QTimer();
     this->loginTimer->setSingleShot(true);
     //TODO: 处理login响应逻辑
-    this->loginTimer->start(3000);//给10s登录时间响应
+    this->loginTimer->start(10000);//给10s登录时间响应
     QObject::connect(this->loginTimer,SIGNAL(timeout()),this,SLOT(checkLoginStatus()));
 
 }
 
 bool MainFriend::checkLoginStatus(){
     //TODO:发alert提醒
+
+    //0.1s，等待其他线程接收、更新login状态
+    QEventLoop eventloop;
+    QTimer::singleShot(100, &eventloop, SLOT(quit()));
+    eventloop.exec();
+
     delete this->loginTimer;
     this->loginTimer=nullptr;
     if(this->status==ClientStatus::OFFLINE || this->status==ClientStatus::UNKNOWN){
