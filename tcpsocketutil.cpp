@@ -657,6 +657,8 @@ bool TCPSocketUtil::newConnectionWithFilePartner()
 
     qint32 vistorId = findIdFromClientsByIPAndPort(partnerIP, partnerPort);
 
+    qDebug()<<"TCPSocketUtil::newConnectionWithFilePartner  vistorId>>"<<vistorId<<endl;
+
     if (vistorId == -1 && !this->clientsMap.contains(vistorId)) {
         qDebug() << "TCPSocketUtil::newConnectionWithFilePartner " << "陌生客户端非法访问" << endl;
         return false;
@@ -800,11 +802,15 @@ qint32 TCPSocketUtil::findIdFromClientsByIPAndPort(QString ip, quint16 port)
     qDebug() << "TCPSocketUtil::findIdFromClientsByIPAndPort " << "ip " << ip << " port " << port << endl;
 
     for(int i = 0; i < this->clientsMap.size(); i++) {
-        if(this->clientsMap[i]->getIP() == ip && this->clientsMap[i]->getPort() == port){
+        qDebug() << "TCPSocketUtil::findIdFromClientsByIPAndPort " << "ip " << this->clientsMap[i]->getIP()
+                 << " port " << this->clientsMap[i]->getPort() << endl;
+
+        if(this->clientsMap[i]->getIP() == ip && this->clientsMap[i]->getPort() == port){            
             id = this->clientsMap[i]->getId();
             break;
         }
     }
 
+    qDebug()<<"TCPSocketUtil::findIdFromClientsByIPAndPort  id>>"<<id<<endl;
     return id;
 }
