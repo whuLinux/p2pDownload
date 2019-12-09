@@ -129,3 +129,5 @@ dmypy.json
 *.autosave
 *.oom
 *.oob
+resource/p2pDownload实验报告.md
+resource/ctrl_class_diagram.png
