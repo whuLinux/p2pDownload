@@ -80,7 +80,7 @@ public:
      * 3. 创建任务块队列
      * @return
      */
-    bool creatDownloadReq();
+    bool createDownloadReq();
 
     /**
      * @brief downLoadSchedule

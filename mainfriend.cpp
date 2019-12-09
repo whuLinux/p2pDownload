@@ -281,7 +281,7 @@ bool MainFriend::partnerReject(qint32 partnerId){
     return true;
 }
 
-bool MainFriend::creatDownloadReq(){
+bool MainFriend::createDownloadReq(){
     qint8 blockNum=0;
     qDebug()<<" MainFriend::creatDownloadReq  创建下载任务"<<endl;
     //寻求伙伴机帮助
