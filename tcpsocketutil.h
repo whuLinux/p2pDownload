@@ -39,8 +39,14 @@ private:
     /**
      * 监听到伙伴客户端发来的新请求后建立的QTcpSocket对象
      */
-    QMap<qint32, P2PTcpSocket *> partnerConnections;
-    QMap<qint32, P2PTcpSocket *> partnerFileConnections;
+    QMap<qint32, QTcpSocket *> partnerConnections;
+    QMap<qint32, QTcpSocket *> partnerFileConnections;
+
+    /**
+     * 监听到伙伴客户端发来的新请求后建立的P2PTcpSocket对象
+     */
+    QMap<qint32, P2PTcpSocket *> partnerP2PConnections;
+    QMap<qint32, P2PTcpSocket *> partnerFileP2PConnections;
 
     /**
      * 伙伴客户端文件分块传送的当前块序，用于校验
@@ -62,7 +68,7 @@ private:
     /**
      * 所有处于登录状态的伙伴客户端，同时也是朋友客户端
      */
-    QMap<qint32, Client *> parntersMap;
+    QMap<qint32, Client *> clientsMap;
 
     /**
      * 各类连接的数量
@@ -105,28 +111,30 @@ public:
      * @brief 建立连接的一系列基础操作
      */
     bool stablishHost();
-    bool stablishGuest(qint32 partnerId);
+    bool stablishGuest(qint32 friendId);
 
     bool stablishFileHost();
-    bool stablishFileGuest(qint32 partnerId);
+    bool stablishFileGuest(qint32 friendId);
 
     bool createHost();
-    bool createGuest(qint32 partnerId);
+    bool createGuest(qint32 friendId);
 
     bool closeHost();
-    bool closeGuest(qint32 partnerId);
+    bool closeGuest(qint32 friendId);
 
     bool createFileHost();
-    bool createFileGuest(qint32 partnerId);
+    bool createFileGuest(qint32 friendId);
 
     bool closeFileHost();
-    bool closeFileGuest(qint32 partnerId);
+    bool closeFileGuest(qint32 friendId);
 
     bool listenPort();
-    bool connectToFriend(qint32 partnerId);
+    bool connectToFriend(qint32 friendId);
 
     bool listenFilePort();    
-    bool connectToFileFriend(qint32 partnerId);
+    bool connectToFileFriend(qint32 friendId);
+
+    qint32 findIdFromClientsByIPAndPort(QString ip, quint16 port);
 
     inline void setOpenHost(bool openHost);
     inline void setOpenGuest(bool openGuest);

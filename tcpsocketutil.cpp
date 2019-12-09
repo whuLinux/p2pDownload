@@ -23,22 +23,25 @@ TCPSocketUtil::~TCPSocketUtil()
         delete guestsIt.value();
         guestsIt.value() = nullptr;
     }
+
     this->guests.clear();
 
     for (QMap<qint32, P2PTcpSocket *>::iterator fileGuestsIt = this->fileGuests.begin(); fileGuestsIt != this->fileGuests.end(); fileGuestsIt++) {
         delete fileGuestsIt.value();
         fileGuestsIt.value() = nullptr;
     }
+
     this->fileGuests.clear();
 
     closeHost();
     closeFileHost();
 
-    for (QMap<qint32, Client *>::iterator parntersMapIt = this->parntersMap.begin(); parntersMapIt != this->parntersMap.end(); parntersMapIt++) {
-        delete parntersMapIt.value();
-        parntersMapIt.value() = nullptr;
+    for (QMap<qint32, Client *>::iterator clientsMapIt = this->clientsMap.begin(); clientsMapIt != this->clientsMap.end(); clientsMapIt++) {
+        delete clientsMapIt.value();
+        clientsMapIt.value() = nullptr;
     }
-    this->parntersMap.clear();
+
+    this->clientsMap.clear();
 }
 
 bool TCPSocketUtil::bindClients(QVector<Client *> clients)
@@ -60,12 +63,12 @@ bool TCPSocketUtil::addClient(Client * client)
 {
     qDebug() << "TCPSocketUtil::addClient " << "伙伴客户端ID " << client->getId() << endl;
 
-    if (this->parntersMap.contains(client->getId())) {
+    if (this->clientsMap.contains(client->getId())) {
         qDebug() << "TCPSocketUtil::addClient " << "伙伴客户端不允许重复加入队列" << client->getId() << endl;
         return false;
     }
 
-    this->parntersMap[client->getId()] = client;
+    this->clientsMap[client->getId()] = client;
 
     return true;
 }
@@ -74,7 +77,7 @@ bool TCPSocketUtil::addGuest(qint32 id, quint16 port, quint16 filePort)
 {    
     qDebug() << "TCPSocketUtil::addGuest " << "朋友客户端ID " << id << "port" << port << "filePort" << filePort << endl;
 
-    if (!this->parntersMap.contains(id)) {
+    if (!this->clientsMap.contains(id)) {
         qDebug() << "TCPSocketUtil::addGuest " << "陌生客户端不允许加入队列" << id << endl;
         return false;
     }
@@ -114,19 +117,19 @@ bool TCPSocketUtil::stablishHost()
     return true;
 }
 
-bool TCPSocketUtil::stablishGuest(qint32 partnerId)
+bool TCPSocketUtil::stablishGuest(qint32 friendId)
 {
     if (!this->openGuest) {
         qDebug() << "TCPSocketUtil::stablishGuest " << "未开启TCP客户端权限" << endl;
         return false;
     }
 
-    createGuest(partnerId);
+    createGuest(friendId);
 
-    if (!connectToFriend(partnerId)) {
-        qDebug() << "TCPSocketUtil::stablishGuest " << "连接朋友客户端失败 " << partnerId << endl;
+    if (!connectToFriend(friendId)) {
+        qDebug() << "TCPSocketUtil::stablishGuest " << "连接朋友客户端失败 " << friendId << endl;
 
-        closeGuest(partnerId);
+        closeGuest(friendId);
         return false;
     }
 
@@ -153,19 +156,19 @@ bool TCPSocketUtil::stablishFileHost()
     return true;
 }
 
-bool TCPSocketUtil::stablishFileGuest(qint32 partnerId)
+bool TCPSocketUtil::stablishFileGuest(qint32 friendId)
 {
     if (!this->openGuest) {
         qDebug() << "TCPSocketUtil::stablishFileGuest " << "未开启TCP客户端权限" << endl;
         return false;
     }
 
-    createFileGuest(partnerId);
+    createFileGuest(friendId);
 
-    if (!connectToFileFriend(partnerId)) {
-        qDebug() << "TCPSocketUtil::stablishFileGuest " << "连接朋友客户端失败 " << partnerId << endl;
+    if (!connectToFileFriend(friendId)) {
+        qDebug() << "TCPSocketUtil::stablishFileGuest " << "连接朋友客户端失败 " << friendId << endl;
 
-        closeFileGuest(partnerId);
+        closeFileGuest(friendId);
         return false;
     }
 
@@ -178,28 +181,35 @@ bool TCPSocketUtil::createHost()
     return true;
 }
 
-bool TCPSocketUtil::createGuest(qint32 partnerId)
+bool TCPSocketUtil::createGuest(qint32 friendId)
 {
-    if (this->guests.contains(partnerId)) {
-        qDebug() << "TCPSocketUtil::createGuest " << "指定连接该朋友客户端的P2PTcpSocket对象此前已建立 " << partnerId << endl;
+    if (this->guests.contains(friendId)) {
+        qDebug() << "TCPSocketUtil::createGuest " << "指定连接该朋友客户端的P2PTcpSocket对象此前已建立 " << friendId << endl;
         return false;
     }
 
-    this->guests[partnerId] = new P2PTcpSocket();
-    this->guests[partnerId]->setId(partnerId);
+    this->guests[friendId] = new P2PTcpSocket();
+    this->guests[friendId]->setId(friendId);
 
     return true;
 }
 
 bool TCPSocketUtil::closeHost()
 {
-    for (QMap<qint32, P2PTcpSocket *>::iterator it = this->partnerConnections.begin(); it != this->partnerConnections.end(); it++) {
+    for (QMap<qint32, QTcpSocket *>::iterator it = this->partnerConnections.begin(); it != this->partnerConnections.end(); it++) {
+        it.value()->close();
+        delete it.value();
+        it.value() = nullptr;
+    }
+
+    for (QMap<qint32, P2PTcpSocket *>::iterator it = this->partnerP2PConnections.begin(); it != this->partnerP2PConnections.end(); it++) {
         it.value()->close();
         delete it.value();
         it.value() = nullptr;
     }
 
     this->partnerConnections.clear();
+    this->partnerP2PConnections.clear();
 
     this->host->close();
     delete this->host;
@@ -207,14 +217,14 @@ bool TCPSocketUtil::closeHost()
     return true;
 }
 
-bool TCPSocketUtil::closeGuest(qint32 partnerId)
+bool TCPSocketUtil::closeGuest(qint32 friendId)
 {
-    if (!disConnectToFriend(partnerId)) {
-        qDebug() << "TCPSocketUtil::closeGuest " << "错误尝试关闭和朋友客户端之间的TCP连接 " << partnerId << endl;
+    if (!disConnectToFriend(friendId)) {
+        qDebug() << "TCPSocketUtil::closeGuest " << "错误尝试关闭和朋友客户端之间的TCP连接 " << friendId << endl;
     }
 
-    delete this->guests[partnerId];
-    this->guests[partnerId] = nullptr;
+    delete this->guests[friendId];
+    this->guests[friendId] = nullptr;
 
     return true;
 }
@@ -225,26 +235,33 @@ bool TCPSocketUtil::createFileHost()
     return true;
 }
 
-bool TCPSocketUtil::createFileGuest(qint32 partnerId)
+bool TCPSocketUtil::createFileGuest(qint32 friendId)
 {
-    if (this->fileGuests.contains(partnerId)) {
-        qDebug() << "TCPSocketUtil::createFileGuest " << "指定连接该朋友客户端的P2PTcpSocket对象此前已建立 " << partnerId << endl;
+    if (this->fileGuests.contains(friendId)) {
+        qDebug() << "TCPSocketUtil::createFileGuest " << "指定连接该朋友客户端的P2PTcpSocket对象此前已建立 " << friendId << endl;
         return false;
     }
 
-    this->fileGuests[partnerId] = new P2PTcpSocket();
+    this->fileGuests[friendId] = new P2PTcpSocket();
     return true;
 }
 
 bool TCPSocketUtil::closeFileHost()
 {
-    for (QMap<qint32, P2PTcpSocket *>::iterator it = this->partnerFileConnections.begin(); it != this->partnerFileConnections.end(); it++) {
+    for (QMap<qint32, QTcpSocket *>::iterator it = this->partnerFileConnections.begin(); it != this->partnerFileConnections.end(); it++) {
+        it.value()->close();
+        delete it.value();
+        it.value() = nullptr;
+    }
+
+    for (QMap<qint32, P2PTcpSocket *>::iterator it = this->partnerFileP2PConnections.begin(); it != this->partnerFileP2PConnections.end(); it++) {
         it.value()->close();
         delete it.value();
         it.value() = nullptr;
     }
 
     this->partnerFileConnections.clear();
+    this->partnerFileP2PConnections.clear();
 
     this->fileHost->close();
     delete this->fileHost;
@@ -252,14 +269,14 @@ bool TCPSocketUtil::closeFileHost()
     return true;
 }
 
-bool TCPSocketUtil::closeFileGuest(qint32 partnerId)
+bool TCPSocketUtil::closeFileGuest(qint32 friendId)
 {
-    if (!disConnectToFileFriend(partnerId)) {
-        qDebug() << "TCPSocketUtil::closeFileGuest " << "错误尝试关闭和朋友客户端之间的TCP连接 " << partnerId << endl;
+    if (!disConnectToFileFriend(friendId)) {
+        qDebug() << "TCPSocketUtil::closeFileGuest " << "错误尝试关闭和朋友客户端之间的TCP连接 " << friendId << endl;
     }
 
-    delete this->fileGuests[partnerId];
-    this->fileGuests[partnerId] = nullptr;
+    delete this->fileGuests[friendId];
+    this->fileGuests[friendId] = nullptr;
 
     return true;
 }
@@ -277,43 +294,43 @@ bool TCPSocketUtil::listenPort()
     return true;
 }
 
-bool TCPSocketUtil::connectToFriend(qint32 partnerId)
+bool TCPSocketUtil::connectToFriend(qint32 friendId)
 {
-    if (!this->guests.contains(partnerId)) {
-        qDebug() << "TCPSocketUtil::connectToFriend " << "指定连接该朋友客户端的P2PTcpSocket对象尚未建立 " << partnerId << endl;
-        createGuest(partnerId);
+    if (!this->guests.contains(friendId)) {
+        qDebug() << "TCPSocketUtil::connectToFriend " << "指定连接该朋友客户端的P2PTcpSocket对象尚未建立 " << "friendId" << friendId << endl;
+        createGuest(friendId);
     }
 
-    if (!this->parntersMap.contains(partnerId)) {
-        qDebug() << "TCPSocketUtil::connectToFriend " << "无法获取指定伙伴的ip地址 " << partnerId << endl;
+    if (!this->clientsMap.contains(friendId)) {
+        qDebug() << "TCPSocketUtil::connectToFriend " << "无法获取指定伙伴的ip地址 " << "friendId " << friendId << endl;
         return false;
     }
 
-    if (!this->guestPort.contains(partnerId)) {
-        qDebug() << "TCPSocketUtil::connectToFriend " << "未指定侦听的端口 " << partnerId << endl;
+    if (!this->guestPort.contains(friendId)) {
+        qDebug() << "TCPSocketUtil::connectToFriend " << "未指定侦听的端口 " << "friendId" << friendId << endl;
         return false;
     }
 
-    qDebug() << "TCPSocketUtil::connectToFriend " << "partnerId" << partnerId << "guestPort" << this->guestPort[partnerId] << endl;
+    qDebug() << "TCPSocketUtil::connectToFriend " << "friendId " << friendId << " guestPort " << this->guestPort[friendId] << endl;
 
-    if (!this->guests[partnerId]->bind(QHostAddress::AnyIPv4, this->guestPort[partnerId])) {
-        qDebug() << "TCPSocketUtil::connectToFriend " << "端口侦听失败 " << partnerId << endl;
-        qDebug() << "TCPSocketUtil::connectToFriend " << this->guests[partnerId]->errorString() << endl;
+    if (!this->guests[friendId]->bind(QHostAddress::AnyIPv4, this->guestPort[friendId])) {
+        qDebug() << "TCPSocketUtil::connectToFriend " << "端口侦听失败 " << friendId << endl;
+        qDebug() << "TCPSocketUtil::connectToFriend " << this->guests[friendId]->errorString() << endl;
 
-        this->guests[partnerId]->close();
+        this->guests[friendId]->close();
         return false;
     }
 
-    this->guests[partnerId]->connectToHost(this->parntersMap[partnerId]->getIP(), this->parntersMap[partnerId]->getPort());
+    this->guests[friendId]->connectToHost(this->clientsMap[friendId]->getIP(), this->clientsMap[friendId]->getPort());
     this->connectedNum++;
 
-    connect(this->guests[partnerId], SIGNAL(readyRead()), this->guests[partnerId], SLOT(ensureReadyRead()));
-    connect(this->guests[partnerId], SIGNAL(error(QAbstractSocket::SocketError)), this->guests[partnerId], SLOT(ensureError(QAbstractSocket::SocketError)));
-    connect(this->guests[partnerId], SIGNAL(disconnected()), this->guests[partnerId], SLOT(ensureDisconnected()));
+    connect(this->guests[friendId], SIGNAL(readyRead()), this->guests[friendId], SLOT(ensureReadyRead()));
+    connect(this->guests[friendId], SIGNAL(error(QAbstractSocket::SocketError)), this->guests[friendId], SLOT(ensureError(QAbstractSocket::SocketError)));
+    connect(this->guests[friendId], SIGNAL(disconnected()), this->guests[friendId], SLOT(ensureDisconnected()));
 
-    connect(this->guests[partnerId], SIGNAL(readyReadFromOthers(qint32)), this, SLOT(recFromFriend(qint32)));
-    connect(this->guests[partnerId], SIGNAL(socketErrorOfOthers(QAbstractSocket::SocketError, qint32)), this, SLOT(failToHelpFriend(QAbstractSocket::SocketError, qint32)));
-    connect(this->guests[partnerId], SIGNAL(disconnectedFromOthers(qint32)), this, SLOT(disConnectToFriend(qint32)));
+    connect(this->guests[friendId], SIGNAL(readyReadFromOthers(qint32)), this, SLOT(recFromFriend(qint32)));
+    connect(this->guests[friendId], SIGNAL(socketErrorOfOthers(QAbstractSocket::SocketError, qint32)), this, SLOT(failToHelpFriend(QAbstractSocket::SocketError, qint32)));
+    connect(this->guests[friendId], SIGNAL(disconnectedFromOthers(qint32)), this, SLOT(disConnectToFriend(qint32)));
 
     return true;
 }
@@ -321,7 +338,7 @@ bool TCPSocketUtil::connectToFriend(qint32 partnerId)
 bool TCPSocketUtil::disConnectToFriend(qint32 friendId)
 {
     if (!this->guests.contains(friendId)) {
-        qDebug() << "TCPSocketUtil::disConnectToFriend " << "指定连接该朋友客户端的P2PTcpSocket对象尚未建立 " << friendId << endl;
+        qDebug() << "TCPSocketUtil::disConnectToFriend " << "指定连接该朋友客户端的P2PTcpSocket对象尚未建立 " << "friendId " << friendId << endl;
         return false;
     }
 
@@ -343,41 +360,41 @@ bool TCPSocketUtil::listenFilePort()
 }
 
 
-bool TCPSocketUtil::connectToFileFriend(qint32 partnerId)
+bool TCPSocketUtil::connectToFileFriend(qint32 friendId)
 {
-    if (!this->fileGuests.contains(partnerId)) {
-        qDebug() << "TCPSocketUtil::connectFileToPartner " << "指定连接该朋友客户端的P2PTcpSocket对象尚未建立 " << partnerId << endl;
-        createFileGuest(partnerId);
+    if (!this->fileGuests.contains(friendId)) {
+        qDebug() << "TCPSocketUtil::connectFileToPartner " << "指定连接该朋友客户端的P2PTcpSocket对象尚未建立 " << "friendId " << friendId << endl;
+        createFileGuest(friendId);
     }
 
-    if (!this->parntersMap.contains(partnerId)) {
-        qDebug() << "TCPSocketUtil::connectFileToPartner " << "无法获取指定伙伴的ip地址" << partnerId << endl;
+    if (!this->clientsMap.contains(friendId)) {
+        qDebug() << "TCPSocketUtil::connectFileToPartner " << "无法获取指定伙伴的ip地址" << "friendId " << friendId << endl;
         return false;
     }
 
-    if (!this->fileGuestPort.contains(partnerId)) {
-        qDebug() << "TCPSocketUtil::connectToPartner " << "未指定侦听的端口 " << partnerId << endl;
+    if (!this->fileGuestPort.contains(friendId)) {
+        qDebug() << "TCPSocketUtil::connectToPartner " << "未指定侦听的端口 " << "friendId " << friendId << endl;
         return false;
     }
 
-    if (!this->fileGuests[partnerId]->bind(QHostAddress::AnyIPv4, this->fileGuestPort[partnerId])) {
-        qDebug() << "TCPSocketUtil::connectToPartner " << "端口侦听失败 " << partnerId << endl;
-        qDebug() << "TCPSocketUtil::connectToPartner " << this->fileGuests[partnerId]->errorString() << endl;
+    if (!this->fileGuests[friendId]->bind(QHostAddress::AnyIPv4, this->fileGuestPort[friendId])) {
+        qDebug() << "TCPSocketUtil::connectToPartner " << "端口侦听失败 " << friendId << endl;
+        qDebug() << "TCPSocketUtil::connectToPartner " << this->fileGuests[friendId]->errorString() << endl;
 
-        this->fileGuests[partnerId]->close();
+        this->fileGuests[friendId]->close();
         return false;
     }
 
-    this->fileGuests[partnerId]->connectToHost(this->parntersMap[partnerId]->getIP(), this->parntersMap[partnerId]->getFilePort());
+    this->fileGuests[friendId]->connectToHost(this->clientsMap[friendId]->getIP(), this->clientsMap[friendId]->getFilePort());
     this->fileConnectedNum++;
 
-    connect(this->fileGuests[partnerId], SIGNAL(readyRead()), this->fileGuests[partnerId], SLOT(ensureReadyRead()));
-    connect(this->fileGuests[partnerId], SIGNAL(error(QAbstractSocket::SocketError)), this->fileGuests[partnerId], SLOT(ensureError(QAbstractSocket::SocketError)));
-    connect(this->fileGuests[partnerId], SIGNAL(disconnected()), this->fileGuests[partnerId], SLOT(ensureDisconnected()));
+    connect(this->fileGuests[friendId], SIGNAL(readyRead()), this->fileGuests[friendId], SLOT(ensureReadyRead()));
+    connect(this->fileGuests[friendId], SIGNAL(error(QAbstractSocket::SocketError)), this->fileGuests[friendId], SLOT(ensureError(QAbstractSocket::SocketError)));
+    connect(this->fileGuests[friendId], SIGNAL(disconnected()), this->fileGuests[friendId], SLOT(ensureDisconnected()));
 
     // connect(this->fileGuests[partnerId], SIGNAL(readyReadFromOthers(qint32)), this, SLOT(recFromFileFriend(qint32)));
-    connect(this->fileGuests[partnerId], SIGNAL(socketErrorOfOthers(QAbstractSocket::SocketError, qint32)), this, SLOT(failToHelpFriend(QAbstractSocket::SocketError, qint32)));
-    connect(this->fileGuests[partnerId], SIGNAL(disconnectedFromOthers(qint32)), this, SLOT(disConnectToFileFriend(qint32)));
+    connect(this->fileGuests[friendId], SIGNAL(socketErrorOfOthers(QAbstractSocket::SocketError, qint32)), this, SLOT(failToHelpFriend(QAbstractSocket::SocketError, qint32)));
+    connect(this->fileGuests[friendId], SIGNAL(disconnectedFromOthers(qint32)), this, SLOT(disConnectToFileFriend(qint32)));
 
     return true;
 }
@@ -398,25 +415,35 @@ bool TCPSocketUtil::newConnectionWithPartner()
     qDebug() << "TCPSocketUtil::newConnectionWithPartner" << endl;
 
     QTcpSocket * oringinVistor = this->host->nextPendingConnection();
-    P2PTcpSocket * vistor = dynamic_cast<P2PTcpSocket *>(oringinVistor);
+    P2PTcpSocket * vistor = new P2PTcpSocket();
 
-    qint32 vistorId = vistor->getId();
+    QString partnerIP = oringinVistor->peerAddress().toString();
+    quint16 partnerPort = oringinVistor->peerPort();
 
-    if (!this->partnerConnections.contains(vistorId) && !this->parntersMap.contains(vistorId)) {
+    qint32 vistorId = findIdFromClientsByIPAndPort(partnerIP, partnerPort);
+
+    if (vistorId == -1 && !this->clientsMap.contains(vistorId)) {
         qDebug() << "TCPSocketUtil::newConnectionWithPartner " << "陌生客户端非法访问" << endl;
         return false;
     }
 
-    this->partnerConnections[vistorId] = vistor;
-    this->partnerConnections[vistorId]->setId(vistorId);
+    if (this->partnerConnections.contains(vistorId) || this->partnerP2PConnections.contains(vistorId)) {
+        qDebug() << "TCPSocketUtil::newConnectionWithPartner " << "伙伴客户端试图重复连接" << endl;
+        return false;
+    }
 
-    connect(this->partnerConnections[vistorId], SIGNAL(readyRead()), this->partnerConnections[vistorId], SLOT(ensureReadyRead()));
-    connect(this->partnerConnections[vistorId], SIGNAL(error(QAbstractSocket::SocketError)), this->partnerConnections[vistorId], SLOT(ensureError(QAbstractSocket::SocketError)));
-    connect(this->partnerConnections[vistorId], SIGNAL(disconnected()), this->partnerConnections[vistorId], SLOT(ensureDisconnected));
+    this->partnerConnections[vistorId] = oringinVistor;
 
-    connect(this->partnerConnections[vistorId], SIGNAL(readyReadFromOthers(qint32)), this, SLOT(recFromPartner(qint32)));
-    connect(this->partnerConnections[vistorId], SIGNAL(socketErrorOfOthers(QAbstractSocket::SocketError, qint32)), this, SLOT(failToGetHelpFromPartner(QAbstractSocket::SocketError, qint32)));
-    connect(this->partnerConnections[vistorId], SIGNAL(disconnectedFromOthers(qint32)), this, SLOT(disConnectToPartner(qint32)));
+    this->partnerP2PConnections[vistorId] = vistor;
+    this->partnerP2PConnections[vistorId]->setId(vistorId);
+
+    connect(this->partnerConnections[vistorId], SIGNAL(readyRead()), this->partnerP2PConnections[vistorId], SLOT(ensureReadyRead()));
+    connect(this->partnerConnections[vistorId], SIGNAL(error(QAbstractSocket::SocketError)), this->partnerP2PConnections[vistorId], SLOT(ensureError(QAbstractSocket::SocketError)));
+    connect(this->partnerConnections[vistorId], SIGNAL(disconnected()), this->partnerP2PConnections[vistorId], SLOT(ensureDisconnected));
+
+    connect(this->partnerP2PConnections[vistorId], SIGNAL(readyReadFromOthers(qint32)), this, SLOT(recFromPartner(qint32)));
+    connect(this->partnerP2PConnections[vistorId], SIGNAL(socketErrorOfOthers(QAbstractSocket::SocketError, qint32)), this, SLOT(failToGetHelpFromPartner(QAbstractSocket::SocketError, qint32)));
+    connect(this->partnerP2PConnections[vistorId], SIGNAL(disconnectedFromOthers(qint32)), this, SLOT(disConnectToPartner(qint32)));
 
     return true;
 }
@@ -424,11 +451,16 @@ bool TCPSocketUtil::newConnectionWithPartner()
 bool TCPSocketUtil::disConnectToPartner(qint32 partnerId)
 {
     if (!this->partnerConnections.contains(partnerId)) {
-        qDebug() << "TCPSocketUtil::disConnectToPartner " << "指定连接该伙伴客户端的P2PTcpSocket对象尚未建立 " << partnerId << endl;
+        this->partnerConnections[partnerId]->disconnectFromHost();
+    }
+
+    if (!this->partnerP2PConnections.contains(partnerId)) {
+        this->partnerP2PConnections[partnerId]->disconnectFromHost();
+    } else {
+        qDebug() << "TCPSocketUtil::disConnectToPartner " << "指定连接该伙伴客户端的P2PTcpSocket对象尚未建立 " << "partnerId " << partnerId << endl;
         return false;
     }
 
-    this->partnerConnections[partnerId]->disconnectFromHost();
     return true;
 }
 
@@ -615,24 +647,38 @@ bool TCPSocketUtil::failToHelpFriend(QAbstractSocket::SocketError error, qint32 
 
 bool TCPSocketUtil::newConnectionWithFilePartner()
 {
-    P2PTcpSocket * vistor = dynamic_cast<P2PTcpSocket *>(this->fileHost->nextPendingConnection());
-    qint32 vistorId = vistor->peerName().toInt();
+    qDebug() << "TCPSocketUtil::newConnectionWithFilePartner" << endl;
 
-    if (!this->partnerFileConnections.contains(vistorId) && !this->parntersMap.contains(vistorId)) {
+    QTcpSocket * oringinVistor = this->fileHost->nextPendingConnection();
+    P2PTcpSocket * vistor = new P2PTcpSocket();
+
+    QString partnerIP = oringinVistor->peerAddress().toString();
+    quint16 partnerPort = oringinVistor->peerPort();
+
+    qint32 vistorId = findIdFromClientsByIPAndPort(partnerIP, partnerPort);
+
+    if (vistorId == -1 && !this->clientsMap.contains(vistorId)) {
         qDebug() << "TCPSocketUtil::newConnectionWithFilePartner " << "陌生客户端非法访问" << endl;
         return false;
     }
 
-    this->partnerFileConnections[vistorId] = vistor;
-    this->partnerFileConnections[vistorId]->setId(vistorId);
+    if (this->partnerFileConnections.contains(vistorId) || this->partnerFileP2PConnections.contains(vistorId)) {
+        qDebug() << "TCPSocketUtil::newConnectionWithFilePartner " << "伙伴客户端试图重复连接" << endl;
+        return false;
+    }
 
-    connect(this->partnerFileConnections[vistorId], SIGNAL(readyRead()), this->partnerFileConnections[vistorId], SLOT(ensureReadyRead()));
-    connect(this->partnerFileConnections[vistorId], SIGNAL(error(QAbstractSocket::SocketError)), this->partnerFileConnections[vistorId], SLOT(ensureError(QAbstractSocket::SocketError)));
-    connect(this->partnerFileConnections[vistorId], SIGNAL(disconnected()), this->partnerFileConnections[vistorId], SLOT(ensureDisconnected));
+    this->partnerFileConnections[vistorId] = oringinVistor;
 
-    connect(this->partnerFileConnections[vistorId], SIGNAL(readyReadFromOthers(qint32)), this, SLOT(recFromFilePartner(qint32)));
-    connect(this->partnerFileConnections[vistorId], SIGNAL(socketErrorOfOthers(QAbstractSocket::SocketError, qint32)), this, SLOT(failToGetHelpFromFilePartner(QAbstractSocket::SocketError, qint32)));
-    connect(this->partnerFileConnections[vistorId], SIGNAL(disconnectedFromOthers(qint32)), this, SLOT(disConnectToFilePartner(qint32)));
+    this->partnerFileP2PConnections[vistorId] = vistor;
+    this->partnerFileP2PConnections[vistorId]->setId(vistorId);
+
+    connect(this->partnerFileConnections[vistorId], SIGNAL(readyRead()), this->partnerFileP2PConnections[vistorId], SLOT(ensureReadyRead()));
+    connect(this->partnerFileConnections[vistorId], SIGNAL(error(QAbstractSocket::SocketError)), this->partnerFileP2PConnections[vistorId], SLOT(ensureError(QAbstractSocket::SocketError)));
+    connect(this->partnerFileConnections[vistorId], SIGNAL(disconnected()), this->partnerFileP2PConnections[vistorId], SLOT(ensureDisconnected));
+
+    connect(this->partnerFileP2PConnections[vistorId], SIGNAL(readyReadFromOthers(qint32)), this, SLOT(recFromFilePartner(qint32)));
+    connect(this->partnerFileP2PConnections[vistorId], SIGNAL(socketErrorOfOthers(QAbstractSocket::SocketError, qint32)), this, SLOT(failToGetHelpFromFilePartner(QAbstractSocket::SocketError, qint32)));
+    connect(this->partnerFileP2PConnections[vistorId], SIGNAL(disconnectedFromOthers(qint32)), this, SLOT(disConnectToFilePartner(qint32)));
 
     return true;
 }
@@ -640,11 +686,16 @@ bool TCPSocketUtil::newConnectionWithFilePartner()
 bool TCPSocketUtil::disConnectToFilePartner(qint32 partnerId)
 {
     if (!this->partnerFileConnections.contains(partnerId)) {
-        qDebug() << "TCPSocketUtil::disConnectToFilePartner " << "指定连接该伙伴客户端的P2PTcpSocket对象尚未建立 " << partnerId << endl;
+        this->partnerFileConnections[partnerId]->disconnectFromHost();
+    }
+
+    if (!this->partnerFileP2PConnections.contains(partnerId)) {
+        this->partnerFileP2PConnections[partnerId]->disconnectFromHost();
+    } else {
+        qDebug() << "TCPSocketUtil::disConnectToFilePartner " << "指定连接该伙伴客户端的P2PTcpSocket对象尚未建立 " << "partnerId " << partnerId << endl;
         return false;
     }
 
-    this->partnerFileConnections[partnerId]->disconnectFromHost();
     return true;
 }
 
@@ -715,7 +766,7 @@ bool TCPSocketUtil::sendToFileFriend(qint32 friendId, FileMsg & msg)
         createGuest(friendId);
     }
 
-    if (!this->parntersMap.contains(friendId)) {
+    if (!this->clientsMap.contains(friendId)) {
         qDebug() << "TCPSocketUtil::sendToFileFriend " << "无法获取指定伙伴的ip地址 " << friendId << endl;
         return false;
     }
@@ -741,4 +792,19 @@ bool TCPSocketUtil::failToHelpFileFriend(QAbstractSocket::SocketError error, qin
     this->fileGuests.remove(friendId);
 
     return true;
+}
+
+qint32 TCPSocketUtil::findIdFromClientsByIPAndPort(QString ip, quint16 port)
+{
+    qint32 id = -1;
+    qDebug() << "TCPSocketUtil::findIdFromClientsByIPAndPort " << "ip " << ip << " port " << port << endl;
+
+    for(int i = 0; i < this->clientsMap.size(); i++) {
+        if(this->clientsMap[i]->getIP() == ip && this->clientsMap[i]->getPort() == port){
+            id = this->clientsMap[i]->getId();
+            break;
+        }
+    }
+
+    return id;
 }
