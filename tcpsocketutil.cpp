@@ -684,11 +684,9 @@ bool TCPSocketUtil::failToHelpFriend(QAbstractSocket::SocketError error, qint32 
     qDebug() << "TCPSocketUtil::failToHelpFriend " << this->guests[friendId]->errorString() << endl;
     qDebug() << "TCPSocketUtil::failToHelpFriend " << "SocketError " << error << endl;
 
-    this->guests[friendId]->close();
-    delete this->guests[friendId];
-    this->guests[friendId] = nullptr;
-    this->guests.remove(friendId);
+    closeGuest(friendId);
 
+    qDebug() << "TCPSocketUtil::failToHelpFriend " << "end" << endl;
     return true;
 }
 
@@ -839,10 +837,9 @@ bool TCPSocketUtil::failToHelpFileFriend(QAbstractSocket::SocketError error, qin
     qDebug() << "TCPSocketUtil::failToHelpFileFriend " << this->fileGuests[friendId]->errorString() << endl;
     qDebug() << "TCPSocketUtil::failToHelpFileFriend " << "SocketError " << error << endl;
 
-    this->fileGuests[friendId]->close();
-    delete this->fileGuests[friendId];
-    this->fileGuests[friendId] = nullptr;
-    this->fileGuests.remove(friendId);
+    closeFileGuest(friendId);
+
+    qDebug() << "TCPSocketUtil::failToHelpFileFriend " << "end" << endl;
 
     return true;
 }
