@@ -127,12 +127,14 @@ public:
 
     bool closeHost();
     bool closeGuest(qint32 friendId);
+    bool closeConnection(qint32 partnerId);
 
     bool createFileHost();
     bool createFileGuest(qint32 friendId);
 
     bool closeFileHost();
     bool closeFileGuest(qint32 friendId);
+    bool closeFileConnection(qint32 partnerId);
 
     bool listenPort();
     bool connectToFriend(qint32 friendId);

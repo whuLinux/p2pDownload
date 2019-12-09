@@ -26,14 +26,21 @@ TCPSocketUtil::~TCPSocketUtil()
         closeGuest(clientsMapIt.key());
         closeFileGuest(clientsMapIt.key());
 
+        closeConnection(clientsMapIt.key());
+        closeFileConnection(clientsMapIt.key());
+
         delete clientsMapIt.value();
         clientsMapIt.value() = nullptr;
     }
 
     this->guests.clear();
     this->p2pGuests.clear();
+
     this->fileGuests.clear();
     this->p2pFileGuests.clear();
+
+    this->partnerConnections.clear();
+    this->partnerFileP2PConnections.clear();
 
     this->clientsMap.clear();
 }
@@ -233,6 +240,29 @@ bool TCPSocketUtil::closeGuest(qint32 friendId)
     return true;
 }
 
+bool TCPSocketUtil::closeConnection(qint32 partnerId)
+{
+    if (!disConnectToPartner(partnerId)) {
+        qDebug() << "TCPSocketUtil::closeConnection " << "错误尝试关闭和伙伴客户端之间不存在的TCP连接 " << "partnerId " << partnerId << endl;
+        return false;
+    }
+
+    if (this->partnerConnections[partnerId] != nullptr) {
+        delete this->partnerConnections[partnerId];
+    }
+
+    if (!this->partnerP2PConnections.contains(partnerId)) {
+        qDebug() << "TCPSocketUtil::closeConnection " << "错误尝试关闭和伙伴客户端之间不存在的TCP连接的P2P辅助 " << "partnerId " << partnerId << endl;
+        return false;
+    }
+
+    if (this->partnerP2PConnections[partnerId] != nullptr) {
+        delete this->partnerP2PConnections[partnerId];
+    }
+
+    return true;
+}
+
 bool TCPSocketUtil::createFileHost()
 {
     this->fileHost = new QTcpServer();
@@ -292,6 +322,29 @@ bool TCPSocketUtil::closeFileGuest(qint32 friendId)
 
     if (this->p2pFileGuests[friendId] != nullptr) {
         this->p2pGuests[friendId] = nullptr;
+    }
+
+    return true;
+}
+
+bool TCPSocketUtil::closeFileConnection(qint32 partnerId)
+{
+    if (!disConnectToFilePartner(partnerId)) {
+        qDebug() << "TCPSocketUtil::closeFileConnection " << "错误尝试关闭和伙伴客户端之间不存在的TCP连接 " << "partnerId " << partnerId << endl;
+        return false;
+    }
+
+    if (this->partnerFileConnections[partnerId] != nullptr) {
+        delete this->partnerFileConnections[partnerId];
+    }
+
+    if (!this->partnerFileP2PConnections.contains(partnerId)) {
+        qDebug() << "TCPSocketUtil::closeFileConnection " << "错误尝试关闭和伙伴客户端之间不存在的TCP连接的P2P辅助 " << "partnerId " << partnerId << endl;
+        return false;
+    }
+
+    if (this->partnerFileP2PConnections[partnerId] != nullptr) {
+        delete this->partnerFileP2PConnections[partnerId];
     }
 
     return true;
@@ -593,11 +646,9 @@ bool TCPSocketUtil::failToGetHelpFromPartner(QAbstractSocket::SocketError error,
     qDebug() << "TCPSocketUtil::failToGetHelpFromPartner " << this->partnerConnections[partnerId]->errorString() << endl;
     qDebug() << "TCPSocketUtil::failToGetHelpFromPartner " << "SocketError " << error << endl;
 
-    this->partnerConnections[partnerId]->close();
-    delete this->partnerConnections[partnerId];
-    this->partnerConnections[partnerId] = nullptr;
-    this->partnerConnections.remove(partnerId);
+    closeConnection(partnerId);
 
+    qDebug() << "TCPSocketUtil::failToGetHelpFromPartner " << "end" << endl;
     return true;
 }
 
@@ -802,11 +853,9 @@ bool TCPSocketUtil::failToGetHelpFromFilePartner(QAbstractSocket::SocketError er
     qDebug() << "TCPSocketUtil::failToGetHelpFromFilePartner " << this->partnerFileConnections[partnerId]->errorString() << endl;
     qDebug() << "TCPSocketUtil::failToGetHelpFromFilePartner " << "SocketError " << error << endl;
 
-    this->partnerFileConnections[partnerId]->close();
-    delete this->partnerFileConnections[partnerId];
-    this->partnerFileConnections[partnerId] = nullptr;
-    this->partnerFileConnections.remove(partnerId);
+    closeFileConnection(partnerId);
 
+    qDebug() << "TCPSocketUtil::failToGetHelpFromFilePartner " << "end" << endl;
     return true;
 }
 
