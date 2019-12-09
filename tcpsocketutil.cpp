@@ -219,6 +219,8 @@ bool TCPSocketUtil::closeHost()
 
 bool TCPSocketUtil::closeGuest(qint32 friendId)
 {
+    qDebug() << "TCPSocketUtil::closeGuest " << "start closing" << endl;
+
     if (!disConnectToFriend(friendId)) {
         qDebug() << "TCPSocketUtil::closeGuest " << "错误尝试关闭和朋友客户端之间不存在的TCP连接 " << "friendId " << friendId << endl;
         return false;
@@ -226,6 +228,7 @@ bool TCPSocketUtil::closeGuest(qint32 friendId)
 
     if (this->guests[friendId] != nullptr) {
         delete this->guests[friendId];
+        this->guests[friendId] = nullptr;
     }
 
     if (!this->p2pGuests.contains(friendId)) {
@@ -233,15 +236,22 @@ bool TCPSocketUtil::closeGuest(qint32 friendId)
         return false;
     }
 
-    if (this->p2pGuests[friendId] != nullptr) {
-        delete this->p2pGuests[friendId];
+    if (this->p2pGuests[friendId] == nullptr) {
+        qDebug() << "TCPSocketUtil::closeGuest " << "和朋友客户端的TCP连接的P2P辅助已经关闭 " << "friendId " << friendId << endl;
+        return false;
     }
+
+    this->p2pGuests[friendId]->setId(-1);
+
+    qDebug() << "TCPSocketUtil::closeGuest " << "finish closing" << endl;
 
     return true;
 }
 
 bool TCPSocketUtil::closeConnection(qint32 partnerId)
 {
+    qDebug() << "TCPSocketUtil::closeConnection " << "start closing" << endl;
+
     if (!disConnectToPartner(partnerId)) {
         qDebug() << "TCPSocketUtil::closeConnection " << "错误尝试关闭和伙伴客户端之间不存在的TCP连接 " << "partnerId " << partnerId << endl;
         return false;
@@ -249,6 +259,7 @@ bool TCPSocketUtil::closeConnection(qint32 partnerId)
 
     if (this->partnerConnections[partnerId] != nullptr) {
         delete this->partnerConnections[partnerId];
+        this->partnerConnections[partnerId] = nullptr;
     }
 
     if (!this->partnerP2PConnections.contains(partnerId)) {
@@ -256,9 +267,14 @@ bool TCPSocketUtil::closeConnection(qint32 partnerId)
         return false;
     }
 
-    if (this->partnerP2PConnections[partnerId] != nullptr) {
-        delete this->partnerP2PConnections[partnerId];
+    if (this->partnerP2PConnections[partnerId] == nullptr) {
+        qDebug() << "TCPSocketUtil::closeConnection " << "和伙伴客户端的TCP连接的P2P辅助已经关闭 " << "partnerId " << partnerId << endl;
+        return false;
     }
+
+    this->partnerP2PConnections[partnerId]->setId(-1);
+
+    qDebug() << "TCPSocketUtil::closeConnection " << "finish closing" << endl;
 
     return true;
 }
@@ -306,13 +322,16 @@ bool TCPSocketUtil::closeFileHost()
 
 bool TCPSocketUtil::closeFileGuest(qint32 friendId)
 {
+    qDebug() << "TCPSocketUtil::closeFileGuest " << "start closing" << endl;
+
     if (!disConnectToFileFriend(friendId)) {
         qDebug() << "TCPSocketUtil::closeFileGuest " << "错误尝试关闭和朋友客户端之间不存在的TCP连接 " << "friendId" << friendId << endl;
         return false;
     }
 
     if (this->fileGuests[friendId] != nullptr) {
-        this->guests[friendId] = nullptr;
+        delete this->fileGuests[friendId];
+        this->fileGuests[friendId] = nullptr;
     }
 
     if (!this->p2pFileGuests.contains(friendId)) {
@@ -320,15 +339,22 @@ bool TCPSocketUtil::closeFileGuest(qint32 friendId)
         return false;
     }
 
-    if (this->p2pFileGuests[friendId] != nullptr) {
-        this->p2pGuests[friendId] = nullptr;
+    if (this->p2pFileGuests[friendId] == nullptr) {
+        qDebug() << "TCPSocketUtil::closeFileGuest " << "和朋友客户端的TCP连接的P2P辅助已经关闭 " << "friendId " << friendId << endl;
+        return false;
     }
+
+    this->p2pFileGuests[friendId]->setId(-1);
+
+    qDebug() << "TCPSocketUtil::closeFileGuest " << "finish closing" << endl;
 
     return true;
 }
 
 bool TCPSocketUtil::closeFileConnection(qint32 partnerId)
 {
+    qDebug() << "TCPSocketUtil::closeFileConnection " << "start closing" << endl;
+
     if (!disConnectToFilePartner(partnerId)) {
         qDebug() << "TCPSocketUtil::closeFileConnection " << "错误尝试关闭和伙伴客户端之间不存在的TCP连接 " << "partnerId " << partnerId << endl;
         return false;
@@ -336,6 +362,7 @@ bool TCPSocketUtil::closeFileConnection(qint32 partnerId)
 
     if (this->partnerFileConnections[partnerId] != nullptr) {
         delete this->partnerFileConnections[partnerId];
+        this->partnerFileConnections[partnerId] = nullptr;
     }
 
     if (!this->partnerFileP2PConnections.contains(partnerId)) {
@@ -343,9 +370,14 @@ bool TCPSocketUtil::closeFileConnection(qint32 partnerId)
         return false;
     }
 
-    if (this->partnerFileP2PConnections[partnerId] != nullptr) {
-        delete this->partnerFileP2PConnections[partnerId];
+    if (this->partnerP2PConnections[partnerId] == nullptr) {
+        qDebug() << "TCPSocketUtil::closeFileConnection " << "和伙伴客户端的TCP连接的P2P辅助已经关闭 " << "partnerId " << partnerId << endl;
+        return false;
     }
+
+    this->partnerFileP2PConnections[partnerId]->setId(-1);
+
+    qDebug() << "TCPSocketUtil::closeFileConnection " << "finish closing" << endl;
 
     return true;
 }
@@ -406,6 +438,8 @@ bool TCPSocketUtil::connectToFriend(qint32 friendId)
 
 bool TCPSocketUtil::disConnectToFriend(qint32 friendId)
 {
+    qDebug() << "TCPSocketUtil::disConnectToFriend " << "start disConnecting" << endl;
+
     if (!this->guests.contains(friendId)) {
         qDebug() << "TCPSocketUtil::disConnectToFriend " << "指定连接该朋友客户端的P2PTcpSocket对象尚未建立 " << "friendId " << friendId << endl;
         return false;
@@ -418,17 +452,7 @@ bool TCPSocketUtil::disConnectToFriend(qint32 friendId)
 
     this->guests[friendId]->disconnectFromHost();
 
-    if (!this->p2pGuests.contains(friendId)) {
-        qDebug() << "TCPSocketUtil::disConnectToFriend " << "指定连接该朋友客户端的P2PTcpSocket对象的P2P辅助尚未建立 " << "friendId " << friendId << endl;
-        return false;
-    }
-
-    if (this->p2pGuests[friendId] == nullptr) {
-        qDebug() << "TCPSocketUtil::disConnectToFriend " << "指定连接该朋友客户端的P2PTcpSocket对象的P2P辅助已经关闭 " << "friendId " << friendId << endl;
-        return false;
-    }
-
-    this->p2pGuests[friendId]->setId(-1);
+    qDebug() << "TCPSocketUtil::disConnectToFriend " << "finish disConnecting" << endl;
 
     return true;
 }
@@ -559,6 +583,8 @@ bool TCPSocketUtil::newConnectionWithPartner()
 
 bool TCPSocketUtil::disConnectToPartner(qint32 partnerId)
 {
+    qDebug() << "TCPSocketUtil::disConnectToPartner " << "start disConnecting" << endl;
+
     if (!this->partnerConnections.contains(partnerId)) {
         qDebug() << "TCPSocketUtil::disConnectToPartner " << "指定连接该伙伴客户端的P2PTcpSocket对象尚未建立 " << "partnerId " << partnerId << endl;
         return false;
@@ -571,17 +597,7 @@ bool TCPSocketUtil::disConnectToPartner(qint32 partnerId)
 
     this->partnerConnections[partnerId]->disconnectFromHost();
 
-    if (!this->partnerP2PConnections.contains(partnerId)) {
-        qDebug() << "TCPSocketUtil::disConnectToPartner " << "指定连接该伙伴客户端的P2PTcpSocket对象的P2P辅助尚未建立 " << "partnerId " << partnerId << endl;
-        return false;
-    }
-
-    if (this->partnerP2PConnections[partnerId] == nullptr) {
-        qDebug() << "TCPSocketUtil::disConnectToPartner " << "指定连接该伙伴客户端的P2PTcpSocket对象的P2P辅助已经关闭 " << "partnerId " << partnerId << endl;
-        return false;
-    }
-
-    this->partnerP2PConnections[partnerId]->setId(-1);
+    qDebug() << "TCPSocketUtil::disConnectToPartner " << "finish disConnecting" << endl;
 
     return true;
 }
@@ -814,6 +830,8 @@ bool TCPSocketUtil::newConnectionWithFilePartner()
 
 bool TCPSocketUtil::disConnectToFilePartner(qint32 partnerId)
 {
+    qDebug() << "TCPSocketUtil::disConnectToFilePartner " << "start disConnecting" << endl;
+
     if (!this->partnerFileConnections.contains(partnerId)) {
         qDebug() << "TCPSocketUtil::disConnectToFilePartner " << "指定连接该伙伴客户端的P2PTcpSocket对象尚未建立 " << "partnerId " << partnerId << endl;
         return false;
@@ -826,17 +844,7 @@ bool TCPSocketUtil::disConnectToFilePartner(qint32 partnerId)
 
     this->partnerFileConnections[partnerId]->disconnectFromHost();
 
-    if (!this->partnerFileP2PConnections.contains(partnerId)) {
-        qDebug() << "TCPSocketUtil::disConnectToFilePartner " << "指定连接该伙伴客户端的P2PTcpSocket对象的P2P辅助尚未建立 " << "partnerId " << partnerId << endl;
-        return false;
-    }
-
-    if (this->partnerFileP2PConnections[partnerId] == nullptr) {
-        qDebug() << "TCPSocketUtil::disConnectToFilePartner " << "指定连接该伙伴客户端的P2PTcpSocket对象的P2P辅助已经关闭 " << "partnerId " << partnerId << endl;
-        return false;
-    }
-
-    this->partnerFileP2PConnections[partnerId]->setId(-1);
+    qDebug() << "TCPSocketUtil::disConnectToFilePartner " << "start disConnecting" << endl;
 
     return true;
 }
