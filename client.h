@@ -7,6 +7,7 @@
 
 /**
  * @brief The Client class
+ * @author 余宗宪
  * 主机信息
  * 请求发起机（即localhost），特殊标记
  */

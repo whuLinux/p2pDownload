@@ -10,6 +10,11 @@
 #include "ctrlmsg.h"
 #include "client.h"
 
+/**
+ * @brief The UDPSocketUtil class
+ * @author 余宗宪
+ * 服务器和客户端UDP通信工具类
+ */
 class UDPSocketUtil : public QObject
 {
     Q_OBJECT

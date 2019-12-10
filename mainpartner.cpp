@@ -25,7 +25,6 @@ void MainPartner::recHoleReqFromServer(QString name, QString ip, quint16 port){
         return;
     }
     qDebug()<<"MainPartner::recHoleReqFromServer  partnter接收服务器请求，send punch to friend."<<endl;
-    qDebug()<<"MainPartner::recHoleReqFromServer id>>"<<friendId<<" name>>"<<name<<endl;
     CommMsg msg=this->msgUtil->createP2PPunchMsg();
     //addGuest
     this->tcpSocketUtil->addGuest(friendId,

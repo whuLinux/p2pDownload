@@ -4,6 +4,11 @@
 #include <QObject>
 #include <QTcpSocket>
 
+/**
+ * @brief The P2PTcpSocket class
+ * @author 余宗宪
+ * P2P通信中Socket的辅助工具类，主要作为信号传播的中介
+ */
 class P2PTcpSocket : public QObject
 {
     Q_OBJECT

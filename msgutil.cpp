@@ -1,5 +1,11 @@
 #include "msgutil.h"
 
+/**
+ * @brief The MsgUtil class
+ * @author 余宗宪
+ * 生成控制信息的工具类
+ */
+
 MsgUtil::MsgUtil()
 {
 

@@ -9,6 +9,11 @@
 
 #include "uniformlabel.h"
 
+/**
+ * @brief The CtrlmMsg class
+ * @author 余宗宪
+ * 服务器和客户端UDP通信的控制消息
+ */
 class CtrlMsg
 {
 private:

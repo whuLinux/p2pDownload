@@ -1,5 +1,11 @@
 #include "udpsocketutil.h"
 
+/**
+ * @brief The UDPSocketUtil class
+ * @author 余宗宪
+ * 服务器和客户端UDP通信工具类
+ */
+
 UDPSocketUtil::UDPSocketUtil()
 {
 

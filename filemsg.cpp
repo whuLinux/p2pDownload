@@ -1,5 +1,11 @@
 #include "filemsg.h"
 
+/**
+ * @brief The FileMsg class
+ * @author 余宗宪
+ * 朋友客户端和伙伴客户端传输文件的控制消息
+ */
+
 FileMsg::FileMsg()
 {
 

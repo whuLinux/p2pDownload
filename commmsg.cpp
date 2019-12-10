@@ -1,5 +1,11 @@
 #include "commmsg.h"
 
+/**
+ * @brief The CommMsg class
+ * @author 余宗宪
+ * 朋友客户端和伙伴客户端协调下载的控制消息
+ */
+
 CommMsg::CommMsg()
 {
 

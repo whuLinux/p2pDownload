@@ -4,6 +4,12 @@
 #include <QString>
 
 /**
+ * @brief The uniformlable classes
+ * @authors 余宗宪、薛国潼
+ * P2P通信所使用到的一些枚举类型和常量
+ */
+
+/**
  * @brief The UDPCtrlMsgType enum
  * LOGIN                客户端信息注册到服务器
  * LOGOUT               服务器上客户端信息清空
@@ -28,7 +34,7 @@ enum class UDPCtrlMsgType : qint8 { LOGIN, LOGOUT, RENAME, LOGINSUCCESS, LOGINFA
  * 朋友 主动要求下载的客户端
  * 伙伴 被动协助下载的客户端
  * 每台客户端既可以是朋友也可以是伙伴
- * P2PPUNCH             朋友客户端发送的打洞包，接收端应忽略此消息
+ * P2PPUNCH             伙伴客户端发送的打洞包，接收端应忽略此消息
  * AREYOUALIVE          朋友客户端询问伙伴客户端是否存活
  * ISALIVE              伙伴客户端确认存活
  * ASKFORHELP           朋友客户端请求伙伴客户端协助下载

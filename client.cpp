@@ -1,5 +1,10 @@
 #include "client.h"
 
+/**
+ * @brief The Client class
+ * @author 余宗宪、薛国潼
+ */
+
 bool Client::getPunchSuccess() const
 {
     return punchSuccess;

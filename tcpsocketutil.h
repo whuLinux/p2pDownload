@@ -17,7 +17,8 @@
 
 /**
  * @brief The TCPSocketUtil class
- * 客户端间P2P通信工具类
+ * @author 余宗宪
+ * 客户端间TCP通信工具类
  * 带文件前缀意味着用于传送真正数据，否则用于传送控制信息
  */
 class TCPSocketUtil : public QObject

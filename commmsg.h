@@ -12,7 +12,8 @@
 
 /**
  * @brief The CommMsg class
- * 客户端交流的控制信息
+ * @author 余宗宪
+ * 朋友客户端和伙伴客户端协调下载的控制消息
  */
 class CommMsg
 {
