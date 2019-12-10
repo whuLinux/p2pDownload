@@ -40,25 +40,27 @@ P2P通信子模块由单个服务器和多个客户端组成：
 ![UDP通信序列图](UDP通信序列图.jpg)  
 
 ### 3.3.1 控制消息
-服务器和客户端的通信设置了枚举类型 UDPCtrlMsgType：
+服务器和客户端的通信设置了枚举类型 UDPCtrlMsgType：  
+
 | 类型 | 作用 |
 | :------: | :------: |
 | LOGIN |客户端信息注册到服务器 |
-| LOGOUT | 服务器上客户端信息清空
-| RENAME | 客户端设置的主机名不允许重复
-| LOGINSUCCESS | 客户端登陆成功
-| LOGINFAILURE | 客户端登陆失败
-| LOGOUTSUCCESS | 客户端登出成功
-| LOGOUTFAILURE | 客户端登出失败
-| OBTAINALLPARTNERS | 客户端申请获取伙伴客户端信息
-| OBTAINSUCCESS | 客户端申请获取伙伴客户端信息成功
-| OBTAINFAILURE | 客户端申请获取伙伴客户端信息失败
-| RETURNALLPARTNERS | 服务器返回伙伴客户端信息
-| P2PTRANS | 请求服务器“打洞”
-| P2PHOLEPACKAGE | 服务器向客户端发送，要求此客户端发送UDP打洞包
+| LOGOUT | 服务器上客户端信息清空 |
+| RENAME | 客户端设置的主机名不允许重复 |
+| LOGINSUCCESS | 客户端登陆成功 |
+| LOGINFAILURE | 客户端登陆失败 |
+| LOGOUTSUCCESS | 客户端登出成功 |
+| LOGOUTFAILURE | 客户端登出失败 |
+| OBTAINALLPARTNERS | 客户端申请获取伙伴客户端信息 |
+| OBTAINSUCCESS | 客户端申请获取伙伴客户端信息成功 |
+| OBTAINFAILURE | 客户端申请获取伙伴客户端信息失败 |
+| RETURNALLPARTNERS | 服务器返回伙伴客户端信息 |
+| P2PTRANS | 请求服务器“打洞” |
+| P2PHOLEPACKAGE | 服务器向客户端发送，要求此客户端发送UDP打洞包 |
 
 ### 3.3.2 客户端信息列表的数据结构
-客户端以朋友角色参与TCP通信时需要开放一个端口监听伙伴客户端的请求，因此客户端信息列表的结构体如下：
+客户端以朋友角色参与TCP通信时需要开放一个端口监听伙伴客户端的请求，因此客户端信息列表的结构体如下：  
+
 | 字段 | 解释 |
 | :------: | :------: |
 | name |客户端主机名 |
@@ -85,23 +87,24 @@ P2P通信子模块由单个服务器和多个客户端组成：
 - **fileGuests**：QTcpSocket对象，向朋友客户端发送下载文件块的Socket对象列表，每一次打洞成功，都会添加新元素。
 
 ### 3.4.3 控制消息
-为朋友客户端和伙伴客户端的协调下载设计了枚举类型 TCPCtrlMsgType：
+为朋友客户端和伙伴客户端的协调下载设计了枚举类型 TCPCtrlMsgType：  
+
 | 类型 | 作用 |
 | :------: | :------: |
 | P2PPUNCH | 伙伴客户端发送的打洞包，接收端应忽略此消息 |
-| AREYOUALIVE | 朋友客户端询问伙伴客户端是否存活
-| ISALIVE | 伙伴客户端确认存活
-| ASKFORHELP | 朋友客户端请求伙伴客户端协助下载
-| AGREETOHELP | 伙伴客户端同意协助下载
-| REFUSETOHELP | 伙伴客户端拒绝协助下载
-| DOWNLOADTASK | 下载任务信息
-| TASKFINISH | 伙伴客户端通知朋友客户端下载任务执行完成
-| TASKEXECUING | 伙伴客户端通知朋友客户端下载任务正在执行
-| TASKFAILURE | 伙伴客户端通知朋友客户端下载任务执行失败
-| RETURNALLPARTNERS    | 服务器返回伙伴客户端信息
-| ABORTTASK | 朋友客户端通知伙伴客户端终止并清除当前下载任务
-| THANKYOURHELP | 朋友客户端通知伙伴客户端已经收到传送的文件
-| ENDYOURHELP | 朋友客户端通知伙伴客户端已终止
+| AREYOUALIVE | 朋友客户端询问伙伴客户端是否存活 |
+| ISALIVE | 伙伴客户端确认存活 |
+| ASKFORHELP | 朋友客户端请求伙伴客户端协助下载 |
+| AGREETOHELP | 伙伴客户端同意协助下载 |
+| REFUSETOHELP | 伙伴客户端拒绝协助下载 |
+| DOWNLOADTASK | 下载任务信息 |
+| TASKFINISH | 伙伴客户端通知朋友客户端下载任务执行完成 |
+| TASKEXECUING | 伙伴客户端通知朋友客户端下载任务正在执行 |
+| TASKFAILURE | 伙伴客户端通知朋友客户端下载任务执行失败 |
+| RETURNALLPARTNERS    | 服务器返回伙伴客户端信息 |
+| ABORTTASK | 朋友客户端通知伙伴客户端终止并清除当前下载任务 |
+| THANKYOURHELP | 朋友客户端通知伙伴客户端已经收到传送的文件 |
+| ENDYOURHELP | 朋友客户端通知伙伴客户端已终止 |
 
 ### 3.4.4 下载任务的标识
 下载任务由其TOKEN唯一指定，TOKEN由主控模块分配
