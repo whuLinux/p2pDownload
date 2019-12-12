@@ -44,6 +44,11 @@ void mainctrl::signalsConnect(){
     qDebug()<<"connect::timeToInitialTaskForPartner"<<endl;
     QObject::connect(this->tcpSocketUtil,SIGNAL(timeToInitialTaskForPartner(qint32)),
                      this->local,SLOT(recPunchFromPartner(qint32)));
+
+    //唤起 downLoadScheduler
+    qDebug()<<"connect::callDownLoadSchedule"<<endl;
+    QObject::connect(this->local,SIGNAL(callDownLoadSchedule()),this->local,SLOT(downLoadSchedule()));
+
     //TASKEXECUING 接收伙伴机文件
     qDebug()<<"connect::timeForNextSliceForPartner"<<endl;
     QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextSliceForPartner(qint32,qint32,qint32)),this->local,SLOT(recPartnerSlice(qint32,qint32,qint32)));

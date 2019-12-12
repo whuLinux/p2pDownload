@@ -83,12 +83,6 @@ public:
      */
     bool createDownloadReq();
 
-    /**
-     * @brief downLoadSchedule
-     * 下载管理，最核心的任务调度
-     */
-    void downLoadSchedule();
-
     //p2pTrans 向设定数量内的伙伴机发送打洞请求
     void sendPunchToPartners();
 
@@ -127,6 +121,13 @@ public:
 public slots:
     void setHostName(const QString &value);
     void setPwd(const QString &value);
+
+    /**
+     * @brief downLoadSchedule
+     * 下载管理，最核心的任务调度
+     */
+    void downLoadSchedule();
+
     //登录检查
     bool checkLoginStatus();
 
@@ -163,6 +164,9 @@ public slots:
     void recMissionValidation(bool success);
 
 signals:
+    //进行下载调度 唤起下载调度方法
+    void callDownLoadSchedule();
+
     //将建立好的exist client lists复制给同主机的mainPartner对象
     void copyExistClientsToMainPartner(QVector<Client*> existClients);
 

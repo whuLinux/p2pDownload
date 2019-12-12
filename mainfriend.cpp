@@ -33,9 +33,9 @@ MainFriend::MainFriend(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketUti
 {
     this->downloadManager=new DownloadManager();
 
-    //将本机加入等待队列，保证无论如何可以执行单机下载
     this->local=new Client(0,"localhost","127.0.0.1",0,0);
     this->local->setPunchSuccess(true);
+    this->local->setTaskNum(2*INITTASKNUM);//初始化local下载能力
 
     //NOTE:UI 美化
     if (!this->tcpSocketUtil->stablishHost() || !this->tcpSocketUtil->stablishFileHost()) {
@@ -160,8 +160,8 @@ bool MainFriend::createMission(QString url,QString savePath,QString missionName)
     qDebug()<<"MainFriend::createMission 设置mission url>>"<<url
            <<" | path>>"<<savePath<<" | name>>"<<missionName<<endl;
 
-//    this->myMission.url=url;
-//    this->myMission.name=missionName;
+    //    this->myMission.url=url;
+    //    this->myMission.name=missionName;
 
     //NOTE: url 格式，访问性检查;存储路径检查
     this->downloadManager->setUrl(url);
@@ -181,13 +181,13 @@ bool MainFriend::createMission(QString url,QString savePath,QString missionName)
         else{
             if(!mainCtrlUtil::createDirectory(dirName,dirPath)){
                 qDebug()<<"MainFriend::createMission  设置下载路径成功"<<savePath;
-    //            this->myMission.savePath=savePath;
+                //            this->myMission.savePath=savePath;
                 this->downloadManager->setPath(savePath);
             }
             else{
                 qDebug()<<savePath<<"MainFriend::createMission ERROR！有误，采用默认路径";
-    //            mainCtrlUtil::createDirectory("tmp","./");
-    //            this->myMission.savePath="./";
+                //            mainCtrlUtil::createDirectory("tmp","./");
+                //            this->myMission.savePath="./";
             }
         }
         return true;
@@ -224,7 +224,7 @@ bool MainFriend::initWaitingClients(){
     qDebug()<<"MainFriend::initWaitingClients  当前waiting>>"<<this->waitingClients.size()
            <<"当前exist:"<<this->existClients.size();
 
-    //existClients中不包含local client
+    //existClients中不包含local client，故+1
     while(this->waitingClients.size()<=this->existClients.size()+1 &&
           timer.elapsed()<=30000){
         //未达到伙伴机上限且未达到时间上限，等待
@@ -325,7 +325,6 @@ bool MainFriend::createDownloadReq(){
 }
 
 void MainFriend::downLoadSchedule(){
-    bool flag=false;
 
     qDebug()<<"MainFriend::downLoadSchedule 下载Mission调度"<<endl;
     //debug用
@@ -334,53 +333,48 @@ void MainFriend::downLoadSchedule(){
                <<this->waitingClients[i]->getIP()<<"  "<<this->waitingClients[i]->getId()<<endl;
     }
 
-    if(!mainCtrlUtil::isValidMission(this->myMission)){
-        qDebug()<<"ERROR:创建下载失败，mission内容不合法"<<this->myMission.url<<this->myMission.savePath;
-        //NOTE:状态变化
-        this->status=ClientStatus::IDLING;
-        return;
-    }
     qDebug()<<"MainFriend::downLoadSchedule  开始调度"<<endl;
-    while(flag){
-        //检查任务队列
-        if(this->blockQueue.isEmpty()){
-            if(this->taskTable.isEmpty()){
-                qDebug()<<"MainFriend::downLoadSchedule "<<"任务完成，等待拼接、检查数据"<<endl;
-                flag=true;
-                emit(this->callMissionIntegrityCheck(this->historyTable,this->myMission.name,this->downloadManager->getPath(),this->myMission.filesize));
-            }
-        }
-        else{
-            qDebug()<<"MainFriend::downLoadSchedule 空闲块队列不空"<<endl;
-            if(!this->waitingClients.isEmpty()){
-                qDebug()<<"MainFriend::downLoadSchedule 空闲主机队列不空 分配任务"<<endl;
-                QVector<mainRecord*> recordLists;//block下标不连续时，创建多个任务
-                Client *client=this->waitingClients.dequeue();
-                QVector<blockInfo> taskBlockLists=this->getTaskBlocks(client->getTaskNum());//按照client能力去对应个数的block
-                recordLists=this->createTaskRecord(taskBlockLists,client->getId());
-
-                if(client->getId()==0 ||client->getIP()=="127.0.0.1"||client->getName()=="localhost"){
-                    //为本地机，执行本地下载任务
-                    qDebug()<<"MainFriend::downLoadSchedule local client空闲，分配任务"<<endl;
-                    this->downloadManager->setUrl(this->myMission.url);
-                    this->localRecordLists=recordLists;
-                    this->status=ClientStatus::DOWNLOADING;
-                    //发信号让本地执行下载
-                    qDebug()<<"MainFriend::downLoadSchedule 发信号执行本地下载"<<endl;
-                    emit(callAssignTaskToLocal());
-                }
-                else{
-                    //给伙伴机分配任务
-                    qDebug()<<"MainFriend::downLoadSchedule partner空闲，分配任务 clientID:"<<client->getId()
-                           <<client->getName()<<endl;
-                    this->assignTaskToPartner(client->getId(),recordLists);
-                }
-                this->addToTaskTable(recordLists);
-                this->workingClients.append(client);//加入工作状态
-            }
+    //检查任务队列
+    if(this->blockQueue.isEmpty()){
+        if(this->taskTable.isEmpty()){
+            qDebug()<<"MainFriend::downLoadSchedule "<<"任务完成，等待拼接、检查数据"<<endl;
+            emit(this->callMissionIntegrityCheck(this->historyTable,this->myMission.name,this->downloadManager->getPath(),this->myMission.filesize));
         }
     }
+    else{
+        qDebug()<<"MainFriend::downLoadSchedule 空闲块队列不空"<<endl;
+        if(!this->waitingClients.isEmpty()){
+            qDebug()<<"MainFriend::downLoadSchedule 空闲主机队列不空 分配任务"<<endl;
+            QVector<mainRecord*> recordLists;//block下标不连续时，创建多个任务
+            Client *client=this->waitingClients.dequeue();
+            QVector<blockInfo> taskBlockLists=this->getTaskBlocks(client->getTaskNum());//按照client能力去对应个数的block
+            recordLists=this->createTaskRecord(taskBlockLists,client->getId());
 
+            if(client->getId()==0 ||client->getIP()=="127.0.0.1"||client->getName()=="localhost"){
+                //为本地机，执行本地下载任务
+                qDebug()<<"MainFriend::downLoadSchedule local client空闲，分配任务"<<endl;
+                this->downloadManager->setUrl(this->myMission.url);
+                this->localRecordLists=recordLists;
+                this->status=ClientStatus::DOWNLOADING;
+                //发信号让本地执行下载
+                qDebug()<<"MainFriend::downLoadSchedule 发信号执行本地下载"<<endl;
+                emit(callAssignTaskToLocal());
+            }
+            else{
+                //给伙伴机分配任务
+                qDebug()<<"MainFriend::downLoadSchedule partner空闲，分配任务 clientID:"<<client->getId()
+                       <<client->getName()<<endl;
+                this->assignTaskToPartner(client->getId(),recordLists);
+            }
+            this->addToTaskTable(recordLists);
+            this->workingClients.append(client);//加入工作状态
+        }
+    }
+    //处理后续可能未分配的blocks
+    if(!this->blockQueue.isEmpty() && !this->waitingClients.isEmpty()){
+        qDebug()<<"MainFriend::downLoadSchedule partner 发送信号给自己，继续分配"<<endl;
+        emit(this->callDownLoadSchedule());
+    }
 }
 
 void MainFriend::assignTaskToLocal(){
@@ -411,7 +405,9 @@ void MainFriend::assignTaskToLocal(){
         QObject::connect(this->downloadManager,SIGNAL(taskFinished()),this,SLOT(taskEndAsLocal()));
     }
     else{
-        //TODO：task finish，将local 主机放回队列
+        qDebug()<<"MainFriend::assignTaskToLoca local下载结束，移入waitingClient，发callDownLoadSchedule"<<endl;
+        this->work2wait(this->local->getId());
+        emit(this->callDownLoadSchedule());
     }
 }
 
@@ -475,6 +471,7 @@ void MainFriend::addToTaskTable(QVector<mainRecord*> recordLists){
 }
 
 void MainFriend::deleteFromTaskTable(qint32 clientID,qint32 token){
+    qDebug()<<"MainFriend::deleteFromTaskTable clientID>>"<<clientID<<" token>>"<<token<<endl;
     QVector<mainRecord*>::iterator iter;
     QVector<blockInfo> tempBlocks;
     blockInfo *tempBlock;
@@ -684,7 +681,7 @@ void MainFriend::taskEndAsLocal(){
 void MainFriend::taskEndConfig(qint32 clientId,qint32 token){
     //NOTE：完整性检查，出错重发
     bool found=false;
-    //任务状态更新
+    qDebug()<<"MainFriend::taskEndConfig 任务状态更新"<<endl;
     this->deleteFromTaskTable(clientId,token);
     //伙伴状态更新
     for(int i=0;i<this->taskTable.size();i++){
@@ -698,6 +695,8 @@ void MainFriend::taskEndConfig(qint32 clientId,qint32 token){
         //client全部下载任务完成
         qDebug()<<"MainFriend::taskEndConfig  client任务全部完成，移至waiting队列，等待新任务分配。 client>> "<<clientId<<endl;
         this->work2wait(clientId);
+        qDebug()<<"MainFriend::taskEndConfig 发送callDownLoadSchedule"<<endl;
+        emit(this->callDownLoadSchedule());
     }
 }
 

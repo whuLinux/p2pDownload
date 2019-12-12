@@ -82,7 +82,7 @@ const qint8 FAKERECORD=-3;
 const QString LOGPATH="log.txt";
 
 //服务器信息
-const QString SERVERIP="192.168.43.117";
+const QString SERVERIP="192.168.43.111";
 const quint16 SERVERPORT=8808;
 
 /**

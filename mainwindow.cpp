@@ -76,5 +76,13 @@ void MainWindow::on_pushButton_logout_clicked()
 
 void MainWindow::on_pushButton_downloadstart_clicked()
 {
+    //执行前检查任务请求正确性
+    if(!mainCtrlUtil::isValidMission(this->ctrl.local->myMission)){
+        qDebug()<<"ERROR:创建下载失败，mission内容不合法"<<this->ctrl.local->myMission.url
+               <<this->ctrl.local->myMission.savePath;
+        //NOTE:状态变化
+        this->ctrl.local->status=ClientStatus::IDLING;
+        return;
+    }
     this->ctrl.local->downLoadSchedule();
 }
