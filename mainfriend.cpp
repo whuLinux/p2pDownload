@@ -214,6 +214,10 @@ bool MainFriend::initWaitingClients(){
             QObject::connect(this->tcpSocketUtil,SIGNAL(refuseToOfferHelpForPartner(qint32)),this,SLOT(partnerReject(qint32)));
         }
     }
+
+    qDebug()<<"MainFriend::initWaitingClients 将本地主机 friend加入waitingClients队列"<<this->local.getName()<<endl;
+    this->waitingClients.append(&this->local);
+
     //设定时间循环，等待伙伴机请求
     //NOTE:GUI用户友好，可视化响应请求数量
     timer.start();
@@ -221,7 +225,7 @@ bool MainFriend::initWaitingClients(){
     qDebug()<<"MainFriend::initWaitingClients  当前waiting>>"<<this->waitingClients.size()
            <<"当前exist:"<<this->existClients.size();
     while(this->waitingClients.size()<=this->existClients.size()&&
-          timer.elapsed()<=10000){
+          timer.elapsed()<=20000){
         //未达到伙伴机上限且未达到时间上限，等待
         if(tempClientsNum<this->waitingClients.size()){
             //有新同意的伙伴
@@ -266,7 +270,8 @@ bool MainFriend::partnerAccept(qint32 partnerId){
             (*iter)->attributeTask();//开始任务标记
             (*iter)->setTaskNum(INITTASKNUM);
             this->workingClients.append(*iter);
-            qDebug()<<"MainFriend::partnerAccept  伙伴机同意请求 partnerId>>"<<partnerId<<endl;
+            qDebug()<<"MainFriend::partnerAccept  伙伴机同意请求 partner>>>>"<<partnerId
+                   <<"  "<<(*iter)->getName()<<endl;
             return true;
         }
     }
@@ -325,6 +330,7 @@ void MainFriend::downLoadSchedule(){
         this->status=ClientStatus::IDLING;
         return;
     }
+    qDebug()<<"MainFriend::downLoadSchedule  开始调度"<<endl;
     while(flag){
         //检查任务队列
         if(this->blockQueue.isEmpty()){
