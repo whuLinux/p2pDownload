@@ -227,7 +227,7 @@ bool MainFriend::initWaitingClients(){
 
     //existClients中不包含local client
     while(this->waitingClients.size()<=this->existClients.size()+1 &&
-          timer.elapsed()<=20000){
+          timer.elapsed()<=30000){
         //未达到伙伴机上限且未达到时间上限，等待
         if(tempClientsNum<this->waitingClients.size()){
             //有新同意的伙伴
@@ -236,14 +236,14 @@ bool MainFriend::initWaitingClients(){
         }
     }
 
-    if(this->waitingClients.size()<=1){
+    this->clientNum=this->waitingClients.size();
+    if(this->clientNum<=1){
         //仅有本机
         qDebug()<<"MainFriend::initWaitingClients  无伙伴机响应";
         return false;
     }
     else{
         this->status=ClientStatus::DOWNLOADING;
-        this->clientNum=this->waitingClients.size();
         qDebug()<<"MainFriend::initWaitingClients  请求成功，当前可供下载clients数量： "<<this->clientNum<<endl;
         return true;
     }
@@ -288,12 +288,12 @@ bool MainFriend::partnerReject(qint32 partnerId){
 }
 
 bool MainFriend::createDownloadReq(){
-    qint8 blockNum=0;
+    qint32 blockNum=0;
     qDebug()<<" MainFriend::creatDownloadReq  创建下载任务"<<endl;
     //寻求伙伴机帮助
     this->initWaitingClients();
     //下载任务信息更新
-    if(this->myMission.filesize/this->clientNum<MAXBLOCKSIZE){
+    if(this->myMission.filesize / this->clientNum < MAXBLOCKSIZE){
         this->blockSize=this->myMission.filesize/this->clientNum;
     }
     else{
