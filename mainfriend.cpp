@@ -226,7 +226,7 @@ bool MainFriend::initWaitingClients(){
 
     //existClients中不包含local client，故+1
     while(this->waitingClients.size()<=this->existClients.size()+1 &&
-          timer.elapsed()<=30000){
+          timer.elapsed()<=10000){
         //未达到伙伴机上限且未达到时间上限，等待
         if(tempClientsNum<this->waitingClients.size()){
             //有新同意的伙伴
@@ -386,12 +386,16 @@ void MainFriend::assignTaskToLocal(){
         qint64 len;
         QString taskName;
         tempBlocks=record->getBlockIds();
-        pos=tempBlocks.constFirst().index * this->blockSize;
+        //block index从1开始
+        pos=(tempBlocks.constFirst().index -1) * this->blockSize;
         if(tempBlocks.constLast().isEndBlock){
             //如果是最后的块
             len=this->myMission.filesize-pos;
+            qDebug()<<"MainFriend::assignTaskToLocal 最后的块，len=myMission.filesize-pos.即len>>"
+                      <<len<<" filesize>>"<<myMission.filesize<<" pos>>"<<pos<<endl;
         }
         else{
+            qDebug()<<"MainFriend::assignTaskToLocal task不包含最后的块"<<endl;
             len=tempBlocks.size()*this->blockSize;
         }
         taskName=QString::number(record->getToken())+".tmp";
