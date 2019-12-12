@@ -224,7 +224,9 @@ bool MainFriend::initWaitingClients(){
 
     qDebug()<<"MainFriend::initWaitingClients  当前waiting>>"<<this->waitingClients.size()
            <<"当前exist:"<<this->existClients.size();
-    while(this->waitingClients.size()<=this->existClients.size()&&
+
+    //existClients中不包含local client
+    while(this->waitingClients.size()<=this->existClients.size()+1 &&
           timer.elapsed()<=20000){
         //未达到伙伴机上限且未达到时间上限，等待
         if(tempClientsNum<this->waitingClients.size()){

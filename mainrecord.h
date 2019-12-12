@@ -7,6 +7,7 @@
 #include"mainctrlmacro.h"
 /**
  * @brief The mainRecord class
+ * @author Vincent Xue
  * 任务分配记录，作为任务分配表的表项
  */
 class mainRecord:public QObject

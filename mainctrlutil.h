@@ -7,6 +7,11 @@
 #include"mainctrlmacro.h"
 #include"mainrecord.h"
 
+/**
+ * @brief The mainCtrlUtil class
+ * @author Vincent Xue
+ * 主控模块辅助工具类
+ */
 class mainCtrlUtil:public QObject
 {
     Q_OBJECT

@@ -5,6 +5,7 @@
 
 /**
  * @brief The MainPartner class
+ * @author Vincent Xue
  * 作为伙伴机协助下载
  */
 class MainPartner:public MainRole

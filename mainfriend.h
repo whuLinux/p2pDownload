@@ -11,6 +11,7 @@
 
 /**
  * @brief The MainFriend class
+ * @author Vincent Xue
  * 作为friedn朋友机，即请求发起机，执行下载
  */
 class MainFriend:public MainRole

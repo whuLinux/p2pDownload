@@ -11,6 +11,7 @@ using namespace std;
 
 /**
  * @brief The mainctrl class
+ * @author Vincent Xue
  * 主控模块，执行下述功能：
  * 1. 主机注册
  * 2. 下载任务分配、调度

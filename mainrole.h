@@ -17,6 +17,11 @@
 #include<stdio.h> //printf
 using namespace std;
 
+/**
+ * @brief The MainRole class
+ * @author Vincent Xue
+ * partner,friend 父类 组合基本工具类
+ */
 class MainRole : public QObject
 {
     Q_OBJECT

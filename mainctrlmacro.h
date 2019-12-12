@@ -7,6 +7,7 @@
 
 /**
  * @brief The blockInfo struct
+ * @author Vincent Xue
  * 文件分块的信息
  */
 struct blockInfo
