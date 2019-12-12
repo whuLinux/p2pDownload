@@ -343,9 +343,9 @@ void MainFriend::downLoadSchedule(){
             }
         }
         else{
-            //空闲主机队列不空
+            qDebug()<<"MainFriend::downLoadSchedule 空闲块队列不空"<<endl;
             if(!this->waitingClients.isEmpty()){
-                //分配任务
+                qDebug()<<"MainFriend::downLoadSchedule 空闲主机队列不空 分配任务"<<endl;
                 QVector<mainRecord*> recordLists;//block下标不连续时，创建多个任务
                 Client *client=this->waitingClients.dequeue();
                 QVector<blockInfo> taskBlockLists=this->getTaskBlocks(client->getTaskNum());//按照client能力去对应个数的block
@@ -358,11 +358,13 @@ void MainFriend::downLoadSchedule(){
                     this->localRecordLists=recordLists;
                     this->status=ClientStatus::DOWNLOADING;
                     //发信号让本地执行下载
+                    qDebug()<<"MainFriend::downLoadSchedule 发信号执行本地下载"<<endl;
                     emit(callAssignTaskToLocal());
                 }
                 else{
                     //给伙伴机分配任务
-                    qDebug()<<"MainFriend::downLoadSchedule local client空闲，分配任务 clientID:"<<client->getId()<<endl;
+                    qDebug()<<"MainFriend::downLoadSchedule partner空闲，分配任务 clientID:"<<client->getId()
+                           <<client->getName()<<endl;
                     this->assignTaskToPartner(client->getId(),recordLists);
                 }
                 this->addToTaskTable(recordLists);
