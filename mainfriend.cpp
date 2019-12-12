@@ -404,6 +404,8 @@ void MainFriend::assignTaskToLocal(){
         this->downloadManager->setName(taskName);
         this->downloadManager->setBegin(pos);
         this->downloadManager->setEnd(pos+len-1);
+        qDebug()<<"MainFriend::assignTaskToLocal 任务开始。taskName>>"<<taskName<<"  起始>>"<<pos
+               <<" 终止>>"<<pos+len-1<<endl;
         this->downloadManager->start();
         //NOTE:自定义路径功能尚未开发
         QObject::connect(this->downloadManager,SIGNAL(taskFinished()),this,SLOT(taskEndAsLocal()));
@@ -414,6 +416,7 @@ void MainFriend::assignTaskToLocal(){
 }
 
 QVector<blockInfo> MainFriend::getTaskBlocks(quint8 taskNum){
+    qDebug()<<"MainFriend::getTaskBlocks 请求分配blocks>>"<<taskNum<<" 个"<<endl;
     QVector<blockInfo> taskBlockLists;
     int countBlock=0;
     int totalBlocks=this->blockQueue.size();
@@ -421,6 +424,7 @@ QVector<blockInfo> MainFriend::getTaskBlocks(quint8 taskNum){
         taskBlockLists.append(this->blockQueue.takeFirst());
         countBlock++;
     }
+    qDebug()<<"MainFriend::getTaskBlocks 实际分配blocks>>"<<taskBlockLists.size()<<" 个"<<endl;
     return taskBlockLists;
 }
 
@@ -437,12 +441,14 @@ QVector<mainRecord*> MainFriend::createTaskRecord(QVector<blockInfo> blockLists,
         if(preBlockId+1!=tempBlock.index){
             //block不连续，旧的blocks创建record，入队；创建新record存储block
             if(recordP->getClientId()!=FAKERECORD){
+                qDebug()<<"MainFriend::createTaskRecord record入队列"<<recordP->getRecordID()<<endl;
                 recordLists.append(recordP);//先前blocks记录创建
                 gap+=RECORDGAP;
             }
             recordP=new mainRecord();
             recordP->setRecordID(this->mainctrlutil->createRecordId());
             recordP->setClientId(clientId);recordP->setToken(this->mainctrlutil->createTokenId());//每个任务创建唯一Id
+            qDebug()<<"MainFriend::createTaskRecord 创建新record recordID>>"<<recordP->getRecordID()<<" token>>"<<recordP->getToken()<<endl;
             recordP->createTimer(DDL+gap,true);//设置计时器并开启
             QObject::connect(recordP,SIGNAL(sendTimeOutToCtrl(qint32)),this,SLOT(checkTimeOutTask(qint32)));
             qDebug()<<"MainFriend::createTaskRecord  connect::sendTimeOutToCtrl 连接计时器"<<endl;
@@ -454,6 +460,7 @@ QVector<mainRecord*> MainFriend::createTaskRecord(QVector<blockInfo> blockLists,
 
     //若块一直连续，循环中未能将记录入vector，此处才入
     if(recordP->getClientId()!=FAKERECORD){
+        qDebug()<<"MainFriend::createTaskRecord 创建最后的record recordID"<<recordP->getRecordID()<<endl;
         recordLists.append(recordP);//blocks记录创建
     }
 
