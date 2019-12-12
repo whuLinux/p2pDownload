@@ -695,6 +695,8 @@ bool TCPSocketUtil::sendToPartner(qint32 partnerId, CommMsg & msg)
         this->partnerFileIndex[msg.getToken()] = 0;
     }
 
+    qDebug() << "TCPSocketUtil::sendToPartner " << "start writing msg" << endl;
+
     // 请求伙伴客户端协助下载, 分配下载任务, 通知伙伴客户端可以继续传送文件, 下载已完成，终止任务
     this->partnerConnections[partnerId]->write(msg.toMsg());
     return true;
