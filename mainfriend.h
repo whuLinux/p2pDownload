@@ -22,7 +22,7 @@ private:
     //TODO:使用配置文件
     QString hostName;//登记在服务器的名字与密码
     QString pwd;
-    Client local;//本地主机
+    Client *local;//本地主机
     QTimer *loginTimer;
     //本地下载任务
     QVector<mainRecord*> localRecordLists;
