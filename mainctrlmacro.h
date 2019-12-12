@@ -59,13 +59,13 @@ struct partnerTask{
 //TODO: 待改为配置文件
 //单个文件块大小上限
 //TODO: 以什么为单位
-const quint32 MAXBLOCKSIZE=1024;
+const quint32 MAXBLOCKSIZE=65536;
 //任务下载时长上限,10 minute
 const qint64 DDL=600000;
 //连续两个任务指派时，DDL时间增量，1minute
 const qint64 RECORDGAP=60000;
 //初始下载任务数量
-const quint32 INITTASKNUM=1;
+const quint32 INITTASKNUM=10;
 
 //登录时发送punch的伙伴机数量上限
 const qint32 MAXPARTNERSPUNCH=30;
