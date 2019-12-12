@@ -450,6 +450,7 @@ QVector<mainRecord*> MainFriend::createTaskRecord(QVector<blockInfo> blockLists,
             qDebug()<<"MainFriend::createTaskRecord  connect::sendTimeOutToCtrl 连接计时器"<<endl;
         }
         recordP->addBlockId(tempBlock);
+        preBlockId=tempBlock.index;
         counter++;
         tempBlock=blockLists.takeFirst();
     }

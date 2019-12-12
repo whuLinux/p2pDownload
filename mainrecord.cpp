@@ -59,7 +59,7 @@ void mainRecord::createTimer(qint64 gap, bool isSingle){
     this->timer=new QTimer();
     this->timer->setSingleShot(isSingle);
     this->timer->start(gap);
-    QObject::connect(this->timer,SIGNAL(timeout()),this,SLOT(recAlert));
+    QObject::connect(this->timer,SIGNAL(timeout()),this,SLOT(recAlert()));
 }
 
 void mainRecord::recAlert(){
