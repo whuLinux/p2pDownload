@@ -34,9 +34,8 @@ MainFriend::MainFriend(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketUti
     this->downloadManager=new DownloadManager();
 
     //将本机加入等待队列，保证无论如何可以执行单机下载
-    Client *localhost=new Client(0,"localhost","127.0.0.1",0,0);
-    localhost->setPunchSuccess(true);
-    this->waitingClients.append(localhost);
+    this->local=new Client(0,"localhost","127.0.0.1",0,0);
+    this->local->setPunchSuccess(true);
 
     //NOTE:UI 美化
     if (!this->tcpSocketUtil->stablishHost() || !this->tcpSocketUtil->stablishFileHost()) {
@@ -57,7 +56,7 @@ MainFriend::~MainFriend(){
 
 void MainFriend::regLocalClients(){
 
-    qDebug()<<"MainFriend::regLocalClients "<<this->hostName<<this->local.getFilePort();
+    qDebug()<<"MainFriend::regLocalClients "<<this->hostName<<this->local->getFilePort();
     CtrlMsg login_msg=this->msgUtil->createLoginMsg(this->hostName,this->pwd,DEFAULTPORT,DEFAULTFILEPORT);
     if(this->udpSocketUtil->login(login_msg))
         qDebug()<<"MainFriend::regLocalClients 连接请求msg 已发送"<<endl;
@@ -215,8 +214,8 @@ bool MainFriend::initWaitingClients(){
         }
     }
 
-    qDebug()<<"MainFriend::initWaitingClients 将本地主机 friend加入waitingClients队列"<<this->local.getName()<<endl;
-    this->waitingClients.append(&this->local);
+    qDebug()<<"MainFriend::initWaitingClients 将本地主机 friend加入waitingClients队列"<<this->local->getName()<<endl;
+    this->waitingClients.append(this->local);
 
     //设定时间循环，等待伙伴机请求
     //NOTE:GUI用户友好，可视化响应请求数量
@@ -288,7 +287,10 @@ bool MainFriend::partnerReject(qint32 partnerId){
 }
 
 bool MainFriend::createDownloadReq(){
-    qint32 blockNum=0;
+    qint32 blockNum = 0;
+    qint32 blockTnum = 0;
+    qint32 lastBlockSize = 0;
+
     qDebug()<<" MainFriend::creatDownloadReq  创建下载任务"<<endl;
     //寻求伙伴机帮助
     this->initWaitingClients();
@@ -301,7 +303,11 @@ bool MainFriend::createDownloadReq(){
     }
 
     qDebug()<<"MainFriend::creatDownloadReq  blockSize>>"<<this->blockSize<<endl;
-    blockNum=this->myMission.filesize/this->blockSize;
+
+    blockTnum=this->myMission.filesize/this->blockSize;
+    lastBlockSize = this->myMission.filesize - this->blockSize * blockTnum;
+    blockNum = lastBlockSize > 0 ? blockTnum + 1 : blockTnum;
+
     qDebug()<<"MainFriend::creatDownloadReq  blockNum>>"<<blockNum<<endl;
     for(qint8 i=1;i<=blockNum;i++){
         //创建任务块
@@ -312,6 +318,8 @@ bool MainFriend::createDownloadReq(){
         else temp->isEndBlock=false;
         this->blockQueue.append(*temp);
     }
+
+
     qDebug()<<" MainFriend::creatDownloadReq  划分下载任务块，块数共"<<this->blockQueue.size()<<endl;
     return true;
 }

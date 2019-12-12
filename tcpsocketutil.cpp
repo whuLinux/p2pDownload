@@ -719,7 +719,7 @@ bool TCPSocketUtil::recFromFriend(qint32 friendId)
     }
 
     if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toInt()) == TCPCtrlMsgType::AREYOUALIVE) {
-        // 确认存活，评估下载进度
+        qDebug() << "确认存活，评估下载进度" << endl;
         emit tellTaskProcess(friendId);
 
     } else if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toInt()) == TCPCtrlMsgType::ASKFORHELP) {
@@ -728,7 +728,7 @@ bool TCPSocketUtil::recFromFriend(qint32 friendId)
             return false;
         }
 
-        // 获取文件下载的目标地址和总大小
+        qDebug() << "获取文件下载的目标地址和总大小" << endl;
         emit whetherToHelpFriend(friendId, jsonMsg.value(DOWNLOADADDRESS).toString(), qint32(jsonMsg.value(LENMAX).toInt()));
 
     } else if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toInt()) == TCPCtrlMsgType::DOWNLOADTASK) {
@@ -737,7 +737,7 @@ bool TCPSocketUtil::recFromFriend(qint32 friendId)
             return false;
         }
 
-        // 确定具体任务
+        qDebug() << "确定具体任务" << endl;
         emit startToDownload(friendId, qint32(jsonMsg.value(TOKEN).toInt()), qint64(jsonMsg.value(POS).toInt()), qint32(jsonMsg.value(LEN).toInt()));
 
     } else if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toInt()) == TCPCtrlMsgType::ABORTTASK) {
@@ -746,8 +746,8 @@ bool TCPSocketUtil::recFromFriend(qint32 friendId)
             return false;
         }
 
-       // 终止并清除当前下载任务
-       emit abortDownloadTask(friendId, qint32(jsonMsg.value(TOKEN).toInt()));
+        qDebug() << "终止并清除当前下载任务" << endl;
+        emit abortDownloadTask(friendId, qint32(jsonMsg.value(TOKEN).toInt()));
 
     } else if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toInt()) == TCPCtrlMsgType::THANKYOURHELP) {
         if (jsonMsg.value(TOKEN).isUndefined() || jsonMsg.value(INDEX).isUndefined()) {
@@ -755,8 +755,8 @@ bool TCPSocketUtil::recFromFriend(qint32 friendId)
             return false;
         }
 
-       // 本次小块传送结束，伙伴客户端准备传送下一块
-       emit timeForNextSliceForFriend(friendId, qint32(jsonMsg.value(TOKEN).toInt()), qint32(jsonMsg.value(INDEX).toInt()));
+        qDebug() << "本次小块传送结束，伙伴客户端准备传送下一块" << endl;
+        emit timeForNextSliceForFriend(friendId, qint32(jsonMsg.value(TOKEN).toInt()), qint32(jsonMsg.value(INDEX).toInt()));
 
     } else if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toInt()) == TCPCtrlMsgType::ENDYOURHELP) {
         if (jsonMsg.value(TOKEN).isUndefined()) {
@@ -764,7 +764,7 @@ bool TCPSocketUtil::recFromFriend(qint32 friendId)
             return false;
         }
 
-        // 结束任务，伙伴客户端停止传送文件
+        qDebug() << "确定具体任务" << endl;
         emit taskHasFinishedForFriend(friendId, qint32(jsonMsg.value(TOKEN).toInt()));
     }
 
