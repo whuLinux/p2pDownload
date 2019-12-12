@@ -632,15 +632,19 @@ bool TCPSocketUtil::recFromPartner(qint32 partnerId)
         emit timeToInitialTaskForPartner(partnerId);
 
     } else if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toInt()) == TCPCtrlMsgType::ISALIVE) {
-        // 伙伴客户端确认存活
+        qDebug() << "TCPSocketUtil::recFromPartner " << "伙伴客户端确认存活" << endl;
         emit whetherToStopTask(partnerId, jsonMsg.value(RATE).toDouble());
 
     } else if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toInt()) == TCPCtrlMsgType::AGREETOHELP) {
         // 伙伴客户端接受下载协助请求，准备为伙伴客户端分配下载任务
+        qDebug() << "TCPSocketUtil::recFromPartner " << "伙伴客户端确认存活" << endl;
+
         emit timeForFirstTaskForPartner(partnerId);
 
     } else if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toInt()) == TCPCtrlMsgType::REFUSETOHELP) {
         // 伙伴客户端拒绝下载协助请求，动态调整任务分配计划
+        qDebug() << "TCPSocketUtil::recFromPartner " << "伙伴客户端确认存活" << endl;
+
         emit refuseToOfferHelpForPartner(partnerId);
 
     } else if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toInt()) == TCPCtrlMsgType::TASKFINISH) {
@@ -650,7 +654,8 @@ bool TCPSocketUtil::recFromPartner(qint32 partnerId)
         }
 
         qint32 token = qint32(jsonMsg.value(TOKEN).toInt());
-        // 文件传送完成，准备在主机组装
+        qDebug() << "TCPSocketUtil::recFromPartner " << "文件传送完成，准备在主机组装" << endl;
+
         emit timeForNextTaskForPartner(partnerId, token);
 
     } else if (static_cast<TCPCtrlMsgType>(jsonMsg.value(MSGTYPE).toInt()) == TCPCtrlMsgType::TASKFAILURE) {
@@ -660,7 +665,8 @@ bool TCPSocketUtil::recFromPartner(qint32 partnerId)
         }
 
         qint32 token = qint32(jsonMsg.value(TOKEN).toInt());
-        // 文件传送失败，准备重新分配任务或重传
+        qDebug() << "TCPSocketUtil::recFromPartner " << "文件传送失败，准备重新分配任务或重传" << endl;
+
         emit taskFailureForPartner(partnerId, token);
 
     } else {
@@ -787,6 +793,7 @@ bool TCPSocketUtil::sendToFriend(qint32 friendId, CommMsg & msg)
     }
 
     this->guests[friendId]->write(msg.toMsg());
+
     return true;
 }
 
