@@ -76,7 +76,6 @@ void MainFriend::regLocalClients(){
     qDebug()<<"MainFriend::regLocalClients 开启计时器，倒计时10s检查登录"<<endl;
     this->loginTimer=new QTimer();
     this->loginTimer->setSingleShot(true);
-    //TODO: 处理login响应逻辑
     this->loginTimer->start(10000);//给10s登录时间响应
     QObject::connect(this->loginTimer,SIGNAL(timeout()),this,SLOT(checkLoginStatus()));
 
@@ -89,7 +88,7 @@ void MainFriend::logoutLocalClients(){
 }
 
 bool MainFriend::checkLoginStatus(){
-    //TODO:发alert提醒
+    //NOTE:发alert提醒登录成功或失败
 
     //0.1s，等待其他线程接收、更新login状态
     QEventLoop eventloop;
@@ -314,6 +313,12 @@ void MainFriend::downLoadSchedule(){
     bool flag=false;
 
     qDebug()<<"MainFriend::downLoadSchedule 下载Mission调度"<<endl;
+    //debug用
+    for(int i =0;i<this->waitingClients.size();i++){
+        qDebug()<<"MainFriend::downLoadSchedule waiting client>>"<<this->waitingClients[i]->getName()<<"  "
+               <<this->waitingClients[i]->getIP()<<"  "<<this->waitingClients[i]->getId()<<endl;
+    }
+
     if(!mainCtrlUtil::isValidMission(this->myMission)){
         qDebug()<<"ERROR:创建下载失败，mission内容不合法"<<this->myMission.url<<this->myMission.savePath;
         //NOTE:状态变化

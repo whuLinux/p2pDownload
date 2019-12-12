@@ -37,7 +37,7 @@ void MainWindow::on_pushButton_url_clicked()
 
 void MainWindow::on_pushButton_mname_clicked()
 {
-    this->ctrl.local->setMissionName(ui->lineEdit_name->text());
+    this->ctrl.local->setMissionName(ui->lineEdit_mname->text());
 }
 
 
@@ -72,4 +72,9 @@ void MainWindow::on_pushButton_punch_clicked()
 void MainWindow::on_pushButton_logout_clicked()
 {
     this->ctrl.local->logoutLocalClients();
+}
+
+void MainWindow::on_pushButton_downloadstart_clicked()
+{
+    this->ctrl.local->downLoadSchedule();
 }

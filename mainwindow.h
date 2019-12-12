@@ -40,6 +40,8 @@ private slots:
 
     void on_pushButton_logout_clicked();
 
+    void on_pushButton_downloadstart_clicked();
+
 private:
     Ui::MainWindow *ui;
 };
