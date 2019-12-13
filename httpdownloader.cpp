@@ -65,6 +65,7 @@ void HttpDownloader::start() {
                      this,  &HttpDownloader::onReadyRead);
     QObject::connect(reply, &QNetworkReply::finished,
                      this,  &HttpDownloader::onFinished);
+    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(onError(QNetworkReply::NetworkError)));
     QObject::connect(reply, &QNetworkReply::downloadProgress,
                      this,  &HttpDownloader::onDownloadProgress);
 
@@ -79,6 +80,7 @@ void HttpDownloader::onPause() {
                             this,  &HttpDownloader::onReadyRead);
         QObject::disconnect(reply, &QNetworkReply::finished,
                             this,  &HttpDownloader::onFinished);
+        disconnect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(onError(QNetworkReply::NetworkError)));
         QObject::disconnect(reply, &QNetworkReply::downloadProgress,
                             this,  &HttpDownloader::onDownloadProgress);
 
@@ -122,6 +124,11 @@ void HttpDownloader::onFinished() {
     emit finished(index);
 
     this->deleteLater();
+}
+
+void HttpDownloader::onError(QNetworkReply::NetworkError e) {
+
+    qDebug() << "[线程" << index << "] 下载出错：" << e;
 }
 
 void HttpDownloader::onDownloadProgress() {

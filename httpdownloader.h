@@ -4,6 +4,7 @@
 #include <QUrl>
 #include <QFile>
 #include <QObject>
+#include <QNetworkReply>
 #include <QNetworkAccessManager>
 
 /**
@@ -39,6 +40,7 @@ public slots:
 private slots:
     void onReadyRead();
     void onFinished();
+    void onError(QNetworkReply::NetworkError);
     void onDownloadProgress();
 
 private:
