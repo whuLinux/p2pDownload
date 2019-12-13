@@ -35,6 +35,9 @@ private:
     QVector<mainRecord*> taskTable;//进行中的任务分配表
     QVector<historyRecord> historyTable;//历史记录表
 
+    //debug 用
+    bool _pause;
+
 public:
     MainFriend();
     MainFriend(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketUtil,
@@ -112,6 +115,12 @@ public:
     //从工作队列挪到空闲队列
     void work2wait(qint32 clientId);
 
+    //debug用，制造死循环，直到接收debugPause()
+    void _debugLoop(){
+        QObject::connect(this->mainctrlutil,SIGNAL(debugPause(bool)),this,SLOT(_recDebugPause(bool)));
+        this->_pause=true;
+        while(this->_pause);
+    }
 
 
     QString getHostName() const;
@@ -161,6 +170,9 @@ public slots:
 
     //接收文件最终状态信息
     void recMissionValidation(bool success);
+
+    //debug 用，接收debugPause信号
+    void _recDebugPause(bool value){this->_pause=value;}
 
 signals:
     //进行下载调度 唤起下载调度方法

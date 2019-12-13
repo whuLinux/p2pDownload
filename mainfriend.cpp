@@ -31,7 +31,7 @@ MainFriend::MainFriend(UDPSocketUtil *udpSocketUtil,TCPSocketUtil * tcpSocketUti
                        mainCtrlUtil * mainctrlutil,MsgUtil * msgUtil):
     MainRole(udpSocketUtil,tcpSocketUtil,mainctrlutil,msgUtil)
 {
-    this->downloadManager=new DownloadManager();
+    this->downloadManager=new DownloadManager(QUrl("http://www.baidu.com/index.html"));
 
     this->local=new Client(0,"localhost","127.0.0.1",0,0);
     this->local->setPunchSuccess(true);
@@ -175,7 +175,7 @@ bool MainFriend::createMission(QString url,QString savePath,QString missionName)
     }
     else{
         if(savePath==""){
-            qDebug()<<savePath<<"MainFriend::createMission 采用默认路径";
+            qDebug()<<"MainFriend::createMission 采用默认路径"<<savePath<<endl;
             this->downloadManager->setPath(savePath);
         }
         else{
@@ -308,14 +308,15 @@ bool MainFriend::createDownloadReq(){
     blockNum = lastBlockSize > 0 ? blockTnum + 1 : blockTnum;
 
     qDebug()<<"MainFriend::creatDownloadReq  blockNum>>"<<blockNum<<endl;
-    for(qint8 i=1;i<=blockNum;i++){
+    for(int i=1;i<=blockNum;i++){
         //创建任务块
-        blockInfo *temp=new blockInfo();
-        temp->index=i;
+        blockInfo temp;
+        temp.index=i;
         if(i==blockNum)
-            temp->isEndBlock=true;
-        else temp->isEndBlock=false;
-        this->blockQueue.append(*temp);
+            temp.isEndBlock=true;
+        else temp.isEndBlock=false;
+        this->blockQueue.append(temp);
+        qDebug()<<"MainFriend::creatDownloadReq  block index>>"<<temp.index;
     }
 
 
@@ -396,22 +397,26 @@ void MainFriend::assignTaskToLocal(){
         if(tempBlocks.constLast().isEndBlock){
             //如果是最后的块
             len=this->myMission.filesize-pos;
-            qDebug()<<"MainFriend::assignTaskToLocal 最后的块，len=myMission.filesize-pos.即len>>"
+            qDebug()<<"MainFriend::assignTaskToLocal 最后的块 len=myMission.filesize-pos.即len>>"
                       <<len<<" filesize>>"<<myMission.filesize<<" pos>>"<<pos<<endl;
         }
         else{
             len=tempBlocks.size()*this->blockSize;
-            qDebug()<<"MainFriend::assignTaskToLocal task不包含最后的块,len>>"<<len<<endl;
+            qDebug()<<"MainFriend::assignTaskToLocal task不包含最后的块 len>>"<<len<<endl;
         }
         taskName=QString::number(record->getToken())+".tmp";
         this->downloadManager->setName(taskName);
         this->downloadManager->setBegin(pos);
         this->downloadManager->setEnd(pos+len-1);
-        qDebug()<<"MainFriend::assignTaskToLocal 任务开始。taskName>>"<<taskName<<"  起始>>"<<pos
-               <<" 终止>>"<<pos+len-1<<endl;
-        this->downloadManager->start();
+        qDebug()<<"MainFriend::assignTaskToLocal 任务开始 taskName>>"<<this->downloadManager->getName()
+               <<"  起始>>"<<this->downloadManager->getBegin()
+               <<" 终止>>"<<this->downloadManager->getEnd()
+              <<" url>>"<<this->downloadManager->getUrl()<<endl;
         //NOTE:自定义路径功能尚未开发
+        qDebug()<<"MainFriend::assignTaskToLocal connect::taskFinished"<<endl;
         QObject::connect(this->downloadManager,SIGNAL(taskFinished()),this,SLOT(taskEndAsLocal()));
+        this->downloadManager->start();
+        qDebug()<<"MainFriend::assignTaskToLocal downloadManager start"<<endl;
     }
     else{
         qDebug()<<"MainFriend::assignTaskToLoca local下载结束，移入waitingClient，发callDownLoadSchedule"<<endl;
@@ -436,18 +441,21 @@ QVector<blockInfo> MainFriend::getTaskBlocks(quint8 taskNum){
 QVector<mainRecord*> MainFriend::createTaskRecord(QVector<blockInfo> blockLists, qint32 clientId){
     QVector<mainRecord*> recordLists;//block下标不连续时，创建多个任务
     mainRecord *recordP=new mainRecord();
-    blockInfo tempBlock=blockLists.takeFirst();
+    blockInfo tempBlock;
     int counter=1;
     int preBlockId=-100;
     int totalBlocks=blockLists.size();
     qint64 gap=0;//多个任务记录时，每多一个任务，DDL+gap，以防timer同时到期
     qDebug()<<"MainFriend::createTaskRecord 待分配blocks数>>"<<totalBlocks<<endl;
     qDebug()<<"MainFriend::createTaskRecord 创建任务记录列表"<<endl;
+
     while(counter<=totalBlocks){
+        tempBlock=blockLists.takeFirst();
         if(preBlockId+1!=tempBlock.index){
             //block不连续，旧的blocks创建record，入队；创建新record存储block
             if(recordP->getClientId()!=FAKERECORD){
-                qDebug()<<"MainFriend::createTaskRecord record入队列"<<recordP->getRecordID()<<endl;
+                qDebug()<<"MainFriend::createTaskRecord record入队列"<<recordP->getRecordID()
+                       <<" 含blocks数>>"<<recordP->getBlockIds().size()<<endl;
                 recordLists.append(recordP);//先前blocks记录创建
                 gap+=RECORDGAP;
             }
@@ -455,7 +463,7 @@ QVector<mainRecord*> MainFriend::createTaskRecord(QVector<blockInfo> blockLists,
             recordP->setRecordID(this->mainctrlutil->createRecordId());
             recordP->setClientId(clientId);recordP->setToken(this->mainctrlutil->createTokenId());//每个任务创建唯一Id
             qDebug()<<"MainFriend::createTaskRecord 创建新record recordID>>"<<recordP->getRecordID()
-                   <<" 含blocks数>>"<<recordP->getBlockIds().size()<<endl;
+                   <<" token>>"<<recordP->getToken()<<endl;
             recordP->createTimer(DDL+gap,true);//设置计时器并开启
             QObject::connect(recordP,SIGNAL(sendTimeOutToCtrl(qint32)),this,SLOT(checkTimeOutTask(qint32)));
             qDebug()<<"MainFriend::createTaskRecord  connect::sendTimeOutToCtrl 连接计时器"<<endl;
@@ -463,8 +471,8 @@ QVector<mainRecord*> MainFriend::createTaskRecord(QVector<blockInfo> blockLists,
         recordP->addBlockId(tempBlock);
         preBlockId=tempBlock.index;
         counter++;
-        tempBlock=blockLists.takeFirst();
     }
+
 
     //若块一直连续，循环中未能将记录入vector，此处才入
     if(recordP->getClientId()!=FAKERECORD){

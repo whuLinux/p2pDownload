@@ -12,7 +12,7 @@
  */
 struct blockInfo
 {
-    qint8 index;
+    qint32 index;
     bool isEndBlock;//长度末尾非blocksize整数倍，单独处理
 };
 
@@ -57,9 +57,8 @@ struct partnerTask{
 
 
 //TODO: 待改为配置文件
-//单个文件块大小上限
-//TODO: 以什么为单位
-const quint32 MAXBLOCKSIZE=10000;
+//单个文件块大小上限,byte为单位
+const quint32 MAXBLOCKSIZE=10000000;
 //任务下载时长上限,10 minute
 const qint64 DDL=600000;
 //连续两个任务指派时，DDL时间增量，1minute
