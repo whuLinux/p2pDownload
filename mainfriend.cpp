@@ -195,10 +195,7 @@ bool MainFriend::createMission(QString url,QString savePath,QString missionName)
 }
 
 bool MainFriend::initWaitingClients(){
-    //时限内响应的伙伴机，加入队列
-    QTime timer;
     QVector<Client*>::iterator iter;
-    qint8 tempClientsNum=0;
     CommMsg helpMsg=this->msgUtil->createAskForHelpMsg(this->myMission.url,this->myMission.filesize);
     qDebug()<<"MainFriend::initWaitingClients  向partner发送请求"<<endl;
     //for safety,清空先
@@ -216,36 +213,10 @@ bool MainFriend::initWaitingClients(){
 
     qDebug()<<"MainFriend::initWaitingClients 将本地主机 friend加入waitingClients队列"<<this->local->getName()<<endl;
     this->waitingClients.append(this->local);
-
-    //设定时间循环，等待伙伴机请求
-    //NOTE:GUI用户友好，可视化响应请求数量
-    timer.start();
-
-    qDebug()<<"MainFriend::initWaitingClients  当前waiting>>"<<this->waitingClients.size()
-           <<"当前exist:"<<this->existClients.size();
-
-    //existClients中不包含local client，故+1
-    while(this->waitingClients.size()<=this->existClients.size()+1 &&
-          timer.elapsed()<=10000){
-        //未达到伙伴机上限且未达到时间上限，等待
-        if(tempClientsNum<this->waitingClients.size()){
-            //有新同意的伙伴
-            tempClientsNum=this->waitingClients.size();
-            timer.restart();
-        }
-    }
-
     this->clientNum=this->waitingClients.size();
-    if(this->clientNum<=1){
-        //仅有本机
-        qDebug()<<"MainFriend::initWaitingClients  无伙伴机响应";
-        return false;
-    }
-    else{
-        this->status=ClientStatus::DOWNLOADING;
-        qDebug()<<"MainFriend::initWaitingClients  请求成功，当前可供下载clients数量： "<<this->clientNum<<endl;
-        return true;
-    }
+    qDebug()<<"MainFriend::initWaitingClients  当前waiting(包括local主机)>>"<<this->waitingClients.size()
+           <<"  当前existPartners>>"<<this->existClients.size();
+    return true;
 }
 
 void MainFriend::recPunchFromPartner(qint32 partnerId){
@@ -265,19 +236,27 @@ void MainFriend::recPunchFromPartner(qint32 partnerId){
 
 bool MainFriend::partnerAccept(qint32 partnerId){
     //将同意协助的伙伴加入等待分配任务队列
+    bool found=false;
     QVector<Client*>::iterator iter;
     for(iter=this->existClients.begin();iter!=this->existClients.end();iter++){
         if((*iter)->getId()==partnerId){
             (*iter)->attributeTask();//开始任务标记
             (*iter)->setTaskNum(INITTASKNUM);
-            this->workingClients.append(*iter);
+            this->waitingClients.append(*iter);
             qDebug()<<"MainFriend::partnerAccept  伙伴机同意请求 partner>>>>"<<partnerId
                    <<"  "<<(*iter)->getName()<<endl;
-            return true;
+            found = true;break;
         }
     }
-    qDebug()<<"MainFriend::partnerAccept  ERROR!伙伴机不列表中 partnerId>>"<<partnerId<<endl;
-    return false;
+    if(!found){
+        qDebug()<<"MainFriend::partnerAccept  ERROR!伙伴机不列表中 partnerId>>"<<partnerId<<endl;
+        return false;
+    }
+    else{
+        this->clientNum=this->waitingClients.size();
+        qDebug()<<"MainFriend::partnerAccept  partner请求协助成功，当前可供下载clients数量： "<<this->clientNum<<endl;
+        return true;
+    }
 }
 
 bool MainFriend::partnerReject(qint32 partnerId){
@@ -292,8 +271,28 @@ bool MainFriend::createDownloadReq(){
     qint32 lastBlockSize = 0;
 
     qDebug()<<" MainFriend::creatDownloadReq  创建下载任务"<<endl;
-    //寻求伙伴机帮助
-    this->initWaitingClients();
+
+    //执行前检查任务请求正确性
+    if(!mainCtrlUtil::isValidMission(this->myMission)){
+        qDebug()<<"MainFriend::createDownloadReq ERROR!创建下载失败，mission内容不合法"<<this->myMission.url
+               <<this->myMission.savePath;
+        //NOTE:状态变化
+        this->status=ClientStatus::IDLING;
+        return false;
+    }
+
+    if(this->clientNum==1){
+        //仅有本机
+        qDebug()<<"MainFriend::createDownloadReq  无伙伴机响应,进行单机下载";
+    }
+    else if(this->clientNum>1){
+        qDebug()<<"MainFriend::createDownloadReq 当前waitingClients>>"<<this->clientNum<<endl;
+    }
+    else{
+        qDebug()<<"MainFriend::createDownloadReq ERROR! clientNum数量不合法，检查操作流程！"<<this->clientNum<<endl;
+    }
+
+
     //下载任务信息更新
     if(this->myMission.filesize / this->clientNum < MAXBLOCKSIZE){
         this->blockSize=this->myMission.filesize/this->clientNum;
@@ -321,6 +320,9 @@ bool MainFriend::createDownloadReq(){
 
 
     qDebug()<<" MainFriend::creatDownloadReq  划分下载任务块，块数共"<<this->blockQueue.size()<<endl;
+    qDebug()<<"MainFriend::creatDownloadReq 发送callDownloadSchedule 信号"<<endl;
+    this->status=ClientStatus::DOWNLOADING;
+    emit(this->callDownLoadSchedule());
     return true;
 }
 
@@ -328,10 +330,12 @@ void MainFriend::downLoadSchedule(){
 
     qDebug()<<"MainFriend::downLoadSchedule 下载Mission调度"<<endl;
     //debug用
+    qDebug()<<"MainFriend::downLoadSchedule waitingClients数量"<<this->waitingClients.size();
     for(int i =0;i<this->waitingClients.size();i++){
         qDebug()<<"MainFriend::downLoadSchedule waiting client>>"<<this->waitingClients[i]->getName()<<"  "
                <<this->waitingClients[i]->getIP()<<"  "<<this->waitingClients[i]->getId()<<endl;
     }
+    qDebug()<<endl;
 
     qDebug()<<"MainFriend::downLoadSchedule  开始调度"<<endl;
     //检查任务队列
@@ -386,6 +390,7 @@ void MainFriend::assignTaskToLocal(){
         qint64 len;
         QString taskName;
         tempBlocks=record->getBlockIds();
+        qDebug()<<"MainFriend::assignTaskToLocal 当前task共分配blocks>>"<<tempBlocks.size()<<endl;
         //block index从1开始
         pos=(tempBlocks.constFirst().index -1) * this->blockSize;
         if(tempBlocks.constLast().isEndBlock){
@@ -395,8 +400,8 @@ void MainFriend::assignTaskToLocal(){
                       <<len<<" filesize>>"<<myMission.filesize<<" pos>>"<<pos<<endl;
         }
         else{
-            qDebug()<<"MainFriend::assignTaskToLocal task不包含最后的块"<<endl;
             len=tempBlocks.size()*this->blockSize;
+            qDebug()<<"MainFriend::assignTaskToLocal task不包含最后的块,len>>"<<len<<endl;
         }
         taskName=QString::number(record->getToken())+".tmp";
         this->downloadManager->setName(taskName);
@@ -436,6 +441,7 @@ QVector<mainRecord*> MainFriend::createTaskRecord(QVector<blockInfo> blockLists,
     int preBlockId=-100;
     int totalBlocks=blockLists.size();
     qint64 gap=0;//多个任务记录时，每多一个任务，DDL+gap，以防timer同时到期
+    qDebug()<<"MainFriend::createTaskRecord 待分配blocks数>>"<<totalBlocks<<endl;
     qDebug()<<"MainFriend::createTaskRecord 创建任务记录列表"<<endl;
     while(counter<=totalBlocks){
         if(preBlockId+1!=tempBlock.index){
@@ -448,7 +454,8 @@ QVector<mainRecord*> MainFriend::createTaskRecord(QVector<blockInfo> blockLists,
             recordP=new mainRecord();
             recordP->setRecordID(this->mainctrlutil->createRecordId());
             recordP->setClientId(clientId);recordP->setToken(this->mainctrlutil->createTokenId());//每个任务创建唯一Id
-            qDebug()<<"MainFriend::createTaskRecord 创建新record recordID>>"<<recordP->getRecordID()<<" token>>"<<recordP->getToken()<<endl;
+            qDebug()<<"MainFriend::createTaskRecord 创建新record recordID>>"<<recordP->getRecordID()
+                   <<" 含blocks数>>"<<recordP->getBlockIds().size()<<endl;
             recordP->createTimer(DDL+gap,true);//设置计时器并开启
             QObject::connect(recordP,SIGNAL(sendTimeOutToCtrl(qint32)),this,SLOT(checkTimeOutTask(qint32)));
             qDebug()<<"MainFriend::createTaskRecord  connect::sendTimeOutToCtrl 连接计时器"<<endl;
@@ -461,10 +468,11 @@ QVector<mainRecord*> MainFriend::createTaskRecord(QVector<blockInfo> blockLists,
 
     //若块一直连续，循环中未能将记录入vector，此处才入
     if(recordP->getClientId()!=FAKERECORD){
-        qDebug()<<"MainFriend::createTaskRecord 创建最后的record recordID"<<recordP->getRecordID()<<endl;
+        qDebug()<<"MainFriend::createTaskRecord 创建最后的record recordID"<<recordP->getRecordID()
+               <<" 含blocks数>>"<<recordP->getBlockIds().size()<<endl;
         recordLists.append(recordP);//blocks记录创建
     }
-
+    qDebug()<<"MainFriend::createTaskRecord 共计分配task>>"<<recordLists.size()<<endl;
     return  recordLists;
 }
 

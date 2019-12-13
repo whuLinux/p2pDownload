@@ -75,10 +75,9 @@ public:
 
     /**
      * @brief creatDownloadReq 发起下载请求
-     * 请求分如下步骤：
-     * 1. 询问伙伴机
-     * 2. 初始化 hostNum, blockSize
-     * 3. 创建任务块队列
+     * 1. 初始化 hostNum, blockSize
+     * 2. 创建任务块队列
+     * 3. callDownloadSchedule
      * @return
      */
     bool createDownloadReq();
