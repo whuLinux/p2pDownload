@@ -1,3 +1,7 @@
+---
+output: word_document 
+---
+
 # 目录
 
 <nav>
@@ -69,9 +73,9 @@
 
 Github仓库地址：
 
-[p2pDownload](https://github.com/whuLinux/p2pDownload)
+[p2pDownload：https://github.com/whuLinux/p2pDownload](https://github.com/whuLinux/p2pDownload)
 
-[p2pServer](https://github.com/whuLinux/p2pServer)
+[p2pServer：https://github.com/whuLinux/p2pServer](https://github.com/whuLinux/p2pServer)
 
 # 系统组成
 
@@ -120,7 +124,7 @@ Github仓库地址：
 ### 1.2 模块功能概述
 
 `MainCtrl` 作为*P2PDownload*的核心，综合调用着各个工具类，实现下图所示功能。
-![mainctrl functions](/home/azong/Files/GitHub/p2pDownload/resource/主控模块功能.png)
+![mainctrl functions](主控模块功能.png)
 其中，根据user使用软件时的初衷不同，划分为`friend`/`partner`两种角色，分别实现**主动请求、分配下载mission**/**协助friend下载mission**功能。
 
 ### 1.3. 实现细节
@@ -128,7 +132,7 @@ Github仓库地址：
 #### 1.3.1 模块类图
 
 控制调度模块使用的核心类如下图：
-![class](/home/azong/Files/GitHub/p2pDownload/resource/ctrl_class_diagram.png)
+![class](ctrl_class_diagram.png)
 
 > 其中，由于每个类的方法、属性较多，不一一展示。
 
@@ -142,7 +146,7 @@ Github仓库地址：
 3. 由于公网时clients可能在不同的*NAT*后，故此时打洞建立*TCP连接*。
 
 通信时序图如下：
-![seq](/home/azong/Files/GitHub/p2pDownload/resource/login_seq_diagram.png)
+![seq](login_seq_diagram.png)
 
 #### 1.3.3 任务分发
 
@@ -151,7 +155,7 @@ Github仓库地址：
 
 ##### 1.3.3.1 算法流程图
 
-![alg](/home/azong/Files/GitHub/p2pDownload/resource/p2pDownload任务分发算法.png)
+![alg](p2pDownload任务分发算法.png)
 
 ##### 1.3.3.2 相关
 
@@ -200,7 +204,7 @@ blockSize= temp if temp<MAXBLOCKSIZE else MAXBLOCKSIZE
 由于*TCP*单次传输流的长度限制，需要将`task`切分为若干`slice`进行发送。关于`slice`的调度处理由`partner`对象的`sliceAndSent`实现调度。
 
 时序图如下：
-![seq](/home/azong/Files/GitHub/p2pDownload/resource/schedule_seq_diagram.png)
+![seq](schedule_seq_diagram.png)
 
 ### 1.4 UI设计与未来完善
 
@@ -276,7 +280,7 @@ P2P通信子模块实现了协同下载的关键功能，利用伙伴客户端�
 
 ### 3.2 模块总体架构
 
-![架构图](/home/azong/Files/GitHub/p2pDownload/resource/架构图.jpg)
+![架构图](架构图.jpg)
 
 P2P通信子模块由单个服务器和多个客户端组成：
 
@@ -293,7 +297,7 @@ P2P通信子模块由单个服务器和多个客户端组成：
 
 服务器和客户端的通信具有格式简单、交互频率低、报文长度短的特点，因此采用UDP通信协议。  
 
-![UDP通信序列图](/home/azong/Files/GitHub/p2pDownload/resource/UDP通信序列图.jpg)  
+![UDP通信序列图](UDP通信序列图.jpg)  
 
 #### 3.3.1 控制消息
 
@@ -333,7 +337,7 @@ P2P通信子模块由单个服务器和多个客户端组成：
 客户端通信时会建立`TCP长连接`，当且仅当下载任务完成或发送错误时才会断开，并进行善后工作释放资源。  
 客户端在作为朋友角色或伙伴角色、传输普通协调消息和下载文件块时需要建立不同的Socket对象。
 
-![TCP通信序列图](/home/azong/Files/GitHub/p2pDownload/resource/TCP通信序列图.jpg)  
+![TCP通信序列图](TCP通信序列图.jpg)  
 
 #### 3.4.1 朋友角色对应的TCP连接
 
