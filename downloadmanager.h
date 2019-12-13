@@ -7,7 +7,7 @@
 
 const int MAX_THREAD_COUNT = 16;                // 最大线程数
 const int PARTITION_SIZE   = 1024 * 1024 * 5;   // 按 5M 对文件分块
-const int UPDATE_TIME      = 1000 * 3;          // 每过 3s 更新下载速度
+const int UPDATE_INTERVAL  = 1000 * 3;          // 每过 3s 更新下载速度
 
 /**
  * 接收一个下载任务并分配资源进行下载
@@ -20,10 +20,9 @@ class DownloadManager : public QObject {
     Q_OBJECT
 
 public:
-    explicit DownloadManager(QObject *parent = nullptr) : QObject(parent) {}
-    DownloadManager(QUrl url, qint64 begin = -1, qint64 end = -1,
+    DownloadManager(QUrl url = QUrl(""), qint64 begin = -1, qint64 end = -2,
                     QObject *parent = nullptr);
-    ~DownloadManager() { delete [] totalBytesRead; }
+    ~DownloadManager() { delete timer; delete [] totalBytesRead; }
 
 public:
     void start();

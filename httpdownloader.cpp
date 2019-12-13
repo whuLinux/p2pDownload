@@ -49,6 +49,10 @@ HttpDownloader::~HttpDownloader() {
 
 void HttpDownloader::start() {
 
+    if (bytesRead+begin >= end) {
+        onFinished();
+    }
+
     QNetworkRequest request;
     request.setUrl(url);
     request.setRawHeader("Range", QString("bytes=%1-%2")
@@ -108,11 +112,16 @@ void HttpDownloader::onReadyRead() {
 
 void HttpDownloader::onFinished() {
 
-    qDebug() << "[线程" << index << "] 下载完毕\t下载总大小：" << file->size();
+    qDebug() << "[线程" << index << "] 下载完毕";
+    if (file->size() < end - begin + 1) {
+        onReadyRead();
+    }
 
     file->close();
 
     emit finished(index);
+
+    this->deleteLater();
 }
 
 void HttpDownloader::onDownloadProgress() {

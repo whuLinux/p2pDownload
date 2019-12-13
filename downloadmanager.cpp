@@ -24,7 +24,7 @@ DownloadManager::DownloadManager
 void DownloadManager::start() {
 
     /* 开始计时 */
-    timer->start(UPDATE_TIME);
+    timer->start(UPDATE_INTERVAL);
 
     /* 记录下载时间 */
     startTime = QDateTime::currentDateTime().toTime_t();
@@ -37,11 +37,10 @@ void DownloadManager::start() {
     isFromStart = false;
 
     /* 确认起止点及文件大小 */
-    if ((size = end-begin) <= 0 || begin < 0 || end < 0) {
-        qDebug() << "[Manager] size <= 0，将缺省为下载整个文件";
+    if ((size = end-begin+1) <= 0 || begin < 0 || end < 0) {
         size  = getFileSize(url);
         begin = 0;
-        end   = size;
+        end   = size - 1;
     }
 
     /* 确认文件名 */
@@ -97,7 +96,6 @@ void DownloadManager::start() {
         for (int i = 0; i < threadCount; i++) {
             qint64 partBegin = size*i/threadCount + begin;
             qint64 partEnd   = size*(i+1)/threadCount - 1;
-            if (i == threadCount-1) { partEnd++; }
 
             downloader = new HttpDownloader(i+1, url, partBegin, partEnd,
                              dirName, name+".part"+QString::number(i+1), this);
@@ -224,7 +222,7 @@ void DownloadManager::onDownloadProgress(int index, qint64 bytesRead) {
 
 void DownloadManager::updateSpeed() {
 
-    speed = (double)lastTimePartBytesRead / UPDATE_TIME;
+    speed = (double)lastTimePartBytesRead / UPDATE_INTERVAL;
     lastTimePartBytesRead = 0;
 }
 
