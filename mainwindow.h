@@ -42,6 +42,10 @@ private slots:
 
     void on_pushButton_downloadstart_clicked();
 
+    void on_pushButton_debug_pause_clicked();
+
+    void on_pushButton_debug_pause_false_clicked();
+
 private:
     Ui::MainWindow *ui;
 };

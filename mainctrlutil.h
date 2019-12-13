@@ -77,6 +77,10 @@ public:
     //TODO:实现
     static bool isValidMission(mission m);
 
+    //debug用，发送debugPause信号
+    void sendDebugPauseTrue(){emit(debugPause(true));}
+    void sendDebugPauseFalse(){emit(debugPause(false));}
+
 public slots:
     //根据历史纪录表检查下载文件完整性
     bool missionIntegrityCheck( QVector<historyRecord> historyTable,
@@ -85,6 +89,9 @@ public slots:
 signals:
     //下载是否成功信号
     void missionValidation(bool success);
+
+    //debug用，供调试时任意方法连接
+    void debugPause(bool value);
 
 
 };

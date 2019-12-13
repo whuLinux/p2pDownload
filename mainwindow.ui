@@ -125,7 +125,7 @@
      <item row="2" column="0">
       <widget class="QLineEdit" name="lineEdit_URL">
        <property name="text">
-        <string>http://www.bitmover.com/lmbench/lmbench3.tar.gz</string>
+        <string>http://releases.ubuntu.com/18.04.3/ubuntu-18.04.3-desktop-amd64.iso</string>
        </property>
       </widget>
      </item>
@@ -306,9 +306,16 @@
       </widget>
      </item>
      <item row="2" column="0">
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QPushButton" name="pushButton_debug_pause">
        <property name="text">
-        <string>show</string>
+        <string>pause_true</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QPushButton" name="pushButton_debug_pause_false">
+       <property name="text">
+        <string>pause_false</string>
        </property>
       </widget>
      </item>

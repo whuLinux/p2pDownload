@@ -78,3 +78,13 @@ void MainWindow::on_pushButton_downloadstart_clicked()
 {
     this->ctrl.local->createDownloadReq();
 }
+
+void MainWindow::on_pushButton_debug_pause_clicked()
+{
+    this->ctrl.local->mainctrlutil->sendDebugPauseTrue();
+}
+
+void MainWindow::on_pushButton_debug_pause_false_clicked()
+{
+    this->ctrl.local->mainctrlutil->sendDebugPauseFalse();
+}
