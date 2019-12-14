@@ -49,6 +49,9 @@ void mainctrl::signalsConnect(){
     qDebug()<<"connect::callDownLoadSchedule"<<endl;
     QObject::connect(this->local,SIGNAL(callDownLoadSchedule()),this->local,SLOT(downLoadSchedule()));
 
+    //本机downloadmanager新线程下载
+    qDebug()<<"connect::callDownloadManagerStart"<<endl;
+    QObject::connect(this->local,SIGNAL(callDownloadManagerStart()),this->local,SLOT(downloadManagerStart()));
     //TASKEXECUING 接收伙伴机文件
     qDebug()<<"connect::timeForNextSliceForPartner"<<endl;
     QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextSliceForPartner(qint32,qint32,qint32)),this->local,SLOT(recPartnerSlice(qint32,qint32,qint32)));

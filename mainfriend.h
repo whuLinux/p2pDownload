@@ -164,6 +164,9 @@ public slots:
     //分配任务给本机，执行下载
     void assignTaskToLocal();
 
+    //接收信号，调用downloadmanager.start
+    void downloadManagerStart();
+
     //本地主机完成1个task，在taskTable、localRecordList中删除记录，
     //并且发callAssignTaskToLocal开始后续可能的下载任务
     void taskEndAsLocal();
@@ -175,6 +178,9 @@ public slots:
     void _recDebugPause(bool value){this->_pause=value;}
 
 signals:
+    //唤起local的downloadmanager，start download，开启新线程
+    void callDownloadManagerStart();
+
     //进行下载调度 唤起下载调度方法
     void callDownLoadSchedule();
 

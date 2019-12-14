@@ -380,6 +380,9 @@ void MainFriend::downLoadSchedule(){
         qDebug()<<"MainFriend::downLoadSchedule partner 发送信号给自己，继续分配"<<endl;
         emit(this->callDownLoadSchedule());
     }
+    else{
+        qDebug()<<"MainFriend::downLoadSchedule 暂无可用资源"<<endl;
+    }
 }
 
 void MainFriend::assignTaskToLocal(){
@@ -415,14 +418,21 @@ void MainFriend::assignTaskToLocal(){
         //NOTE:自定义路径功能尚未开发
         qDebug()<<"MainFriend::assignTaskToLocal connect::taskFinished"<<endl;
         QObject::connect(this->downloadManager,SIGNAL(taskFinished()),this,SLOT(taskEndAsLocal()));
-        this->downloadManager->start();
-        qDebug()<<"MainFriend::assignTaskToLocal downloadManager start"<<endl;
+//        this->downloadManager->start();
+        //发信号唤起下载
+        emit(this->callDownloadManagerStart());
+//        qDebug()<<"MainFriend::assignTaskToLocal downloadManager start"<<endl;
     }
     else{
         qDebug()<<"MainFriend::assignTaskToLoca local下载结束，移入waitingClient，发callDownLoadSchedule"<<endl;
         this->work2wait(this->local->getId());
         emit(this->callDownLoadSchedule());
     }
+}
+
+void MainFriend::downloadManagerStart(){
+    qDebug()<<"MainFriend::downloadManagerStart downloadManager start"<<endl;
+    this->downloadManager->start();
 }
 
 QVector<blockInfo> MainFriend::getTaskBlocks(quint8 taskNum){
