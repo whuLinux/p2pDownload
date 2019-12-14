@@ -316,7 +316,7 @@ bool MainFriend::createDownloadReq(){
             temp.isEndBlock=true;
         else temp.isEndBlock=false;
         this->blockQueue.append(temp);
-        qDebug()<<"MainFriend::creatDownloadReq  block index>>"<<temp.index;
+//        qDebug()<<"MainFriend::creatDownloadReq  block index>>"<<temp.index;
     }
 
 

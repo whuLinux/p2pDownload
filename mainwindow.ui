@@ -125,7 +125,7 @@
      <item row="2" column="0">
       <widget class="QLineEdit" name="lineEdit_URL">
        <property name="text">
-        <string>http://releases.ubuntu.com/18.04.3/ubuntu-18.04.3-desktop-amd64.iso</string>
+        <string>http://download.skycn.com/hao123-soft-online-bcs/soft/I/2015-08-03_IQIYIsetup_spl004@kb029.exe</string>
        </property>
       </widget>
      </item>
