@@ -701,12 +701,18 @@ void MainFriend::work2wait(qint32 clientId){
 }
 
 void MainFriend::taskEndAsLocal(){
-    mainRecord *record=this->localRecordLists.takeFirst();
-    qDebug()<<"MainFriend::taskEndAsLocal  local完成任务"<<record->getToken();
-    this->taskEndConfig(record->getClientId(),record->getToken());//任务表中删除记录
-    //唤起本地下载任务分配，检查是否还有下载任务
-    emit(this->callAssignTaskToLocal());
-    delete record;
+    qDebug()<<"MainFriend::taskEndAsLocal "<<endl;
+    if(!this->localRecordLists.isEmpty()){
+        mainRecord *record=this->localRecordLists.takeFirst();
+        qDebug()<<"MainFriend::taskEndAsLocal  local完成任务"<<record->getToken();
+        this->taskEndConfig(record->getClientId(),record->getToken());//任务表中删除记录
+        //唤起本地下载任务分配，检查是否还有下载任务
+        emit(this->callAssignTaskToLocal());
+        delete record;
+    }
+    else{
+        qDebug()<<"MainFriend::taskEndAsLocal ERROR!localRecordLists空！无法找到已完成任务！"<<endl;
+    }
 }
 
 void MainFriend::taskEndConfig(qint32 clientId,qint32 token){

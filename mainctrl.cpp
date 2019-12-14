@@ -52,6 +52,7 @@ void mainctrl::signalsConnect(){
     //本机downloadmanager新线程下载
     qDebug()<<"connect::callDownloadManagerStart"<<endl;
     QObject::connect(this->local,SIGNAL(callDownloadManagerStart()),this->local,SLOT(downloadManagerStart()));
+
     //TASKEXECUING 接收伙伴机文件
     qDebug()<<"connect::timeForNextSliceForPartner"<<endl;
     QObject::connect(this->tcpSocketUtil,SIGNAL(timeForNextSliceForPartner(qint32,qint32,qint32)),this->local,SLOT(recPartnerSlice(qint32,qint32,qint32)));
@@ -68,9 +69,10 @@ void mainctrl::signalsConnect(){
     qDebug()<<"connect::whetherToStopTask"<<endl;
     QObject::connect(this->tcpSocketUtil,SIGNAL(whetherToStopTask(qint32,double)),this->local,SLOT(recPartnerProgress(qint32,double)));
 
+    //deprecated: 由downloadmanager发出的信号代替
     //本地下载完成
-    qDebug()<<"connect::callTaskEndAsLocal"<<endl;
-    QObject::connect(this->local,SIGNAL(callTaskEndAsLocal()),this->local,SLOT(taskEndAsLocal()));
+//    qDebug()<<"connect::callTaskEndAsLocal"<<endl;
+//    QObject::connect(this->local,SIGNAL(callTaskEndAsLocal()),this->local,SLOT(taskEndAsLocal()));
 
     //全部下载完成,校验完整性
     qDebug()<<"connect::callMissionIntegrityCheck"<<endl;
