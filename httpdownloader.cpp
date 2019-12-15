@@ -38,19 +38,11 @@ HttpDownloader::HttpDownloader(int index, QUrl url, qint64 begin, qint64 end,
     }
 }
 
-HttpDownloader::~HttpDownloader() {
-
-    delete manager;
-    delete reply;
-
-    file->close();
-    delete file;
-}
-
 void HttpDownloader::start() {
 
     if (bytesRead+begin >= end) {
         onFinished();
+        return;
     }
 
     QNetworkRequest request;
@@ -65,7 +57,8 @@ void HttpDownloader::start() {
                      this,  &HttpDownloader::onReadyRead);
     QObject::connect(reply, &QNetworkReply::finished,
                      this,  &HttpDownloader::onFinished);
-    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(onError(QNetworkReply::NetworkError)));
+    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)),
+            this,  SLOT(onError(QNetworkReply::NetworkError)));
     QObject::connect(reply, &QNetworkReply::downloadProgress,
                      this,  &HttpDownloader::onDownloadProgress);
 
@@ -80,7 +73,8 @@ void HttpDownloader::onPause() {
                             this,  &HttpDownloader::onReadyRead);
         QObject::disconnect(reply, &QNetworkReply::finished,
                             this,  &HttpDownloader::onFinished);
-        disconnect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(onError(QNetworkReply::NetworkError)));
+        disconnect(reply, SIGNAL(error(QNetworkReply::NetworkError)),
+                   this,  SLOT(onError(QNetworkReply::NetworkError)));
         QObject::disconnect(reply, &QNetworkReply::downloadProgress,
                             this,  &HttpDownloader::onDownloadProgress);
 
@@ -89,19 +83,17 @@ void HttpDownloader::onPause() {
         reply = nullptr;
     }
 
-    bytesRead = file->size();
-
     qDebug() << "[线程" << index << "] 暂停下载";
 }
 
 void HttpDownloader::onContinue() {
 
+    bytesRead = file->size();
     start();
 }
 
 void HttpDownloader::onAbort() {
 
-    file->close();
     this->deleteLater();
 }
 
@@ -114,16 +106,14 @@ void HttpDownloader::onReadyRead() {
 
 void HttpDownloader::onFinished() {
 
-    qDebug() << "[线程" << index << "] 下载完毕";
-    if (file->size() < end - begin + 1) {
-        onReadyRead();
-    }
+    qDebug() << "[线程" << index << "] 下载完毕，下载文件大小：" << file->size();
+    if (file->size() < end - begin + 1)
+        qDebug() << "[线程" << index << "]" << "未能下载完整";
 
-    file->close();
+    delete file;
+    file = nullptr;
 
-    emit finished(index);
-
-    this->deleteLater();
+    emit finished();
 }
 
 void HttpDownloader::onError(QNetworkReply::NetworkError e) {

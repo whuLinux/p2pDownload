@@ -36,6 +36,8 @@ void DownloadManager::start() {
     /* 初次运行时将 isFromStart 置为 false，以后再调用此函数则为断点续传 */
     isFromStart = false;
 
+    qDebug() << "[Download Manager] 开始下载";
+
     /* 确认起止点及文件大小 */
     if ((size = end-begin+1) <= 0 || begin < 0 || end < 0) {
         size  = getFileSize(url);
@@ -53,35 +55,42 @@ void DownloadManager::start() {
         path = "";
     }
 
+    qDebug() << "[Download Manager] 文件名：" << name << "，下载路径：" << path
+             << "文件大小：" << size << "[" << begin << "," << end << "]";
+
     /* 确认分配线程数 */
     threadCount = (size > PARTITION_SIZE * MAX_THREAD_COUNT) ?
                   (MAX_THREAD_COUNT) : (size/PARTITION_SIZE + 1);
 
+    qDebug() << "[Download Manager] 分配" << threadCount << "个线程下载";
+
     /* 创建临时文件夹 */
     QDir dir;
-    QString dirName = path + name + "/";
+    QString dirName = path + name + ".download/";
     if (!dir.exists(dirName)) {
         dir.mkpath(dirName);
-        if (!dir.exists(dirName)) {
-            qDebug() << "[Manager] 已创建临时文件夹：" << dirName;
+        if (dir.exists(dirName)) {
+            qDebug() << "[Download Manager] 已创建临时文件夹：" << dirName;
+        } else {
+            qDebug() << "[Download Manager] 无法创建临时文件夹，下载失败";
+            return;
         }
     }
-
-    qDebug() << "[Manager] 开始下载，文件总大小: " << size;
 
     /* 创建线程 */
     HttpDownloader *downloader;
 
-    if (threadCount == 1) {
+    for (int i = 0; i < threadCount; i++) {
+        qint64 partBegin = size * i / threadCount + begin;
+        qint64 partEnd   = size * (i+1) / threadCount + begin - 1;
 
-        downloader = new HttpDownloader(1, url, begin, end,
-                                        dirName, name, this);
-        downloader->start();
+        downloader = new HttpDownloader(i+1, url, partBegin, partEnd,
+                         path+name+".download/", name+".part"+QString::number(i+1), this);
 
-        QObject::connect(downloader, &HttpDownloader::finished,
-                         downloader, &HttpDownloader::deleteLater);
         QObject::connect(downloader, &HttpDownloader::finished,
                          this,       &DownloadManager::onFinished);
+        QObject::connect(downloader, &HttpDownloader::finished,
+                         downloader, &HttpDownloader::deleteLater);
         QObject::connect(this,       &DownloadManager::pauseDownload,
                          downloader, &HttpDownloader::onPause);
         QObject::connect(this,       &DownloadManager::continueDownload,
@@ -91,29 +100,7 @@ void DownloadManager::start() {
         QObject::connect(downloader, &HttpDownloader::downloadProgress,
                          this,       &DownloadManager::onDownloadProgress);
 
-    } else {
-
-        for (int i = 0; i < threadCount; i++) {
-            qint64 partBegin = size*i/threadCount + begin;
-            qint64 partEnd   = size*(i+1)/threadCount - 1;
-
-            downloader = new HttpDownloader(i+1, url, partBegin, partEnd,
-                             dirName, name+".part"+QString::number(i+1), this);
-            downloader->start();
-
-            QObject::connect(downloader, &HttpDownloader::finished,
-                             downloader, &HttpDownloader::deleteLater);
-            QObject::connect(downloader, &HttpDownloader::finished,
-                             this,       &DownloadManager::onFinished);
-            QObject::connect(this,       &DownloadManager::pauseDownload,
-                             downloader, &HttpDownloader::onPause);
-            QObject::connect(this,       &DownloadManager::continueDownload,
-                             downloader, &HttpDownloader::onContinue);
-            QObject::connect(this,       &DownloadManager::abortDownload,
-                             downloader, &HttpDownloader::onAbort);
-            QObject::connect(downloader, &HttpDownloader::downloadProgress,
-                             this,       &DownloadManager::onDownloadProgress);
-        }
+        downloader->start();
     }
 
     totalBytesRead = new qint64[threadCount];
@@ -132,29 +119,23 @@ void DownloadManager::pause() {
 
 bool DownloadManager::abort() {
 
-    qDebug() << "[Manager] 终止任务中...";
+    qDebug() << "[Download Manager] 终止任务中...";
 
     pause();
     emit abortDownload();
 
-    qDebug() << "\t[Manager] 删除分块文件中...";
-    if (threadCount == 1) {
-        QFile::remove(path+name+"/"+name);
-    } else if (threadCount > 1) {
-        for (int i = 0; i < threadCount; i++) {
-            QFile::remove(path+name+"/"+name+".part"+QString::number(i+1));
-        }
+    qDebug() << "[Download Manager] \t删除分块文件中...";
+    for (int i = 0; i < threadCount; i++) {
+        QFile::remove(path+"download_"+name+"/"+name+".part"+QString::number(i+1));
     }
 
-    qDebug() << "\t[Manager] 删除临时文件夹中...";
+    qDebug() << "[Download Manager] \t删除临时文件夹中...";
     QDir dir;
-    if (!dir.rmdir(path+"."+name+"/")) {
-        qDebug() << "\t[Manager] 未能删除临时文件夹";
-        qDebug() << "[Manager] 任务终止失败";
-        return false;
+    if (!dir.rmdir(path+"download_"+name+"/")) {
+        qDebug() << "[Download Manager] \t未能删除临时文件夹";
     }
 
-    qDebug() << "[Manager] 任务已终止";
+    qDebug() << "[Download Manager] 任务已终止";
     this->deleteLater();
 
     return true;
@@ -232,41 +213,36 @@ void DownloadManager::finished() {
     speed = 0;
     progress = 1;
 
-    if (threadCount != 1) {
-        QFile outFile(path+name);
-        outFile.open(QIODevice::WriteOnly | QIODevice::Append);
+    QFile outFile(path+name);
+    outFile.open(QIODevice::WriteOnly | QIODevice::Append);
 
-        QFile *partFile;
-        for (int i = 0; i < threadCount; i++) {
-            qDebug() << "[Manager] 正在合并分块文件" << i+1;
+    QFile *partFile;
+    for (int i = 0; i < threadCount; i++) {
+        qDebug() << "[Download Manager] 正在合并分块文件" << i+1;
 
-            partFile = new QFile(path+name+"/"+name+
-                                 ".part"+QString::number(i+1));
-            partFile->open(QIODevice::ReadWrite);
-
-            outFile.write(partFile->readAll());
-
-            partFile->close();
-            delete partFile;
-
-            QFile::remove(path+name+"/"+name+
-                          ".part"+QString::number(i+1));
-        }
-    } else {
-        QFile outFile(path+name);
-        outFile.open(QIODevice::WriteOnly | QIODevice::Append);
-        QFile *partFile = new QFile(path+name+"/"+name);
+        partFile = new QFile(path+name+".download/"
+                             +name+".part"+QString::number(i+1));
+        qDebug() << "[Download Manager] 打开分块文件" << partFile->fileName();
         partFile->open(QIODevice::ReadWrite);
+
         outFile.write(partFile->readAll());
+
         partFile->close();
         delete partFile;
-        QFile::remove(path+name+"/"+name);
+        partFile = nullptr;
+
+        if (!QFile::remove(path+name+".download/"
+                      +name+".part"+QString::number(i+1))) {
+            qDebug() << "[Download Manager] 未能删除分块文件" << i+1;
+        }
     }
 
     QDir dir;
-    if (!dir.rmdir(path+"."+name+"/")) {
-        qDebug() << "[Manager] 未能删除空文件夹";
+    if (!dir.rmdir(path+name+".download/")) {
+        qDebug() << "[Download Manager] 未能删除临时文件夹" << path+name+".download/";
     }
+
+    qDebug() << "[Download Manager] 文件合并完成";
 
     emit taskFinished();
 }

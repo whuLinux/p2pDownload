@@ -23,13 +23,12 @@ public:
     explicit HttpDownloader(QObject *parent = nullptr) : QObject(parent) {}
     HttpDownloader(int, QUrl, qint64, qint64,
                    QString, QString, QObject *parent = nullptr);
-    ~HttpDownloader();
 
 public:
     void start();
 
 signals:
-    void finished(int index);                               // 下载完毕，发出通知
+    void finished();                                     // 下载完毕，发出通知
     void downloadProgress(int index, qint64 bytesRead);     // 更新下载进度
 
 public slots:
