@@ -244,5 +244,28 @@ void DownloadManager::finished() {
 
     qDebug() << "[Download Manager] 文件合并完成";
 
+    qDebug() << "[Download Manager] 本次下载任务完毕";
+
+    initialize();
     emit taskFinished();
+}
+
+void DownloadManager::initialize() {
+
+    begin = -1;
+    end   = -2;
+    size  = 0;
+    url   = nullptr;
+    path  = nullptr;
+    name  = nullptr;
+
+    threadCount = 0;
+    finishedThreadCount = 0;
+    isFromStart = true;
+    delete [] totalBytesRead;
+    lastTimePartBytesRead = 0;
+    speed     = 0;
+    startTime = 0;
+    totalTime = 0;
+    progress  = 0;
 }
