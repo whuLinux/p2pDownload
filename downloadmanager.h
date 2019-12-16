@@ -67,6 +67,7 @@ private slots:
 
 private:
     void finished();
+    void initialize();
 
 private:
     QUrl    url;
