@@ -4,6 +4,7 @@
 #include<qvector.h>
 #include<qstring.h>
 #include<QTimer>
+#include<QDebug>
 #include"mainctrlmacro.h"
 /**
  * @brief The mainRecord class
@@ -23,6 +24,7 @@ private:
 
 public:
     mainRecord();
+    mainRecord(const mainRecord &obj);//拷贝构造函数
     mainRecord(qint8 recordid,qint32 clientId,qint32 token);
 
     qint8 getRecordID() const;

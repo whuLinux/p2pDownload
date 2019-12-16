@@ -48,6 +48,16 @@ mainRecord::mainRecord()
     //    this->blockIds=QVector<qint8>();//空向量
 }
 
+mainRecord::mainRecord(const mainRecord &obj){
+    qDebug()<<"mainRecord::mainRecord 拷贝构造函数。 不拷贝timer"<<endl;
+    this->recordID=obj.recordID;
+    this->clientId=obj.clientId;
+    this->token=obj.token;
+    this->timer=nullptr;//NOTE 不拷贝timer！
+    QVector<blockInfo> blockTemp(obj.blockIds);
+    this->blockIds.swap(blockTemp);
+}
+
 mainRecord::mainRecord(qint8 recordid,qint32 clientId,qint32 token)
 {
     this->recordID=recordid;
