@@ -553,11 +553,13 @@ void MainFriend::assignTaskToPartner(qint32 partnerID,QVector<mainRecord*> recor
         pos=tempBlocks.constFirst().index * this->blockSize;//下载起始地址
         if(tempBlocks.constLast().isEndBlock){
             //如果是最后的块
+            qDebug()<<"MainFriend::assignTaskToPartner  task包含最后的块"<<(*iter)->getToken()<<endl;
             len=this->myMission.filesize-pos;
         }
         else{
             len=tempBlocks.size()*this->blockSize;
         }
+        qDebug()<<"MainFriend::assignTaskToPartner  task pos>>"<<pos<<" len>>"<<len<<endl;
         CommMsg msg=this->msgUtil->createDownloadTaskMsg((*iter)->getToken(),pos,len);
         this->tcpSocketUtil->sendToPartner(partnerID,msg);
         qDebug()<<"MainFriend::assignTaskToPartner  发createDownloadTaskMsg. partnerId>> "<<partnerID<<endl;
