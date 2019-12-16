@@ -159,7 +159,8 @@ public slots:
     void recPartnerProgress(qint32 partnerId,double progress);
 
     //从任务表中删除记录，确认任务完成，将Partner转移至空闲队列
-    void taskEndConfig(qint32 clientId,qint32 token);
+    //返回true则该client仍有task待下载，无task时返回false并发callDownLoadSchedule
+    bool taskEndConfig(qint32 clientId,qint32 token);
 
     //分配任务给本机，执行下载
     void assignTaskToLocal();
