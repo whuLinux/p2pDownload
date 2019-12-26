@@ -339,7 +339,7 @@ void MainFriend::downLoadSchedule(){
     qDebug()<<endl;
 
     qDebug()<<"MainFriend::downLoadSchedule  开始调度"<<endl;
-    //检查任务队列
+//    检查任务队列
     if(this->blockQueue.isEmpty()){
         if(this->taskTable.isEmpty()){
             qDebug()<<"MainFriend::downLoadSchedule "<<"任务完成，等待拼接、检查数据"<<endl;
@@ -351,6 +351,7 @@ void MainFriend::downLoadSchedule(){
         if(!this->waitingClients.isEmpty()){
             qDebug()<<"MainFriend::downLoadSchedule 空闲主机队列不空 分配任务"<<endl;
             QVector<mainRecord*> recordLists;//block下标不连续时，创建多个任务
+            mainRecord *tempRecord=nullptr;
             Client *client=this->waitingClients.dequeue();
             QVector<blockInfo> taskBlockLists=this->getTaskBlocks(client->getTaskNum());//按照client能力去对应个数的block
             recordLists=this->createTaskRecord(taskBlockLists,client->getId());
@@ -358,8 +359,11 @@ void MainFriend::downLoadSchedule(){
             if(client->getId()==0 ||client->getIP()=="127.0.0.1"||client->getName()=="localhost"){
                 //为本地机，执行本地下载任务
                 qDebug()<<"MainFriend::downLoadSchedule local client空闲，分配任务"<<endl;
-                this->downloadManager->setUrl(this->myMission.url);
-                this->localRecordLists=recordLists;
+                //浅复制recordlist
+                for(int i=0;i<recordLists.size();i++){
+                    tempRecord=new mainRecord(*recordLists[i]);
+                    this->localRecordLists.append(tempRecord);
+                }
                 this->status=ClientStatus::DOWNLOADING;
                 //发信号让本地执行下载
                 qDebug()<<"MainFriend::downLoadSchedule 发信号执行本地下载"<<endl;
@@ -371,7 +375,7 @@ void MainFriend::downLoadSchedule(){
                        <<client->getName()<<endl;
                 this->assignTaskToPartner(client->getId(),recordLists);
             }
-            this->addToTaskTable(recordLists);
+            this->addToTaskTable(recordLists);//登记到全局task表
             this->workingClients.append(client);//加入工作状态
         }
     }
@@ -411,17 +415,21 @@ void MainFriend::assignTaskToLocal(){
         this->downloadManager->setName(taskName);
         this->downloadManager->setBegin(pos);
         this->downloadManager->setEnd(pos+len-1);
+        if(this->downloadManager->getUrl().toString()==""){
+            qDebug()<<"MainFriend::assignTaskToLocal downloadManager set URL>>"<<this->myMission.url<<endl;
+            this->downloadManager->setUrl(this->myMission.url);
+        }
         qDebug()<<"MainFriend::assignTaskToLocal 任务开始 taskName>>"<<this->downloadManager->getName()
                <<"  起始>>"<<this->downloadManager->getBegin()
                <<" 终止>>"<<this->downloadManager->getEnd()
               <<" url>>"<<this->downloadManager->getUrl()<<endl;
-        //NOTE:自定义路径功能尚未开发
         qDebug()<<"MainFriend::assignTaskToLocal connect::taskFinished"<<endl;
         QObject::connect(this->downloadManager,SIGNAL(taskFinished()),this,SLOT(taskEndAsLocal()));
-//        this->downloadManager->start();
         //发信号唤起下载
-        emit(this->callDownloadManagerStart());
-//        qDebug()<<"MainFriend::assignTaskToLocal downloadManager start"<<endl;
+//        emit(this->callDownloadManagerStart());
+//        qDebug()<<"MainFriend::assignTaskToLocal 发送downloadManager 信号   "<<endl;
+        qDebug()<<"MainFriend::assignTaskToLocal downloadManager 开始下载   "<<endl;
+        this->downloadManager->start();
     }
     else{
         qDebug()<<"MainFriend::assignTaskToLoca local下载结束，移入waitingClient，发callDownLoadSchedule"<<endl;
@@ -474,6 +482,7 @@ QVector<mainRecord*> MainFriend::createTaskRecord(QVector<blockInfo> blockLists,
             recordP->setClientId(clientId);recordP->setToken(this->mainctrlutil->createTokenId());//每个任务创建唯一Id
             qDebug()<<"MainFriend::createTaskRecord 创建新record recordID>>"<<recordP->getRecordID()
                    <<" token>>"<<recordP->getToken()<<endl;
+            qDebug()<<"MainFriend::createTaskRecord 开启任务定时器"<<endl;
             recordP->createTimer(DDL+gap,true);//设置计时器并开启
             QObject::connect(recordP,SIGNAL(sendTimeOutToCtrl(qint32)),this,SLOT(checkTimeOutTask(qint32)));
             qDebug()<<"MainFriend::createTaskRecord  connect::sendTimeOutToCtrl 连接计时器"<<endl;
@@ -497,6 +506,7 @@ QVector<mainRecord*> MainFriend::createTaskRecord(QVector<blockInfo> blockLists,
 void MainFriend::addToTaskTable(QVector<mainRecord*> recordLists){
     qDebug()<<"MainFriend::addToTaskTable 将recordLists加入taskTable"<<endl;
     while(!recordLists.isEmpty()){
+        qDebug()<<"MainFriend::addToTaskTable 不空，取record加入taskTable"<<endl;
         this->taskTable.append(recordLists.takeFirst());
     }
 }
@@ -510,20 +520,20 @@ void MainFriend::deleteFromTaskTable(qint32 clientID,qint32 token){
     for(iter=this->taskTable.begin();iter!=taskTable.end();){
         if((*iter)->getClientId()==clientID && (*iter)->getToken()==token){
             //插入历史记录表
-            historyRecord *hRecord=new historyRecord();
-            hRecord->token=(*iter)->getToken();
-            hRecord->recordID=(*iter)->getRecordID();
-            hRecord->clientID=(*iter)->getClientId();
+            historyRecord hRecord;
+            hRecord.token=(*iter)->getToken();
+            hRecord.recordID=(*iter)->getRecordID();
+            hRecord.clientID=(*iter)->getClientId();
             tempBlocks=(*iter)->getBlockIds();
             for(int i=0;i<tempBlocks.size();i++){
                 tempBlock=new blockInfo(tempBlocks[i]);
-                hRecord->blockId.append(*tempBlock); //复制块信息到历史记录中保存
+                hRecord.blockId.append(*tempBlock); //复制块信息到历史记录中保存
             }
-            qDebug()<<"MainFriend::deleteFromTaskTablePartner  删除任务记录：token>>"<<hRecord->token
-                   <<" | clientID>>"<<hRecord->clientID<<endl;
+            qDebug()<<"MainFriend::deleteFromTaskTablePartner  删除任务记录：token>>"<<hRecord.token
+                   <<" | clientID>>"<<hRecord.clientID<<endl;
             iter=this->taskTable.erase(iter);//销毁记录，取下一个iter指针
             //入历史记录
-            this->addToHistoryTable(*hRecord);
+            this->addToHistoryTable(hRecord);
             found=true;break;
         }
         else{
@@ -705,19 +715,31 @@ void MainFriend::work2wait(qint32 clientId){
 void MainFriend::taskEndAsLocal(){
     qDebug()<<"MainFriend::taskEndAsLocal "<<endl;
     if(!this->localRecordLists.isEmpty()){
+        qDebug()<<"MainFriend::taskEndAsLocal localRecordLists非空"<<endl;
+        bool hastask=false;
         mainRecord *record=this->localRecordLists.takeFirst();
         qDebug()<<"MainFriend::taskEndAsLocal  local完成任务"<<record->getToken();
-        this->taskEndConfig(record->getClientId(),record->getToken());//任务表中删除记录
-        //唤起本地下载任务分配，检查是否还有下载任务
-        emit(this->callAssignTaskToLocal());
-        delete record;
+        //尝试用 重新new downloadmanager的方式来debug
+//        if(this->downloadManager!=nullptr){
+//            qDebug()<<"MainFriend::taskEndAsLocal 重新创建downloadmanager"<<endl;
+//
+//            delete this->downloadManager;
+//            this->downloadManager = nullptr;
+//            this->downloadManager=new DownloadManager();
+//        }
+//        qDebug() << "before";
+        hastask=this->taskEndConfig(record->getClientId(),record->getToken());//任务表中删除记录
+        if(hastask){
+            qDebug()<<"唤起本地下载任务分配，执行剩余下载任务"<<endl;
+            emit(this->callAssignTaskToLocal());
+        }
     }
     else{
         qDebug()<<"MainFriend::taskEndAsLocal ERROR!localRecordLists空！无法找到已完成任务！"<<endl;
     }
 }
 
-void MainFriend::taskEndConfig(qint32 clientId,qint32 token){
+bool MainFriend::taskEndConfig(qint32 clientId,qint32 token){
     //NOTE：完整性检查，出错重发
     bool found=false;
     qDebug()<<"MainFriend::taskEndConfig 任务状态更新"<<endl;
@@ -725,7 +747,7 @@ void MainFriend::taskEndConfig(qint32 clientId,qint32 token){
     //伙伴状态更新
     for(int i=0;i<this->taskTable.size();i++){
         if(this->taskTable[i]->getClientId()==clientId){
-            //仍有下载任务
+            //仍有下载任务,返回让原local/partner内部调度继续下载
             qDebug()<<"MainFriend::taskEndConfig  仍有下载任务，client不空闲。 client>> "<<clientId<<endl;
             found=true;break;
         }
@@ -737,6 +759,7 @@ void MainFriend::taskEndConfig(qint32 clientId,qint32 token){
         qDebug()<<"MainFriend::taskEndConfig 发送callDownLoadSchedule"<<endl;
         emit(this->callDownLoadSchedule());
     }
+    return found;
 }
 
 void MainFriend::recMissionValidation(bool success){
