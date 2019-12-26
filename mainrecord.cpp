@@ -65,6 +65,13 @@ mainRecord::mainRecord(qint8 recordid,qint32 clientId,qint32 token)
     this->token=token;
 }
 
+mainRecord::~mainRecord(){
+    qDebug()<<"mainRecord::~mainRecord 析构"<<endl;
+    if(this->timer!=nullptr){
+        delete this->timer;
+    }
+}
+
 void mainRecord::createTimer(qint64 gap, bool isSingle){
     this->timer=new QTimer();
     this->timer->setSingleShot(isSingle);

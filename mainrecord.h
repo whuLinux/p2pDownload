@@ -26,6 +26,7 @@ public:
     mainRecord();
     mainRecord(const mainRecord &obj);//拷贝构造函数
     mainRecord(qint8 recordid,qint32 clientId,qint32 token);
+    ~mainRecord();
 
     qint8 getRecordID() const;
     void setRecordID(const qint8 &value);
